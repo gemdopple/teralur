@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Teralur
 
-## Getting Started
+**Transparansi Proyek Publik** — photograph a public-project signboard; Teralur extracts its
+fields, matches them against official procurement records, and shows an evidence dossier.
 
-First, run the development server:
+This repository is the Day-0 starter: scaffold, config, database migration, pure matching
+logic with tests, and a smoke-test route. No product features yet.
+
+## Stack
+
+Next.js (App Router) + TypeScript + Tailwind + shadcn/ui (Base UI) · Supabase Postgres ·
+deployed on Vercel. Package manager: npm.
+
+## Run locally
+
+1. Install dependencies: `npm install`
+2. Copy `.env.example` to `.env.local` and fill in the values. Never commit `.env.local`
+   and never print or log secret values.
+3. `npm run dev`, then open http://localhost:3000
+4. Smoke test: `GET /api/ping` reports which env vars are present (booleans only), whether
+   the `records` table is reachable (row count), and the model status (`"skipped"` for now).
+
+## Tests
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm test
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Pure logic only: normalization, trigram similarity, matching, progress ring, labels.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Import & evaluation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run import:records` — stub (owner: BE). Will import raw procurement data from
+  `data/raw/` into the Supabase `records` table.
+- `npm run eval:gold` — reads `data/gold.csv` and prints a table (evaluation stub).
 
-## Learn More
+## Database
 
-To learn more about Next.js, take a look at the following resources:
+The schema lives in `supabase/migrations/0001_init.sql`. It is run by the PM in the Supabase
+SQL editor (not automatically). RLS is enabled on every table with no policies on purpose:
+only the server (service role key) may access data.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## PRD
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+See `docs/PRD.md`.
 
-## Deploy on Vercel
+## Ground rules
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/config/match.ts` is **PM-only**: matching thresholds and weights change only through
+  the PM. Nothing else in the codebase may hardcode those values.
+- User photos are **never stored or committed**: nothing writes photos to disk or to the
+  database, and `data/foto/`, `data/raw/`, and `*.heic` are git-ignored.
+- No authentication and no user accounts in this starter.
