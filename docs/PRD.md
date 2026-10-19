@@ -580,7 +580,8 @@ Demo memakai hasil tersimpan (mode cadangan) sebagai jalur utama dan unggahan la
 
 | Tanggal | Keputusan | Pemutus |
 | --- | --- | --- |
-|  |  |  |
+| 2026-10-20 | Sumber data utama dikonfirmasi: Opentender ICW OCDS (unduhan 2026-10-20, `G:\indonesia_opentender_full.csv.tar.gz`). Subset Tangerang diekstrak ke `data/raw/main_tangerang.csv` (9.276 tender, 2014–2023; 5.090 kategori `works`). INAPROC/ISB diturunkan menjadi bonus (sesuai 7.2); surat permohonan disiapkan di `docs/inaproc-api-application.md` untuk T-02. | PM |
+| 2026-10-20 | G-01 pralulus: jumlah catatan konstruksi jauh di atas ambang ≥100 (5.090 baris `works` Tangerang). Laporan cakupan resmi tetap ditunggu dari BE (T-07) sebagai bukti tertulis. | PM |
 
 ## 14. Glosarium
 
