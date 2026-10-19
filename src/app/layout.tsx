@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Archivo, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { SiteFooter } from "@/components/teralur/SiteFooter";
+import { SiteHeader } from "@/components/teralur/SiteHeader";
 
 const archivoHeading = Archivo({
   subsets: ["latin"],
@@ -16,7 +18,7 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jet
 export const metadata: Metadata = {
   title: "Teralur: Transparansi Proyek Publik",
   description:
-    "Foto papan proyek publik, cocokkan dengan catatan pengadaan resmi, dan lihat dosir buktinya.",
+    "Periksa informasi papan proyek publik terhadap catatan pengadaan resmi dengan sumber dan batas yang jelas.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -32,7 +34,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         jetbrainsMono.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SiteHeader />
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }

@@ -1,19 +1,23 @@
 import type { Status } from "@/lib/match/types";
 
-const TEKS_STATUS: Record<Status, string> = {
+export type DossierStatus = Status | "catatan_resmi";
+
+const TEKS_STATUS: Record<DossierStatus, string> = {
   cocok: "Cocok dengan catatan resmi",
   selisih: "Selisih data, perlu klarifikasi",
   tidak_ditemukan: "Tidak ditemukan di data yang kami miliki",
+  catatan_resmi: "Catatan resmi",
 };
 
-const KELAS_STATUS: Record<Status, string> = {
+const KELAS_STATUS: Record<DossierStatus, string> = {
   cocok: "border-cocok/30 bg-cocok/10 text-cocok",
   selisih: "border-selisih/30 bg-selisih/10 text-selisih",
   tidak_ditemukan: "border-netral/30 bg-netral/10 text-netral",
+  catatan_resmi: "border-black bg-white text-black",
 };
 
 export type ChipStatusProps = {
-  status: Status;
+  status: DossierStatus;
   className?: string;
 };
 
