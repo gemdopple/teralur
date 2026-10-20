@@ -5,7 +5,7 @@ create or replace function consume_rate_limit(
 ) returns boolean
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   next_count integer;
@@ -42,7 +42,7 @@ create or replace function search_records(
 )
 language sql
 stable
-set search_path = public
+set search_path = public, extensions
 as $$
   select r.id, r.id_sumber, r.sumber, r.nama_paket, r.penyedia, r.nilai_kontrak,
          r.tanggal_kontrak, r.masa_hari, r.tahun, r.satuan_kerja, r.snapshot_tanggal
@@ -78,7 +78,7 @@ create or replace function find_record_candidates(
 )
 language sql
 stable
-set search_path = public
+set search_path = public, extensions
 as $$
   select r.id, r.id_sumber, r.sumber, r.nama_paket, r.penyedia, r.nilai_kontrak,
          r.tanggal_kontrak, r.masa_hari, r.tahun, r.satuan_kerja, r.snapshot_tanggal
@@ -104,7 +104,7 @@ create or replace function visit_report_counts(p_project_key text)
 returns table (keadaan text, jumlah bigint)
 language sql
 stable
-set search_path = public
+set search_path = public, extensions
 as $$
   select v.keadaan, count(*)::bigint
   from kunjungan v
