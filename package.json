@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "import:records": "tsx scripts/import-records.ts",
-    "eval:gold": "tsx scripts/eval-gold.ts"
+    "import:records": "tsx --env-file=.env scripts/import-records.ts",
+    "eval:gold": "tsx --env-file=.env scripts/eval-gold.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
