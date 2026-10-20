@@ -1,4 +1,4 @@
-create extension if not exists pg_trgm;
+create extension if not exists pg_trgm with schema extensions;
 
 create table records (
   id uuid primary key default gen_random_uuid(),
