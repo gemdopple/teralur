@@ -5,9 +5,14 @@ import {
   ipRateKey,
   requestIp,
 } from "@/lib/server-api";
+import { boardToApi } from "@/lib/api-contract";
+import { extractPapan, ModelTimeoutError } from "@/lib/vision";
 
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
 export const maxDuration = 30;
+
+// Batas waktu aplikasi untuk ekstraksi (PRD §7.8); di bawah maxDuration 30 detik.
+const EXTRACT_TIMEOUT_MS = 20_000;
 
 function contentMatchesType(bytes: Uint8Array, type: string): boolean {
   if (type === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
@@ -99,12 +104,47 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json(
-    {
-      error: "MODEL_NOT_CONFIGURED",
-      message: "Ekstraksi otomatis belum tersedia. Foto tidak disimpan; isi formulir secara manual.",
-      manualEntryAvailable: true,
-    },
-    { status: 503 },
-  );
+  if (!process.env.MODEL_API_KEY) {
+    return NextResponse.json(
+      {
+        error: "MODEL_NOT_CONFIGURED",
+        message: "Ekstraksi otomatis belum tersedia. Foto tidak disimpan; isi formulir secara manual.",
+        manualEntryAvailable: true,
+      },
+      { status: 503 },
+    );
+  }
+
+  let hasil;
+  try {
+    // Kunci hanya ada di server env; foto diproses di memori lalu dibuang.
+    hasil = await Promise.race([
+      extractPapan(Buffer.from(bytes)),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new ModelTimeoutError()), EXTRACT_TIMEOUT_MS).unref?.(),
+      ),
+    ]);
+  } catch (error) {
+    if (error instanceof ModelTimeoutError) {
+      return NextResponse.json(
+        {
+          error: "MODEL_TIMEOUT",
+          message: "Pembacaan papan memakan waktu terlalu lama. Isi formulir secara manual.",
+          manualEntryAvailable: true,
+        },
+        { status: 504 },
+      );
+    }
+    console.error("Model extraction failed:", error instanceof Error ? error.message : error);
+    return NextResponse.json(
+      {
+        error: "MODEL_FAILED",
+        message: "Foto sulit dibaca. Isi manual saja, cukup 30 detik.",
+        manualEntryAvailable: true,
+      },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json({ board: boardToApi(hasil), unreadFields: hasil.unreadFields });
 }

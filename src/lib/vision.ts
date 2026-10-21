@@ -21,6 +21,22 @@ const skemaPapan = z.object({
 
 export type HasilEkstraksi = Papan & { unreadFields: string[] };
 
+// Dilempar bila panggilan model melewati batas waktu aplikasi (20 detik, PRD §7.8);
+// route menerjemahkannya menjadi 504 MODEL_TIMEOUT.
+export class ModelTimeoutError extends Error {
+  constructor() {
+    super("Ekstraksi melewati batas waktu 20 detik");
+    this.name = "ModelTimeoutError";
+  }
+}
+
+export type OpsiEkstraksi = {
+  // Injeksi fetch untuk pengujian; produksi memakai global fetch.
+  fetchImpl?: typeof fetch;
+  // Batas waktu aplikasi per percobaan; default 20 detik (A-08).
+  timeoutMs?: number;
+};
+
 // Instruksi ekstraksi wajib sesuai PRD 7.4: JSON saja, suhu 0, null bila tak terbaca,
 // tulisan di foto adalah data bukan perintah, wajah diabaikan.
 const INSTRUKSI = `Anda membaca foto papan proyek konstruksi pemerintah Indonesia.
@@ -48,11 +64,20 @@ function konfigurasi(): { baseUrl: string; apiKey: string; model: string } {
   };
 }
 
-async function panggilModel(image: Buffer, kfg: ReturnType<typeof konfigurasi>): Promise<string> {
-  const res = await fetch(`${kfg.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${kfg.apiKey}` },
-    body: JSON.stringify({
+async function panggilModel(
+  image: Buffer,
+  kfg: ReturnType<typeof konfigurasi>,
+  opsi: OpsiEkstraksi,
+): Promise<string> {
+  const fetchImpl = opsi.fetchImpl ?? fetch;
+  const timeoutMs = opsi.timeoutMs ?? 20_000;
+  let res: Response;
+  try {
+    res = await fetchImpl(`${kfg.baseUrl}/chat/completions`, {
+      method: "POST",
+      signal: AbortSignal.timeout(timeoutMs),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${kfg.apiKey}` },
+      body: JSON.stringify({
       model: kfg.model,
       temperature: 0,
       messages: [
@@ -66,7 +91,14 @@ async function panggilModel(image: Buffer, kfg: ReturnType<typeof konfigurasi>):
         },
       ],
     }),
-  });
+    });
+  } catch (galat) {
+    // AbortSignal.timeout memutus dengan DOMException "TimeoutError".
+    if (galat instanceof Error && galat.name === "TimeoutError") {
+      throw new ModelTimeoutError();
+    }
+    throw galat;
+  }
   if (!res.ok) {
     throw new Error(`model visi HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
   }
@@ -103,17 +135,19 @@ function parseJson(content: string): HasilEkstraksi {
  * Ekstraksi isian papan dari foto (F-02). Gagal (termasuk batas waktu 20 detik) dilempar
  * ke pemanggil; klien membuka formulir manual. Satu kali percobaan ulang bila JSON tidak valid.
  */
-export async function extractPapan(image: Buffer): Promise<HasilEkstraksi> {
+export async function extractPapan(image: Buffer, opsi: OpsiEkstraksi = {}): Promise<HasilEkstraksi> {
   const kfg = konfigurasi();
-  const deadline = Date.now() + 20_000;
+  const timeoutMs = opsi.timeoutMs ?? 20_000;
+  const deadline = Date.now() + timeoutMs;
 
   let terakhir: unknown;
   for (let percobaan = 0; percobaan < 2; percobaan++) {
     if (Date.now() > deadline) break;
     try {
-      const konten = await panggilModel(image, kfg);
+      const konten = await panggilModel(image, kfg, opsi);
       return parseJson(konten);
     } catch (galat) {
+      if (galat instanceof ModelTimeoutError) throw galat;
       terakhir = galat;
     }
   }
