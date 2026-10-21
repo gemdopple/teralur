@@ -582,6 +582,7 @@ Demo memakai hasil tersimpan (mode cadangan) sebagai jalur utama dan unggahan la
 | --- | --- | --- |
 | 2026-10-20 | Sumber data utama dikonfirmasi: Opentender ICW OCDS (unduhan 2026-10-20, `G:\indonesia_opentender_full.csv.tar.gz`). Subset Tangerang diekstrak ke `data/raw/main_tangerang.csv` (9.276 tender, 2014–2023; 5.090 kategori `works`). INAPROC/ISB diturunkan menjadi bonus (sesuai 7.2); surat permohonan disiapkan di `docs/inaproc-api-application.md` untuk T-02. | PM |
 | 2026-10-20 | G-01 pralulus: jumlah catatan konstruksi jauh di atas ambang ≥100 (5.090 baris `works` Tangerang). Laporan cakupan resmi tetap ditunggu dari BE (T-07) sebagai bukti tertulis. | PM |
+| 2026-10-21 | G-02 diputuskan **sementara (provisional)** atas bukti yang tersedia: smoke eval pada catatan resmi nyata (`docs/t10-results.md`, 100 records) menunjukkan 100/100 papan sintetis menemukan catatan pada skenario papan asli dan 96/100 pada skenario nama dikurangi kata terakhir; presisi kandidat teratas 100% dan 94%. Angka ini melewati ambang gerbang (≥ 4/12 ditemukan, ≥ 90% presisi), tetapi papan uji diturunkan dari catatan itu sendiri, bukan papan nyata. Keputusan final ditunda sampai gold set lapangan (12 papan, `data/gold.csv`) terisi; bila angka final gagal memenuhi gerbang, fallback sesuai §10.3: **Cari Paket menjadi alur utama** dan Periksa Papan tetap ada sebagai pembuka demo bila ada kasus yang berhasil. | PM |
 
 ## 14. Glosarium
 
