@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { DossierView } from "@/components/teralur/DossierView";
 import { ambilContoh, EXAMPLE_DOSSIERS } from "@/data/examples";
 import type { RecordRow } from "@/lib/server-api";
+
+// Rute memblokir: cincin memakai tanggal hari ini sehingga tidak dapat diprapranender.
+// Tetap tanpa API — semua data dari data statis.
+export const instant = false;
 
 export function generateStaticParams(): { exampleId: string }[] {
   return EXAMPLE_DOSSIERS.map((d) => ({ exampleId: d.exampleId }));
@@ -24,6 +29,8 @@ export default async function ExampleDetailPage({
   params: Promise<{ exampleId: string }>;
 }) {
   const { exampleId } = await params;
+  // Cincin memakai tanggal hari ini (nilai dinamis di Next.js ini); tetap tanpa API.
+  await connection();
   const contoh = ambilContoh(exampleId);
   if (!contoh) notFound();
 

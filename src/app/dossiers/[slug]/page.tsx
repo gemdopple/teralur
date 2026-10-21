@@ -8,6 +8,10 @@ import type { Status } from "@/lib/match/types";
 
 export const metadata: Metadata = { title: "Dossier Proyek | Teralur" };
 
+// Rute memblokir (bukan streaming) agar notFound() untuk slug asing menghasilkan
+// HTTP 404 sungguhan, bukan 200 dari fallback yang sudah terkirim.
+export const instant = false;
+
 const STATUSES: Record<string, Status | "catatan_resmi" | undefined> = {
   cocok: "cocok",
   selisih: "selisih",
