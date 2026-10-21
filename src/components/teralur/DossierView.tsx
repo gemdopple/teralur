@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Cincin } from "@/components/teralur/Cincin";
 import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";
 import { CandidateSelector, type CandidateChoice } from "@/components/teralur/CandidateSelector";
 import { LabelTiga } from "@/components/teralur/LabelTiga";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
+import { PapanCatatanSection, type BarisTabel } from "@/components/teralur/PapanCatatanSection";
 import { VisitReportForm } from "@/components/teralur/VisitReportForm";
 import { hitungCincin, inputCincin } from "@/lib/cincin";
 import type { ApiBoard } from "@/lib/api-contract";
@@ -51,56 +51,86 @@ export function DossierView({
     record,
   );
   const ring = hitungCincin({ masaHari, tanggalMulai, hariIni: new Date() });
-  const rows = [
+  const rumusCincin =
+    ring.keadaan === "tak_terhitung"
+      ? "Cincin tidak dapat dihitung karena tanggal mulai atau masa kontrak tidak tersedia."
+      : `Hari ke-${ring.berjalan} dihitung dari tanggal hari ini dikurangi tanggal mulai kontrak (${formatDate(tanggalMulai)}). Isian cincin = hari berjalan dibagi masa kontrak (${masaHari} hari), maksimum penuh.`;
+  const rumusLangsung = "Nilai dibaca langsung dari sumbernya, bukan hasil hitungan.";
+  const adaSelisihNilai =
+    board?.contractValue != null && record != null && board.contractValue !== Number(record.nilai_kontrak);
+  const rumusSelisihNilai = adaSelisihNilai
+    ? "Selisih nilai = nilai di papan dikurangi nilai di catatan resmi. Perbedaan sering wajar karena addendum atau perubahan kontrak."
+    : rumusLangsung;
+  const rows: BarisTabel[] = [
     {
+      key: "nama_paket",
       label: "Nama paket",
       board: board?.packageName ?? null,
       record: record?.nama_paket ?? null,
+      rumus: rumusLangsung,
     },
     {
+      key: "penyedia",
       label: "Penyedia",
       board: board?.supplier ?? null,
       record: record?.penyedia ?? null,
+      rumus: rumusLangsung,
     },
     {
+      key: "nilai_kontrak",
       label: "Nilai kontrak",
       board: board?.contractValue === null || board?.contractValue === undefined ? null : formatRupiah(board.contractValue),
       record: record ? formatRupiah(Number(record.nilai_kontrak)) : null,
+      rumus: rumusSelisihNilai,
     },
     {
+      key: "tanggal_kontrak",
       label: "Tanggal kontrak",
       board: board?.contractDate ? formatDate(board.contractDate) : null,
       record: record?.tanggal_kontrak ? formatDate(record.tanggal_kontrak) : null,
+      rumus: rumusLangsung,
     },
     {
+      key: "masa_hari",
       label: "Masa pelaksanaan",
       board: board?.durationDays ? `${board.durationDays} hari kalender` : null,
       record: record?.masa_hari ? `${record.masa_hari} hari kalender` : null,
+      rumus: rumusLangsung,
     },
     {
+      key: "tahun",
       label: "Tahun anggaran",
       board: board?.fiscalYear === null || board?.fiscalYear === undefined ? null : String(board.fiscalYear),
       record: record?.tahun === null || record?.tahun === undefined ? null : String(record.tahun),
+      rumus: rumusLangsung,
     },
     {
+      key: "sumber_dana",
       label: "Sumber dana",
       board: board?.fundingSource ?? null,
       record: null,
+      rumus: rumusLangsung,
     },
     {
+      key: "satuan_kerja",
       label: "Satuan kerja",
       board: board?.agencyUnit ?? null,
       record: record?.satuan_kerja ?? null,
+      rumus: rumusLangsung,
     },
     {
+      key: "nomor_kontrak",
       label: "Nomor kontrak",
       board: board?.contractNumber ?? null,
       record: null,
+      rumus: rumusLangsung,
     },
     {
+      key: "lokasi",
       label: "Lokasi",
       board: board?.locationText ?? null,
       record: null,
+      rumus: rumusLangsung,
     },
   ];
 
@@ -130,42 +160,21 @@ export function DossierView({
         )
       )}
 
-      <section className="mt-6 grid gap-6 rounded-xl border-2 border-black bg-white p-5 md:grid-cols-[1fr_13rem]">
-        <div>
-          <h2 className="font-heading text-xl font-bold">Papan dan catatan resmi</h2>
-          {status === "catatan_resmi" && (
-            <p className="mt-2 text-sm text-neutral-700">
-              Tidak ada papan untuk dibandingkan. Informasi berikut berasal dari catatan resmi.
-            </p>
-          )}
-          <div className="mt-4 divide-y divide-neutral-200">
-            {rows.map((row) => (
-              <div key={row.label} className="grid gap-3 py-3 sm:grid-cols-[1fr_1fr_1fr]">
-                <div className="font-semibold">
-                  {row.label}
-                  <LabelTiga label={row.board || row.record ? "tercatat" : "belum_diketahui"} className="ml-2" />
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500">Papan</p>
-                  <p className="text-sm">{row.board ?? "Belum diketahui"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500">Catatan resmi</p>
-                  <p className="text-sm">{row.record ?? "Tidak ditemukan"}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          {status === "selisih" && (
-            <p className="mt-3 rounded-md border-l-4 border-[#D9480F] bg-orange-50 p-3 text-sm">
-              Perbedaan sering wajar, misalnya karena addendum atau perubahan kontrak. Perlu klarifikasi.
-            </p>
-          )}
-        </div>
-        <div className="flex items-center justify-center border-t border-neutral-200 pt-4 md:border-l md:border-t-0 md:pl-4 md:pt-0">
-          <Cincin data={ring} />
-        </div>
-      </section>
+      <PapanCatatanSection
+        rows={rows}
+        ring={ring}
+        ringRumus={rumusCincin}
+        recordId={record?.id_sumber ?? null}
+        snapshotTanggal={record ? formatDate(record.snapshot_tanggal) : null}
+        catatanResmi={status === "catatan_resmi"}
+        statusSelisih={status === "selisih"}
+        selisihCatatan={
+          <p className="mt-3 rounded-md border-l-4 border-[#D9480F] bg-orange-50 p-3 text-sm">
+            Perbedaan sering wajar, misalnya karena addendum atau perubahan kontrak. Perlu klarifikasi.{" "}
+            <LabelTiga label="belum_diketahui" />
+          </p>
+        }
+      />
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <PanelJejak
