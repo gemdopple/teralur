@@ -41,7 +41,18 @@ ringkasan presisi dan ketersediaan per field) akan tercetak otomatis saat CSV te
 
 ## Latensi Cari Paket (F-10, KP ≤ 2 detik)
 
-Diukur dengan `scripts/measure-search-latency.ts` (5 kata kunci nyata, endpoint
-`/api/search` pada `npm run dev`). Hasil: lihat tabel di bawah — p95 ≤ 2 s.
+Diukur dengan `npx tsx --env-file=.env scripts/measure-search-latency.ts`
+(5 kata kunci nyata, endpoint `/api/search` pada `npm run dev`, 2026-10-21):
 
-*(Diisi setelah pengukuran dijalankan; lihat bagian Latensi pada laporan akhir.)*
+| q | filter tahun | hasil | waktu |
+| --- | --- | --- | --- |
+| jalan | — | 1 | 1022 ms |
+| drainase | — | 5 | 885 ms |
+| gedung sekolah | — | 2 | 115 ms |
+| rehabilitasi jalan | 2023 | 10 | 61 ms |
+| pembangunan pasar | — | 10 | 111 ms |
+
+p95 = 1022 ms (permintaan pertama memuat cold start `next dev`) — **lulus target ≤ 2 s**.
+Batas ≤ 10 hasil ditegakkan di RPC (`least(result_limit, 10)`). Teks hasil kosong
+"Tidak ditemukan di data yang kami miliki. Coba kata kunci lain." diverifikasi ada di
+`src/components/teralur/SearchForm.tsx`.
