@@ -47,7 +47,8 @@ describe("extractPapan", () => {
 
   it("mengisi unreadFields kosong bila model tidak mengirimkannya", async () => {
     vi.stubEnv("MODEL_API_KEY", "kunci-uji");
-    const { unreadFields: _unreadFields, ...tanpaUnread } = VALID_JSON;
+    const tanpaUnread: Record<string, unknown> = { ...VALID_JSON };
+    delete tanpaUnread.unreadFields;
     const hasil = await extractPapan(Buffer.from("foto"), {
       fetchImpl: fakeFetchRespon(tanpaUnread, { n: 0 }),
     });
