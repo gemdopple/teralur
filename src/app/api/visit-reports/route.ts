@@ -76,6 +76,8 @@ export async function POST(request: Request) {
   }
 
   const projectKey = submission.record_id ?? submission.id;
+  // Invarian privasi F-14: catatan hanya tersimpan untuk tim dan TIDAK PERNAH
+  // dikembalikan ke klien maupun dirender publik — respons hanya memuat counts.
   const { error: insertError } = await getSupabaseAdmin().from("kunjungan").insert({
     kunci_proyek: projectKey,
     keadaan: ACTIVITY_TO_INTERNAL[activityStatus],
