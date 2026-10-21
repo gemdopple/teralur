@@ -5,7 +5,7 @@ import { CandidateSelector, type CandidateChoice } from "@/components/teralur/Ca
 import { LabelTiga } from "@/components/teralur/LabelTiga";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
 import { VisitReportForm } from "@/components/teralur/VisitReportForm";
-import { hitungCincin } from "@/lib/cincin";
+import { hitungCincin, inputCincin } from "@/lib/cincin";
 import type { ApiBoard } from "@/lib/api-contract";
 import type { RecordRow } from "@/lib/server-api";
 
@@ -45,11 +45,12 @@ export function DossierView({
   evidenceOnly = false,
   simulasi = false,
 }: Props) {
-  const ring = hitungCincin({
-    masaHari: board?.durationDays ?? record?.masa_hari ?? null,
-    tanggalMulai: record?.tanggal_kontrak ?? board?.contractDate ?? null,
-    hariIni: new Date(),
-  });
+  // Presedensi fallback §6.5 dihitung oleh fungsi murni inputCincin (T-18).
+  const { masaHari, tanggalMulai } = inputCincin(
+    board ? { durationDays: board.durationDays, contractDate: board.contractDate } : null,
+    record,
+  );
+  const ring = hitungCincin({ masaHari, tanggalMulai, hariIni: new Date() });
   const rows = [
     {
       label: "Nama paket",

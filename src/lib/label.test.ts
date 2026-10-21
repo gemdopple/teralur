@@ -6,6 +6,13 @@ describe("labelUntuk", () => {
     expect(labelUntuk("persen_progres")).toBe("belum_diketahui");
   });
 
+  it("persen_progres tidak bisa dilanggar dengan argumen tambahan", () => {
+    // Invarian §6.6: persen kemajuan fisik selalu BELUM DIKETAHUI apa pun
+    // argumen yang ditambahkan kelak pada fungsi ini.
+    const denganArgExtra = labelUntuk as (...args: unknown[]) => ReturnType<typeof labelUntuk>;
+    expect(denganArgExtra("persen_progres", "tercatat", { paksa: true })).toBe("belum_diketahui");
+  });
+
   it("sumber resmi dan papan terkonfirmasi -> tercatat", () => {
     expect(labelUntuk("catatan_resmi")).toBe("tercatat");
     expect(labelUntuk("papan_terkonfirmasi")).toBe("tercatat");
