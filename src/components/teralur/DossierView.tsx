@@ -18,6 +18,8 @@ type Props = {
   candidates: CandidateChoice[];
   requiresSelection: boolean;
   evidenceOnly?: boolean;
+  // Data statis contoh (F-13): mengganti pita "Data resmi" dengan label simulasi (§9.1.5).
+  simulasi?: boolean;
 };
 
 function formatRupiah(value: number | null | undefined): string {
@@ -41,6 +43,7 @@ export function DossierView({
   candidates,
   requiresSelection,
   evidenceOnly = false,
+  simulasi = false,
 }: Props) {
   const ring = hitungCincin({
     masaHari: board?.durationDays ?? record?.masa_hari ?? null,
@@ -114,10 +117,16 @@ export function DossierView({
         <ChipStatus status={status} />
       </div>
 
-      {record && (
+      {simulasi ? (
         <p className="mt-4 inline-flex border border-black bg-[#FFC400] px-3 py-2 text-sm font-semibold">
-          Data resmi per {formatDate(record.snapshot_tanggal)}. Bukan data real-time.
+          SIMULASI, BUKAN DATA RESMI. Kasus contoh untuk memperkenalkan alur Teralur.
         </p>
+      ) : (
+        record && (
+          <p className="mt-4 inline-flex border border-black bg-[#FFC400] px-3 py-2 text-sm font-semibold">
+            Data resmi per {formatDate(record.snapshot_tanggal)}. Bukan data real-time.
+          </p>
+        )
       )}
 
       <section className="mt-6 grid gap-6 rounded-xl border-2 border-black bg-white p-5 md:grid-cols-[1fr_13rem]">

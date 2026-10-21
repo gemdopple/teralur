@@ -168,7 +168,7 @@ async function main(): Promise<void> {
       year_filter: papan.tahun_anggaran,
     });
     if (error) throw new Error(`RPC find_record_candidates gagal: ${error.message}`);
-    const records: RecordResmi[] = (kandidat ?? []).map((r) => ({
+    const records: RecordResmi[] = ((kandidat ?? []) as { id: string; nama_paket: string; penyedia: string | null; nilai_kontrak: number | string; tanggal_kontrak: string | null; masa_hari: number | null; tahun: number | null }[]).map((r) => ({
       id: r.id,
       nama_paket: r.nama_paket,
       penyedia: r.penyedia,
