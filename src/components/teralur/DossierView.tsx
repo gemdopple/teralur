@@ -149,9 +149,16 @@ export function DossierView({
       </div>
 
       {simulasi ? (
-        <p className="mt-4 inline-flex border border-black bg-[#FFC400] px-3 py-2 text-sm font-semibold">
-          SIMULASI, BUKAN DATA RESMI. Kasus contoh untuk memperkenalkan alur Teralur.
-        </p>
+        <>
+          <p className="mt-4 inline-flex border border-black bg-[#FFC400] px-3 py-2 text-sm font-semibold">
+            SIMULASI, BUKAN DATA RESMI. Kasus contoh untuk memperkenalkan alur Teralur.
+          </p>
+          {record && (
+            <p className="mt-2 text-sm text-neutral-700">
+              Data resmi per {formatDate(record.snapshot_tanggal)}. Bukan data real-time.
+            </p>
+          )}
+        </>
       ) : (
         record && (
           <p className="mt-4 inline-flex border border-black bg-[#FFC400] px-3 py-2 text-sm font-semibold">
