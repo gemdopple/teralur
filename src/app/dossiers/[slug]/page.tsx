@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { DossierView } from "@/components/teralur/DossierView";
 import { boardToApi, storedBoardSchema } from "@/lib/api-contract";
 import { databaseConfigured, getDossier } from "@/lib/server-api";
@@ -16,23 +15,13 @@ const STATUSES: Record<string, Status | "catatan_resmi" | undefined> = {
   catatan_resmi: "catatan_resmi",
 };
 
-export default function DossierPage({
+export default async function DossierPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  return (
-    <Suspense fallback={<main className="mx-auto w-full max-w-5xl flex-1 px-4 py-12">Memuat dossier…</main>}>
-      <DossierContent params={params} />
-    </Suspense>
-  );
-}
-
-async function DossierContent({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+  // Pencarian dilakukan sebelum render apa pun agar notFound() menghasilkan HTTP 404,
+  // bukan 200 dari fallback Suspense yang sudah terkirim.
   await connection();
   const { slug } = await params;
   if (!databaseConfigured()) {
