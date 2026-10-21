@@ -38,7 +38,9 @@ const EMPTY_BOARD: ApiBoard = {
 // Teks §8.4: gagal baca.
 const GAGAL_BACA = "Foto sulit dibaca. Isi manual saja, cukup 30 detik.";
 
-async function makeUploadImage(file: File): Promise<Blob> {
+async function makeUploadImage(
+  file: File,
+): Promise<{ blob: Blob; width: number; height: number }> {
   if (file.size > 20 * 1024 * 1024) {
     throw new Error("Foto asli terlalu besar. Pilih foto berukuran di bawah 20 MB.");
   }
@@ -61,7 +63,7 @@ async function makeUploadImage(file: File): Promise<Blob> {
   if (blob.size > 4 * 1024 * 1024) {
     throw new Error("Hasil foto masih lebih dari 4 MB. Pilih foto yang lebih kecil.");
   }
-  return blob;
+  return { blob, width: canvas.width, height: canvas.height };
 }
 
 export function ApiBoardForm() {
@@ -71,6 +73,7 @@ export function ApiBoardForm() {
   const [unreadFields, setUnreadFields] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [working, setWorking] = useState(false);
+  const [preview, setPreview] = useState<{ url: string; width: number; height: number; sizeKB: number } | null>(null);
 
   const contractValue = parseNilaiUang(contractValueInput);
   const boardDenganNilai: ApiBoard = { ...board, contractValue };
@@ -109,7 +112,12 @@ export function ApiBoardForm() {
     setWorking(true);
     setMessage("Membaca papan...");
     try {
-      const compressed = await makeUploadImage(file);
+      const { blob: compressed, width, height } = await makeUploadImage(file);
+      // Pratinjau hasil pengecilan; object URL diganti (direvoke) setiap foto baru.
+      setPreview((lama) => {
+        if (lama) URL.revokeObjectURL(lama.url);
+        return { url: URL.createObjectURL(compressed), width, height, sizeKB: Math.round(compressed.size / 1024) };
+      });
       const form = new FormData();
       form.append("photo", compressed, "project-sign.jpg");
       const response = await fetch("/api/extract", { method: "POST", body: form });
@@ -212,6 +220,20 @@ export function ApiBoardForm() {
           className="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#FFC400] file:px-4 file:py-2 file:font-semibold"
         />
         <p className="mt-2 text-xs text-neutral-600">JPEG, PNG, atau WebP; hasil maksimal 4 MB.</p>
+        {preview && (
+          <figure className="mt-4">
+            {/* eslint-disable-next-line @next/next/no-img-element -- object URL lokal, bukan aset yang dioptimasi */}
+            <img
+              src={preview.url}
+              alt="Pratinjau foto papan hasil pengecilan di perangkat"
+              className="w-full rounded-md border border-neutral-300"
+            />
+            <figcaption className="mt-1 text-xs text-neutral-600">
+              Pratinjau hasil pengecilan: {preview.width}×{preview.height} px,{" "}
+              {preview.sizeKB} KB. Foto tidak disimpan.
+            </figcaption>
+          </figure>
+        )}
       </section>
 
       <form onSubmit={submitBoard} className="rounded-xl border-2 border-black bg-white p-5">
