@@ -1645,7 +1645,7 @@ export function dossierUrl(slug: string): string {
   if (!base) throw new Error("NEXT_PUBLIC_SITE_URL belum diisi");
   return `${base}/dossiers/${slug}`;
 }
-
+  
 export async function qrSvg(slug: string): Promise<string> {
   return QRCode.toString(dossierUrl(slug), {
     type: "svg",
