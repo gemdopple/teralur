@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/db";
+import { storedStatusToApi } from "@/lib/admin-projects";
 import { databaseConfigured, createPublicSlug, readJsonBody } from "@/lib/server-api";
 
 const createDossierSchema = z.object({ recordId: z.string().uuid() });
@@ -43,6 +44,34 @@ export async function POST(request: Request) {
       { error: "NOT_FOUND", message: "Catatan resmi tidak ditemukan." },
       { status: 404 },
     );
+  }
+
+  // E.12: recordId milik proyek admin tidak pernah membuat dossier baru —
+  // proyek terbit mengembalikan slugnya, draf/nonaktif tetap 404.
+  const { data: adminProject, error: adminError } = await supabase
+    .from("submissions")
+    .select("slug, status, terbit, dinonaktifkan")
+    .eq("record_id", record.id)
+    .eq("jenis", "admin")
+    .maybeSingle();
+  if (adminError) {
+    console.error("Unable to look up admin project for record:", adminError.message);
+    return NextResponse.json(
+      { error: "RECORD_LOOKUP_FAILED", message: "Catatan resmi belum dapat dimuat." },
+      { status: 502 },
+    );
+  }
+  if (adminProject) {
+    if (!adminProject.terbit || adminProject.dinonaktifkan) {
+      return NextResponse.json(
+        { error: "NOT_FOUND", message: "Catatan resmi tidak ditemukan." },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json({
+      slug: adminProject.slug,
+      status: storedStatusToApi(adminProject.status),
+    });
   }
 
   const slug = createPublicSlug();

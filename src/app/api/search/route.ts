@@ -21,5 +21,12 @@ export async function GET(request: Request) {
   }
 
   const rows = await searchRecords(query, year);
-  return NextResponse.json({ results: rows.map(recordToApi) });
+  return NextResponse.json({
+    results: rows.map((row) => ({
+      ...recordToApi(row),
+      // E.12: demo + slug proyek admin terbit (null untuk catatan nyata).
+      demo: row.demo ?? false,
+      slug: row.slug ?? null,
+    })),
+  });
 }

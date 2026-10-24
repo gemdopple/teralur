@@ -7,6 +7,9 @@ import {
   statusToApi,
   storedBoardSchema,
 } from "@/lib/api-contract";
+import { compare } from "@/lib/compare";
+import { jakartaToday } from "@/lib/dates";
+import { computeTimeRing } from "@/lib/cincin";
 import { databaseConfigured, getDossier, readJsonBody } from "@/lib/server-api";
 import { getSupabaseAdmin } from "@/lib/db";
 import { match } from "@/lib/match/match";
@@ -17,6 +20,13 @@ const INTERNAL_STATUSES: Record<string, Status | undefined> = {
   selisih: "selisih",
   tidak_ditemukan: "tidak_ditemukan",
 };
+
+// Selisih nilai kontrak dibulatkan 4 desimal (E.11). Non-finite (nilai resmi 0)
+// dipetakan ke null agar JSON tetap valid.
+function relativeDifferenceToApi(value: number | null): number | null {
+  if (value === null || !Number.isFinite(value)) return null;
+  return Math.round(value * 10_000) / 10_000;
+}
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -32,7 +42,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: "NOT_FOUND", message: "Dossier tidak ditemukan." }, { status: 404 });
   }
 
-  const { submission, record, visitCounts, candidates, requiresSelection } = dossier;
+  const { submission, record, visitCounts, candidates, requiresSelection, resources } = dossier;
   const boardResult =
     submission.papan === null ? null : storedBoardSchema.safeParse(submission.papan);
   const internalStatus =
@@ -46,11 +56,48 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
       { status: 500 },
     );
   }
+  const board = boardResult?.success ? boardToApi(boardResult.data) : null;
+
+  // Cincin waktu (G.1) dihitung server dengan hari ini WIB; presedensi
+  // total: papan → catatan resmi, mulai: catatan resmi → papan.
+  const timeRing = computeTimeRing({
+    boardDurationDays: board?.durationDays ?? null,
+    recordDurationDays: record?.masa_hari ?? null,
+    boardContractDate: board?.contractDate ?? null,
+    recordContractDate: record?.tanggal_kontrak ?? null,
+    today: jakartaToday(),
+  });
+
+  // Selisih (E.11): hanya komponen kunci yang tidak lulus, dihitung ulang server
+  // untuk proyek admin. Jalur foto beku tetap memakai kandidat/requiresSelection.
+  let discrepancies: Array<{
+    field: string;
+    boardValue: string | number;
+    recordValue: string | number;
+    relativeDifference?: number | null;
+    similarity?: number | null;
+  }> = [];
+  if (submission.jenis === "admin" && board && record) {
+    discrepancies = compare(board, {
+      packageName: record.nama_paket,
+      supplier: record.penyedia,
+      contractValue: Number(record.nilai_kontrak),
+    }).discrepancies.map((component) => ({
+      field: component.field,
+      boardValue: component.boardValue,
+      recordValue: component.recordValue,
+      ...(component.field === "contractValue"
+        ? { relativeDifference: relativeDifferenceToApi(component.relativeDifference) }
+        : { similarity: component.similarity }),
+    }));
+  }
+
+  const basis = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";
 
   return NextResponse.json({
     slug: submission.slug,
     status: dossierStatusToApi(internalStatus),
-    board: boardResult?.success ? boardToApi(boardResult.data) : null,
+    board,
     record: record
       ? {
           id: record.id,
@@ -88,8 +135,19 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
       selected: candidate.record.id === record?.id,
     })),
     requiresSelection,
+    discrepancies,
+    timeRing,
+    resources: resources.map((row) => ({
+      id: row.id,
+      kind: row.jenis,
+      title: row.judul,
+      url: `${basis}/storage/v1/object/public/resources/${row.path_penyimpanan}`,
+      createdAt: row.dibuat,
+    })),
+    featured: submission.unggulan,
     visitCounts,
     createdAt: submission.dibuat,
+    updatedAt: submission.diperbarui,
     demo: submission.demo,
   });
 }
