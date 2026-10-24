@@ -1,6 +1,11 @@
 import Link from "next/link";
+import { photoFlowEnabled } from "@/lib/flags";
 
 export default function HalamanUtama() {
+  // T-38: tombol "Periksa papan" hanya tampil bila PHOTO_FLOW_ENABLED=true.
+  // Flag dibaca saat build (halaman statis); perubahan env memerlukan build ulang.
+  const showPhotoFlow = photoFlowEnabled();
+
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 py-12">
       <section className="max-w-3xl">
@@ -15,9 +20,11 @@ export default function HalamanUtama() {
           Setiap perbedaan perlu dibaca bersama sumber dan batas datanya.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/check" className="rounded-md border-2 border-black bg-[#FFC400] px-5 py-3 font-bold">
-            Periksa papan
-          </Link>
+          {showPhotoFlow && (
+            <Link href="/check" className="rounded-md border-2 border-black bg-[#FFC400] px-5 py-3 font-bold">
+              Periksa papan
+            </Link>
+          )}
           <Link href="/search" className="rounded-md border-2 border-black bg-white px-5 py-3 font-bold">
             Cari paket
           </Link>
