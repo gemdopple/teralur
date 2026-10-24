@@ -17,3 +17,13 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Keputusan sementara **[PM]**
 
 - (diisi agen per tugas; PM memindahkan yang perlu ke PRD 13.3)
+
+## Catatan T-39 (migrasi 0003 + auth admin)
+
+1. **`.env` terlacak git**: `.gitignore` hanya mengecualikan `.env*.local`, sedangkan `.env` sudah ter-commit (B.3 mengasumsikan sebaliknya). `DEV_ADMIN_PASSWORD` ditulis ke `.env` lokal oleh `scripts/create-admin.ts` dan **tidak boleh ikut di-commit**; disarankan menambahkan `.env` ke `.gitignore` dan menghapus baris rahasia dari riwayat nanti. **[PM]**
+2. **Verifikasi bucket Storage**: skema `storage` tidak diekspos ke PostgREST (`PGRST106`), dan Storage Admin REST API menolak kunci service-role warisan (`Invalid Compact JWS` — proyek ini memakai skema penandatanganan JWT baru). Bucket `resources` diverifikasi lewat `npx supabase db query --linked "select ... from storage.buckets"`. Aplikasi tetap memakai `getSupabaseAdmin()` dari `@supabase/supabase-js` untuk Storage (terbukti berfungsi untuk PostgREST).
+3. **Pengerasan bucket (C.2)**: bucket `resources` dibuat `public = true` (baca publik; nama objek acak membuat URL tak terduga), `file_size_limit = 4194304`, `allowed_mime_types` = empat mime yang diizinkan — dibatasi dua lapis dengan kolom check `resources.ukuran`/`resources.tipe_mime`. Upsert bucket idempoten lewat `on conflict (id) do update`.
+4. **`scripts/create-admin.ts`**: bila akun sudah ada, skrip me-reset kata sandi, memaksa `email_confirm`, dan mencabut ban (`ban_duration: "none"`) alih-alih gagal.
+5. **`src/lib/admin-http.ts`**: `adminErrorResponse` mencetak error non-Auth ke `console.error` dan mengembalikan 500 `INTERNAL` generik tanpa detail internal, sesuai E.1.
+6. **Skrip verifikasi** 0003 dijalankan sekali lalu dihapus dari repo (di luar pagar scope); hasilnya dicatat di laporan T-39, bukan di repo.
+
