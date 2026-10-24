@@ -54,7 +54,7 @@ export function PapanCatatanSection({
         <h2 className="font-heading text-xl font-bold">Papan dan catatan resmi</h2>
         {catatanResmi && (
           <p className="mt-2 text-sm text-neutral-700">
-            Tidak ada papan untuk dibandingkan. Informasi berikut berasal dari catatan resmi.
+            Papan tidak tersedia untuk dibandingkan. Informasi berikut berasal dari catatan resmi.
           </p>
         )}
         <div className="mt-4 divide-y divide-neutral-200">

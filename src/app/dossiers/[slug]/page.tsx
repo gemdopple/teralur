@@ -43,10 +43,12 @@ export async function generateMetadata({
   }
   const data = await getProyekViewData(slug);
   if (!data) {
-    return {
-      title: "Proyek tidak ditemukan | Teralur",
-      robots: { index: false, follow: false },
-    };
+    // Pemanggilan notFound() di generateMetadata selesai SEBELUM streaming
+    // dimulai (metadata menentukan <head> shell), sehingga slug asing, draf,
+    // dan proyek ditarik menghasilkan HTTP 404 sungguhan, bukan 200 yang
+    // menyusul konten netral (Lampiran H.1; docs not-found.md: "Before
+    // streaming starts, Next.js returns a 404 status code").
+    notFound();
   }
   // H.1: title = {nama paket dipotong 70 karakter} · teralur; description =
   // status + "Data simulasi" bila demo; robots noindex,nofollow bila demo (C-07).

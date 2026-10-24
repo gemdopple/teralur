@@ -12,6 +12,7 @@ import { jakartaToday } from "@/lib/dates";
 import { computeTimeRing } from "@/lib/cincin";
 import { databaseConfigured, getDossier, readJsonBody } from "@/lib/server-api";
 import { getSupabaseAdmin } from "@/lib/db";
+import { photoFlowEnabled } from "@/lib/flags";
 import { match } from "@/lib/match/match";
 import type { Status } from "@/lib/match/types";
 
@@ -153,6 +154,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  // Jalur foto dibekukan (PRD v1.1, Lampiran B.3): pemilihan kandidat hanya
+  // relevan untuk jalur foto; bila flag mati, kembalikan 404 NOT_FOUND.
+  if (!photoFlowEnabled()) {
+    return NextResponse.json({ error: "NOT_FOUND", message: "Dossier tidak ditemukan." }, { status: 404 });
+  }
   const { slug } = await params;
   const body = await readJsonBody(request);
   if (!body.valid) {

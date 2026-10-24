@@ -36,10 +36,9 @@ export async function generateMetadata({
   }
   const data = await getProyekViewData(slug);
   if (!data) {
-    return {
-      title: "Kartu bukti tidak ditemukan | Teralur",
-      robots: { index: false, follow: false },
-    };
+    // notFound() sebelum streaming dimulai agar status HTTP 404 sungguhan
+    // (sama dengan halaman dossier; Lampiran H.1).
+    notFound();
   }
   const nama = data.packageName.slice(0, 70);
   const description = data.demo

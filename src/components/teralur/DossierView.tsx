@@ -187,7 +187,7 @@ export function DossierView({
         <PanelJejak
           judul="Jejak sumber"
           baris={[
-            { label: "Sumber papan", nilai: board ? "Isian pengguna dari foto atau input manual; belum diverifikasi tim." : "Tidak ada papan untuk dibandingkan." },
+            { label: "Sumber papan", nilai: board ? "Isian pengguna dari foto atau input manual; belum diverifikasi tim." : "Papan tidak tersedia untuk dibandingkan." },
             { label: "ID catatan resmi", nilai: record?.id_sumber ?? "Belum diketahui" },
             { label: "Sumber data", nilai: record?.sumber ?? "Catatan resmi belum tersedia" },
             { label: "Tanggal snapshot", nilai: record ? formatDate(record.snapshot_tanggal) : "Belum diketahui" },

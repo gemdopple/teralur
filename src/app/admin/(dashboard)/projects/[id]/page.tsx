@@ -138,9 +138,10 @@ export default async function AdminProjectEditPage({
         />
       </div>
 
-      {/* L.6 (T-47): kunci proyek = id catatan resmi bila ada (E.13). */}
+      {/* L.6 (T-47): E.13 mengambil id submissions lalu menerjemahkannya ke
+          kunci kunjungan di server. */}
       <div className="mt-10">
-        <TabelLaporanWarga projectId={submission.record_id ?? submission.id} />
+        <TabelLaporanWarga projectId={submission.id} />
       </div>
     </main>
   );
