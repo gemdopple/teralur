@@ -18,6 +18,15 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 
 - (diisi agen per tugas; PM memindahkan yang perlu ke PRD 13.3)
 
+## T-38 (gerbang jalur foto)
+
+10. **Mode render gerbang flag**: `photoFlowEnabled()` di `/check`, beranda, dan SiteHeader dibaca **saat build** (build-time). Di `/check` dengan flag mati, `notFound()` terpanggil saat prerender sehingga rute jadi halaman statis yang melayani **HTTP 404 sungguhan** (bukan soft 404). Alasan: dokumen Next terpasang (`loading.md` → "Status codes") menyatakan respons streaming selalu mulai dengan 200; `notFound()` setelah stream mulai (mis. lewat `await connection()` runtime) hanya menghasilkan 200 + `<meta noindex>` (soft 404). Verifikasi dengan `next start`: flag off → `/check` = 404, beranda tanpa tautan `/check`; flag on (env saat build) → `/check` = 200 normal. Konsekuensi: mengubah flag memerlukan build ulang; di Vercel perubahan env memicu deploy baru sehingga semantiknya tetap benar. Bila nanti butuh toggle runtime (soft 404 cukup), bungkus konten `/check` dengan `<Suspense>` + `await connection()`.
+11. **Catatan observasi** (di luar lingkup tugas ini): pola dossier (`instant = false` + `connection()`, catatan #7) pada build terpasang saat ini masih menghasilkan 200 + noindex untuk slug asing di `next start`, bukan 404 sungguhan — karena respons tetap streaming di mesin cacheComponents. Perilaku UI-nya netral dan noindex, jadi untuk demo cukup; perlu dikonfirmasi ulang agen backend bila status 404 asli disyaratkan.
+
+## T-26 (metodologi + tentang)
+
+12. **Statistik DB metodologi tidak lagi melempar galat**: hitungan catatan dan tanggal snapshot yang gagal kini didegradasi menjadi null (teks "bila basis data sudah terhubung"), bukan `throw`. Halaman metodologi harus tetap terbaca saat demo tanpa Supabase.
+
 ## Catatan T-39 (migrasi 0003 + auth admin)
 
 1. **`.env` terlacak git**: `.gitignore` hanya mengecualikan `.env*.local`, sedangkan `.env` sudah ter-commit (B.3 mengasumsikan sebaliknya). `DEV_ADMIN_PASSWORD` ditulis ke `.env` lokal oleh `scripts/create-admin.ts` dan **tidak boleh ikut di-commit**; disarankan menambahkan `.env` ke `.gitignore` dan menghapus baris rahasia dari riwayat nanti. **[PM]**
