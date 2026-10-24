@@ -11,7 +11,9 @@
     "import:records": "tsx --env-file=.env scripts/import-records.ts",
     "seed:demo": "tsx --env-file=.env scripts/seed-demo.ts",
     "eval:gold": "tsx --env-file=.env scripts/eval-gold.ts",
-    "eval:match-smoke": "tsx --env-file=.env scripts/eval-match-smoke.ts"
+    "eval:match-smoke": "tsx --env-file=.env scripts/eval-match-smoke.ts",
+    "audit:words": "tsx --env-file=.env scripts/audit-words.ts",
+    "create:admin": "tsx --env-file=.env scripts/create-admin.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

@@ -27,7 +27,8 @@ const RESMI_COCOK = {
 
 describe("AdminProjectCreateSchema", () => {
   it("menolak create tanpa officialRecord.supplier", () => {
-    const { supplier: _supplier, ...tanpaSupplier } = RESMI_COCOK;
+    const tanpaSupplier: Record<string, unknown> = { ...RESMI_COCOK };
+    delete tanpaSupplier.supplier;
     const hasil = AdminProjectCreateSchema.safeParse({
       board: PAPAN_COCOK,
       officialRecord: tanpaSupplier,
