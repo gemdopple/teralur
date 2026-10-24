@@ -1,5 +1,6 @@
 // pg_trgm-style trigram similarity: lowercase, split into words, pad each word with
 // spaces, collect the set of 3-grams, and return the Jaccard-like ratio of the sets.
+// Padding follows PRD Lampiran F.2 / pg_trgm: two spaces in front, one behind.
 
 function kumpulkanGram(teks: string): Set<string> {
   const gram = new Set<string>();
@@ -8,7 +9,7 @@ function kumpulkanGram(teks: string): Set<string> {
     .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean);
   for (const kata of kataKata) {
-    const pad = ` ${kata} `;
+    const pad = `  ${kata} `;
     for (let i = 0; i + 3 <= pad.length; i++) {
       gram.add(pad.slice(i, i + 3));
     }

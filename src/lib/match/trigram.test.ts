@@ -20,4 +20,20 @@ describe("trigramSimilarity", () => {
   it("mengembalikan 0 bila salah satu teks tidak punya trigram", () => {
     expect(trigramSimilarity("", "jalan")).toBe(0);
   });
+
+  // Lima vektor F.4 PRD v1.1 (toleransi ±0,001), setara pg_trgm.similarity().
+  describe("vektor F.4 (±0,001)", () => {
+    const vektor: Array<[string, string, number]> = [
+      ["jalan melati", "jalan melati", 1.0],
+      ["jalan melati", "jalan mawar", 0.3889],
+      ["karya bangun nusantara jaya", "karya bangun nusantara", 0.8519],
+      ["mitra sarana konstruksi", "mitra sarana teknik", 0.4194],
+      ["", "x", 0.0],
+    ];
+    for (const [a, b, diharapkan] of vektor) {
+      it(`"${a}" vs "${b}" = ${diharapkan}`, () => {
+        expect(trigramSimilarity(a, b)).toBeCloseTo(diharapkan, 3);
+      });
+    }
+  });
 });
