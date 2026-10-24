@@ -3,11 +3,20 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DossierView } from "@/components/teralur/DossierView";
+import { KartuBukti } from "@/components/teralur/KartuBukti";
+import {
+  getDossierCached,
+  getProyekViewData,
+} from "@/components/teralur/proyek-view-data";
 import { boardToApi, storedBoardSchema } from "@/lib/api-contract";
-import { databaseConfigured, getDossier } from "@/lib/server-api";
+import { databaseConfigured } from "@/lib/server-api";
 import type { Status } from "@/lib/match/types";
 
-export const metadata: Metadata = { title: "Kartu Bukti | Teralur" };
+// Kartu bukti (Lampiran H.4, T-25): memakai data yang sama dengan dossier
+// (satu pemanggilan data, getDossier langsung di server). Terbuka tanpa login;
+// tanpa foto pengguna dan tanpa resource.
+
+export const instant = false;
 
 const STATUSES: Record<string, Status | "catatan_resmi" | undefined> = {
   cocok: "cocok",
@@ -15,6 +24,33 @@ const STATUSES: Record<string, Status | "catatan_resmi" | undefined> = {
   tidak_ditemukan: "tidak_ditemukan",
   catatan_resmi: "catatan_resmi",
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  if (!databaseConfigured()) {
+    return { title: "Kartu Bukti | Teralur" };
+  }
+  const data = await getProyekViewData(slug);
+  if (!data) {
+    return {
+      title: "Kartu bukti tidak ditemukan | Teralur",
+      robots: { index: false, follow: false },
+    };
+  }
+  const nama = data.packageName.slice(0, 70);
+  const description = data.demo
+    ? "Kartu bukti proyek. Data simulasi."
+    : "Kartu bukti proyek publik.";
+  return {
+    title: `Kartu bukti: ${nama} · teralur`,
+    description,
+    robots: data.demo ? { index: false, follow: false } : undefined,
+  };
+}
 
 export default function EvidencePage({
   params,
@@ -44,12 +80,32 @@ async function EvidenceContent({
     );
   }
 
-  const data = await getDossier(slug);
+  const data = await getProyekViewData(slug);
   if (!data) notFound();
-  const status = STATUSES[data.submission.status ?? ""];
+
+  // Proyek admin (v1.1): kartu bukti H.4 dengan pita simulasi bila demo.
+  if (data.jenis === "admin") {
+    return (
+      <KartuBukti
+        slug={data.slug}
+        status={data.status}
+        demo={data.demo}
+        packageName={data.packageName}
+        timeRing={data.timeRing}
+        snapshotDate={data.record?.snapshotDate ?? null}
+      />
+    );
+  }
+
+  // Jalur v1.0 (foto/cari/catatan resmi) tidak berubah.
+  const dossier = await getDossierCached(slug);
+  if (!dossier) notFound();
+  const status = STATUSES[dossier.submission.status ?? ""];
   if (!status) throw new Error("Dossier tersimpan dengan status yang tidak valid.");
   const parsedBoard =
-    data.submission.papan === null ? null : storedBoardSchema.safeParse(data.submission.papan);
+    dossier.submission.papan === null
+      ? null
+      : storedBoardSchema.safeParse(dossier.submission.papan);
   if (parsedBoard !== null && !parsedBoard.success) {
     throw new Error("Dossier tersimpan dengan data papan yang tidak valid.");
   }
@@ -59,17 +115,17 @@ async function EvidenceContent({
       slug={slug}
       status={status}
       board={parsedBoard?.success ? boardToApi(parsedBoard.data) : null}
-      record={data.record}
-      visitCounts={data.visitCounts}
-      candidates={data.candidates.map((candidate) => ({
+      record={dossier.record}
+      visitCounts={dossier.visitCounts}
+      candidates={dossier.candidates.map((candidate) => ({
         id: candidate.record.id,
         packageName: candidate.record.nama_paket,
         supplier: candidate.record.penyedia,
         contractValue: Number(candidate.record.nilai_kontrak),
         score: candidate.score,
-        selected: candidate.record.id === data.record?.id,
+        selected: candidate.record.id === dossier.record?.id,
       }))}
-      requiresSelection={data.requiresSelection}
+      requiresSelection={dossier.requiresSelection}
       evidenceOnly
     />
   );
