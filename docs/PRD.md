@@ -698,6 +698,8 @@ Demo memakai pindai QR dari papan tiruan cetak sebagai jalur utama. Cadangan: ti
 | 2026-10-24 | T-22 selesai; alur foto → dossier diterima sebagai dasar. Hasil: [PM: isi ringkasan hasil T-22]. G-03 dianggap selesai bersama T-22. | PM |
 | 2026-10-24 | G-02 ditutup tanpa keputusan final, karena gold set lapangan dibekukan. Keputusan sementara 2026-10-21 tetap sebagai arsip. | PM |
 | 2026-10-24 | Keputusan celah C-01 sampai C-10 (Lampiran A.5): cincin `not_started`, teks masa kosong, label HITUNGAN untuk laporan warga, proyek admin selalu `demo`, isian wajib data resmi, render dinamis, `noindex`, batas 3 unggulan, tanggal WIB, rumus selisih nilai. [PM: konfirmasi atau ubah] | PM |
+| 2026-10-24 | T-37: isi kesepakatan baru tercatat pada baris 2026-10-24 di atas. Pertanyaan tertulis ke panitia (arti "resource", izin dan penilaian data simulasi — A-10, A-11) perlu dikirim PM; jawaban diisi pada baris di bawah. | PM |
+| 2026-10-24 | H7–H10 dikerjakan agen AI (T-38 sampai T-47): `compare()` + uji vektor F.4/G.2, migrasi 0003–0004 + bucket Storage, panel admin (login, daftar, form dua blok, unggah resource, QR, laporan warga), API admin E.1–E.10, seed 10 proyek simulasi (`npm run seed:demo`, 3 hero unggulan, nama diperiksa di `docs/demo-names.md`), dossier/kartu bukti/contoh kasus v1.1, metodologi versi simulasi, audit kata (`npm run audit:words` exit 0), uji QA penuh lulus. Menunggu manusia: G-06 (uji admin oleh anggota selain PM), T-27 deploy produksi + `NEXT_PUBLIC_SITE_URL` domain final, T-28 video cadangan, T-48 uji pindai QR. | PM |
 | [isi tanggal] | Jawaban panitia atas T-37 (arti "resource", izin data simulasi, penilaian): [isi] | PM |
 
 ## 14. Glosarium
