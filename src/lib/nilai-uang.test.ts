@@ -23,4 +23,25 @@ describe("parseNilaiUang", () => {
     expect(parseNilaiUang("Rp")).toBeNull();
     expect(parseNilaiUang("abc")).toBeNull();
   });
+
+  // Sepuluh vektor D.2 PRD v1.1.
+  describe("vektor D.2", () => {
+    const vektor: Array<[string, number | null]> = [
+      ["Rp 1.250.000.000", 1_250_000_000],
+      ["1250000000", 1_250_000_000],
+      ["1.250.000.000,00", 1_250_000_000],
+      ["Rp. 875.000.000", 875_000_000],
+      ["12.50", null],
+      ["1,5 miliar", null],
+      ["0", null],
+      ["-5", null],
+      ["abc", null],
+      ["", null],
+    ];
+    for (const [masukan, diharapkan] of vektor) {
+      it(`"${masukan}" → ${diharapkan === null ? "null" : diharapkan}`, () => {
+        expect(parseNilaiUang(masukan)).toBe(diharapkan);
+      });
+    }
+  });
 });
