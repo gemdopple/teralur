@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "import:records": "tsx --env-file=.env scripts/import-records.ts",
+    "seed:demo": "tsx --env-file=.env scripts/seed-demo.ts",
     "eval:gold": "tsx --env-file=.env scripts/eval-gold.ts",
     "eval:match-smoke": "tsx --env-file=.env scripts/eval-match-smoke.ts"
   },
