@@ -2,14 +2,20 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { DossierView } from "@/components/teralur/DossierView";
+import { DossierProyek } from "@/components/teralur/DossierProyek";
+import {
+  getDossierCached,
+  getProyekViewData,
+} from "@/components/teralur/proyek-view-data";
 import { boardToApi, storedBoardSchema } from "@/lib/api-contract";
-import { databaseConfigured, getDossier } from "@/lib/server-api";
+import { databaseConfigured } from "@/lib/server-api";
 import type { Status } from "@/lib/match/types";
 
-export const metadata: Metadata = { title: "Dossier Proyek | Teralur" };
+// Dossier (Lampiran H.1, T-45): komponen server, render dinamis per-permintaan
+// (C-06) supaya penarikan/perubahan admin berlaku seketika. Satu pemanggilan
+// data per halaman — getDossier dibungkus React cache() agar generateMetadata
+// dan halaman berbagi hasil panggilan yang sama.
 
-// Rute memblokir (bukan streaming) agar notFound() untuk slug asing menghasilkan
-// HTTP 404 sungguhan, bukan 200 dari fallback yang sudah terkirim.
 export const instant = false;
 
 const STATUSES: Record<string, Status | "catatan_resmi" | undefined> = {
@@ -19,13 +25,53 @@ const STATUSES: Record<string, Status | "catatan_resmi" | undefined> = {
   catatan_resmi: "catatan_resmi",
 };
 
+const TEKS_STATUS: Record<string, string> = {
+  cocok: "Cocok dengan catatan resmi",
+  selisih: "Selisih data, perlu klarifikasi",
+  tidak_ditemukan: "Tidak ditemukan di data yang kami miliki",
+  catatan_resmi: "Catatan resmi",
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  if (!databaseConfigured()) {
+    return { title: "Dossier Proyek | Teralur" };
+  }
+  const data = await getProyekViewData(slug);
+  if (!data) {
+    return {
+      title: "Proyek tidak ditemukan | Teralur",
+      robots: { index: false, follow: false },
+    };
+  }
+  // H.1: title = {nama paket dipotong 70 karakter} · teralur; description =
+  // status + "Data simulasi" bila demo; robots noindex,nofollow bila demo (C-07).
+  const nama = data.packageName.slice(0, 70);
+  const statusTeks = TEKS_STATUS[data.status] ?? "";
+  const description = data.demo ? `${statusTeks}. Data simulasi.` : statusTeks;
+  return {
+    title: `${nama} · teralur`,
+    description,
+    robots: data.demo ? { index: false, follow: false } : undefined,
+    openGraph: {
+      title: `${nama} · teralur`,
+      description,
+      images: [{ url: `/evidence/${slug}/opengraph-image` }],
+    },
+  };
+}
+
 export default async function DossierPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  // Pencarian dilakukan sebelum render apa pun agar notFound() menghasilkan HTTP 404,
-  // bukan 200 dari fallback Suspense yang sudah terkirim.
+  // Pencarian dilakukan sebelum render apa pun agar notFound() menghasilkan
+  // status netral, bukan konten dossier dari fallback yang sudah terkirim.
   await connection();
   const { slug } = await params;
   if (!databaseConfigured()) {
@@ -39,12 +85,37 @@ export default async function DossierPage({
     );
   }
 
-  const data = await getDossier(slug);
+  const data = await getProyekViewData(slug);
   if (!data) notFound();
-  const status = STATUSES[data.submission.status ?? ""];
+
+  // Proyek admin (v1.1): tata letak H.1 dengan timeRing dan discrepancies
+  // yang dihitung server (E.11).
+  if (data.jenis === "admin") {
+    return (
+      <DossierProyek
+        slug={data.slug}
+        status={data.status}
+        demo={data.demo}
+        packageName={data.packageName}
+        board={data.board}
+        record={data.record}
+        discrepancies={data.discrepancies}
+        timeRing={data.timeRing}
+        resources={data.resources}
+        visitCounts={data.visitCounts}
+      />
+    );
+  }
+
+  // Jalur v1.0 (foto/cari/catatan resmi) tidak berubah.
+  const dossier = await getDossierCached(slug);
+  if (!dossier) notFound();
+  const status = STATUSES[dossier.submission.status ?? ""];
   if (!status) throw new Error("Dossier tersimpan dengan status yang tidak valid.");
   const parsedBoard =
-    data.submission.papan === null ? null : storedBoardSchema.safeParse(data.submission.papan);
+    dossier.submission.papan === null
+      ? null
+      : storedBoardSchema.safeParse(dossier.submission.papan);
   if (parsedBoard !== null && !parsedBoard.success) {
     throw new Error("Dossier tersimpan dengan data papan yang tidak valid.");
   }
@@ -54,17 +125,17 @@ export default async function DossierPage({
       slug={slug}
       status={status}
       board={parsedBoard?.success ? boardToApi(parsedBoard.data) : null}
-      record={data.record}
-      visitCounts={data.visitCounts}
-      candidates={data.candidates.map((candidate) => ({
+      record={dossier.record}
+      visitCounts={dossier.visitCounts}
+      candidates={dossier.candidates.map((candidate) => ({
         id: candidate.record.id,
         packageName: candidate.record.nama_paket,
         supplier: candidate.record.penyedia,
         contractValue: Number(candidate.record.nilai_kontrak),
         score: candidate.score,
-        selected: candidate.record.id === data.record?.id,
+        selected: candidate.record.id === dossier.record?.id,
       }))}
-      requiresSelection={data.requiresSelection}
+      requiresSelection={dossier.requiresSelection}
     />
   );
 }
