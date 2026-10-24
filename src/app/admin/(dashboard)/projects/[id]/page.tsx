@@ -4,6 +4,9 @@ import { connection } from "next/server";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FormProyek } from "@/components/teralur/admin/FormProyek";
+import { PengunggahResource, type ResourceAdmin } from "@/components/teralur/admin/PengunggahResource";
+import { PanelQR } from "@/components/teralur/admin/PanelQR";
+import { TabelLaporanWarga } from "@/components/teralur/admin/TabelLaporanWarga";
 import { officialRecordFromRow, parseStoredBoard, type ProjectRecordRow } from "@/lib/admin-projects";
 import { jakartaToday } from "@/lib/dates";
 import { getSupabaseAdmin } from "@/lib/db";
@@ -85,6 +88,23 @@ export default async function AdminProjectEditPage({
     }
   }
 
+  // L.4: daftar resource proyek untuk PengunggahResource (url publik Storage
+  // dibangun sama seperti route API / api dossier).
+  const { data: resourceRows } = await getSupabaseAdmin()
+    .from("resources")
+    .select("id, jenis, judul, ukuran, path_penyimpanan, dibuat")
+    .eq("submission_id", submission.id)
+    .order("dibuat", { ascending: true });
+  const basis = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";
+  const resources: ResourceAdmin[] = (resourceRows ?? []).map((row) => ({
+    id: row.id,
+    kind: row.jenis === "document" ? "document" : "photo",
+    title: row.judul,
+    url: `${basis}/storage/v1/object/public/resources/${row.path_penyimpanan}`,
+    size: Number(row.ukuran ?? 0),
+    createdAt: row.dibuat,
+  }));
+
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
       <h1 className="font-heading text-2xl font-extrabold">Ubah proyek</h1>
@@ -103,24 +123,25 @@ export default async function AdminProjectEditPage({
         />
       </div>
 
-      {/* Gelombang berikutnya: L.4 (PengunggahResource) dan L.5 (PanelQR). */}
-      <section className="mt-10" aria-label="Resource">
-        <h2 className="font-heading text-lg font-bold">Resource</h2>
-        <p className="mt-2 text-sm text-neutral-700">Pengelolaan resource menyusul.</p>
-      </section>
+      {/* L.4 (PengunggahResource) — hanya setelah proyek tersimpan (selalu
+          kasus di halaman ubah) dan L.5 (PanelQR). */}
+      <div className="mt-10">
+        <PengunggahResource projectId={submission.id} initialResources={resources} />
+      </div>
 
-      <section className="mt-8" aria-label="QR">
-        <h2 className="font-heading text-lg font-bold">QR</h2>
-        <p className="mt-2 text-sm text-neutral-700">
-          Lembar cetak QR proyek:{" "}
-          <Link
-            href={`/admin/projects/${submission.id}/qr`}
-            className="underline underline-offset-4"
-          >
-            Buka /admin/projects/{submission.id}/qr
-          </Link>
-        </p>
-      </section>
+      <div className="mt-10">
+        <PanelQR
+          projectId={submission.id}
+          slug={submission.slug}
+          published={submission.terbit}
+          siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? ""}
+        />
+      </div>
+
+      {/* L.6 (T-47): kunci proyek = id catatan resmi bila ada (E.13). */}
+      <div className="mt-10">
+        <TabelLaporanWarga projectId={submission.record_id ?? submission.id} />
+      </div>
     </main>
   );
 }
