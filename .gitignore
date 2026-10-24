@@ -44,3 +44,7 @@ next-env.d.ts
 data/raw/
 data/foto/
 *.heic
+
+# secrets and CLI state - never commit
+.env
+supabase/.temp/
