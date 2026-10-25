@@ -14,7 +14,9 @@
   --color-hitam-aspal: var(--hitam-aspal);
   --color-kertas: var(--kertas);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-jetbrains-mono);
+  /* Seluruh teks mono memakai sans (keputusan PM 2026-10-26) — font mono
+     tidak lagi dimuat di layout. */
+  --font-mono: var(--font-sans);
   --font-heading: var(--font-heading);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);

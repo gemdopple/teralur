@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  AppStoreIcon,
   Book02Icon,
   Home01Icon,
   MapIcon,
@@ -27,7 +26,6 @@ const ITEM_KIRI: ItemBawah[] = [
 ];
 
 const ITEM_KANAN: ItemBawah[] = [
-  { href: "/examples", label: "Contoh", ikon: AppStoreIcon },
   // Label pendek agar muat di 360 px; nama lengkap tetap di navigasi atas.
   { href: "/methodology", label: "Metode", ikon: Book02Icon },
   { href: "/login", label: "Masuk", ikon: User02Icon },
@@ -44,7 +42,7 @@ function SelNav({ item, hidup }: { item: ItemBawah; hidup: boolean }) {
       href={item.href}
       aria-current={hidup ? "page" : undefined}
       className={cn(
-        "flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-[11px] font-medium transition-colors",
+        "flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 text-[11px] font-medium transition-colors",
         hidup ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground",
       )}
     >
@@ -69,7 +67,7 @@ export function NavBawah() {
         className="fixed inset-x-3 z-50"
         style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-      <div className="relative mx-auto grid max-w-md grid-cols-6 items-center gap-0.5 rounded-2xl border border-border bg-card/95 px-2 py-1.5 shadow-xl shadow-hitam-aspal/15 backdrop-blur">
+      <div className="relative mx-auto grid max-w-md grid-cols-5 items-center gap-1 rounded-2xl border border-border bg-card/95 px-2 py-1.5 shadow-xl shadow-hitam-aspal/15 backdrop-blur">
         {ITEM_KIRI.map((item) => (
           <SelNav key={item.href} item={item} hidup={aktif(pathname, item.href)} />
         ))}

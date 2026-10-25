@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
@@ -13,8 +13,6 @@ const geistHeading = Geist({
   subsets: ["latin"],
   variable: "--font-heading",
 });
-
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
 
 export const metadata: Metadata = {
   title: "Teralur: Transparansi Proyek Publik",
@@ -32,7 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         "font-sans",
         geistSans.variable,
         geistHeading.variable,
-        geistMono.variable,
       )}
     >
       <body className="min-h-full flex flex-col">

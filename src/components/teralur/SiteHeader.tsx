@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { photoFlowEnabled } from "@/lib/flags";
-import { MenuPonsel, TautanNav, type ItemNavPublik } from "@/components/teralur/nav-publik";
+import { TautanNav, type ItemNavPublik } from "@/components/teralur/nav-publik";
 import { kelasTombol } from "@/lib/kelas-tombol";
 
 // T-38: jalur foto beku. Item "Periksa papan" hanya tampil bila
@@ -42,7 +42,6 @@ export function SiteHeader() {
           <Link href="/jelajah" className={`${kelasTombol()} max-sm:hidden`}>
             Cari proyek
           </Link>
-          <MenuPonsel items={items} />
         </div>
       </div>
     </header>
