@@ -92,7 +92,11 @@ export function KartuBukti({
         </Reveal>
 
         <div className="mt-6 flex flex-wrap items-start gap-4">
-          <Link href={`/dossiers/${slug}`} className={kelasTombol("outline")}>
+          {/* Ponsel: cukup nav bawah; tautan kembali hanya di layar lebar. */}
+          <Link
+            href={`/dossiers/${slug}`}
+            className={`${kelasTombol("outline")} hidden sm:inline-flex`}
+          >
             ← Kembali ke dossier
           </Link>
           <TombolSalinBagikan
