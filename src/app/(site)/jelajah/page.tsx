@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { connection } from "next/server";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { QrCodeScanIcon } from "@hugeicons/core-free-icons";
 import { PetaProyek } from "@/components/teralur/PetaProyek";
 import { PemindaiQr } from "@/components/teralur/PemindaiQr";
 import { Reveal } from "@/components/teralur/anim/Reveal";
@@ -21,13 +24,8 @@ export const metadata: Metadata = {
 
 export const instant = false;
 
-export default async function HalamanJelajah({
-  searchParams,
-}: {
-  searchParams: Promise<{ pindai?: string }>;
-}) {
+export default async function HalamanJelajah() {
   await connection();
-  const { pindai } = await searchParams;
   const hariIni = jakartaToday();
   const proyek = daftarProyekPublik(hariIni);
 
@@ -57,13 +55,22 @@ export default async function HalamanJelajah({
               Punya ponsel di lokasi?
             </h2>
             <p className="mt-3 max-w-md text-muted-foreground">
-              Pindai QR pada papan proyek langsung dari halaman ini. Kamera aktif
+              Pindai QR pada papan proyek langsung dari ponsel Anda. Kamera aktif
               hanya selama pemindai terbuka, dan gambar tidak pernah disimpan di
               mana pun.
             </p>
+            {/* Ponsel: pindai pindah ke halaman khusus agar fokus ke kamera. */}
+            <Link
+              href="/pindai"
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-kuning-papan px-5 py-2.5 text-sm font-bold text-hitam-aspal shadow-sm md:hidden"
+            >
+              <HugeiconsIcon icon={QrCodeScanIcon} className="size-4.5" strokeWidth={2.2} />
+              Buka pemindai QR
+            </Link>
           </Reveal>
-          <Reveal delay={0.1}>
-            <PemindaiQr mulaiOtomatis={pindai === "1"} />
+          {/* Kartu pemindai hanya di layar lebar; ponsel memakai halaman /pindai. */}
+          <Reveal delay={0.1} className="hidden md:block">
+            <PemindaiQr />
           </Reveal>
         </div>
       </section>
