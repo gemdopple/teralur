@@ -58,11 +58,17 @@ export function NavBawah() {
   const pathname = usePathname();
 
   return (
-    <nav
-      aria-label="Navigasi bawah"
-      className="fixed inset-x-3 z-50 md:hidden"
-      style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
-    >
+    <nav aria-label="Navigasi bawah" className="md:hidden">
+      {/* Latar pudar di belakang bar + FAB: konten yang lewat di bawahnya
+          memudar menyatu, bukan menabrak tombol menonjol (z-40 < bar z-50). */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-24 bg-gradient-to-t from-background via-background/80 to-transparent"
+      />
+      <div
+        className="fixed inset-x-3 z-50"
+        style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+      >
       <div className="relative mx-auto grid max-w-md grid-cols-6 items-center gap-0.5 rounded-2xl border border-border bg-card/95 px-2 py-1.5 shadow-xl shadow-hitam-aspal/15 backdrop-blur">
         {ITEM_KIRI.map((item) => (
           <SelNav key={item.href} item={item} hidup={aktif(pathname, item.href)} />
@@ -81,6 +87,7 @@ export function NavBawah() {
         {ITEM_KANAN.map((item) => (
           <SelNav key={item.href} item={item} hidup={aktif(pathname, item.href)} />
         ))}
+      </div>
       </div>
     </nav>
   );

@@ -3,8 +3,10 @@ import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
 import { PemindaiQr } from "@/components/teralur/PemindaiQr";
+import { NavBawah } from "@/components/teralur/nav-bawah";
 
-// Halaman pindai khusus (ponsel): tanpa navigasi situs agar fokus ke kamera.
+// Halaman pindai khusus (ponsel): tanpa header/footer situs agar fokus ke
+// kamera, tetapi nav bawah tetap ada agar navigasi tidak hilang saat memindai.
 // Kamera menyala otomatis begitu halaman terbuka; setelah QR terbaca, pengguna
 // langsung dibawa ke dossier proyek. Kembali ke /jelajah lewat tautan atas.
 
@@ -40,6 +42,10 @@ export default function HalamanPindai() {
           disimpan di mana pun.
         </p>
       </main>
+
+      {/* Ruang agar catatan privasi tidak tertutup nav bawah melayang. */}
+      <div aria-hidden className="h-24" />
+      <NavBawah />
     </div>
   );
 }
