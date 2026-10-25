@@ -6,7 +6,7 @@ import { GrafikAspek, type BarisAspek } from "@/components/teralur/grafik-aspek"
 import { GrafikLaporan } from "@/components/teralur/grafik-laporan";
 import { GrafikNilai } from "@/components/teralur/grafik-nilai";
 import { LabelTiga } from "@/components/teralur/LabelTiga";
-import { PitaData } from "@/components/teralur/Pita";
+import { PitaData, PitaSimulasi } from "@/components/teralur/Pita";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { StaggerGroup, StaggerItem } from "@/components/teralur/anim/Stagger";
@@ -298,7 +298,7 @@ export function DossierProyek({
 
   return (
     <div className="flex-1">
-      {tanggalData ? <PitaData tanggal={tanggalData} /> : null}
+      {demo ? <PitaSimulasi /> : tanggalData ? <PitaData tanggal={tanggalData} /> : null}
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {/* Header */}
@@ -354,7 +354,7 @@ export function DossierProyek({
           <JudulSeksi>Grafik</JudulSeksi>
           <StaggerGroup className="mt-4 grid gap-4 lg:grid-cols-2">
             {/* 1) Cincin waktu */}
-            <StaggerItem>
+            <StaggerItem className="min-w-0">
               <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <h3 className="text-sm font-semibold">Waktu pelaksanaan</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -386,7 +386,7 @@ export function DossierProyek({
             </StaggerItem>
 
             {/* 2) Grafik nilai */}
-            <StaggerItem>
+            <StaggerItem className="min-w-0">
               <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <h3 className="text-sm font-semibold">Nilai kontrak</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -404,7 +404,7 @@ export function DossierProyek({
             </StaggerItem>
 
             {/* 3) Kecocokan per aspek */}
-            <StaggerItem>
+            <StaggerItem className="min-w-0">
               <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <h3 className="text-sm font-semibold">Kecocokan per aspek</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -422,7 +422,7 @@ export function DossierProyek({
             </StaggerItem>
 
             {/* 4) Laporan warga (donat) */}
-            <StaggerItem>
+            <StaggerItem className="min-w-0">
               <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold">Laporan warga</h3>
@@ -448,7 +448,7 @@ export function DossierProyek({
         <section aria-label="Jejak sumber dan dokumen" className="mt-12">
           <JudulSeksi>Jejak sumber &amp; dokumen</JudulSeksi>
           <StaggerGroup className="mt-4 grid gap-4 lg:grid-cols-2">
-            <StaggerItem>
+            <StaggerItem className="min-w-0">
               {/* Judul panel tidak ditampilkan di konteks ini agar tidak dobel
                   dengan judul seksi; panel tetap bertajuk lewat aria-label. */}
               <div className="[&_h3]:hidden">
@@ -481,7 +481,7 @@ export function DossierProyek({
               </div>
             </StaggerItem>
 
-            <StaggerItem>
+            <StaggerItem className="min-w-0">
               {/* Dari mana data berasal: dokumen sumber. Proyek nyata → tautan
                   portal publik; proyek demo → catatan jujur tanpa tautan luar. */}
               <article
@@ -530,7 +530,7 @@ export function DossierProyek({
         <section aria-label="Laporan warga dan bagikan" className="mt-12">
           <JudulSeksi>Laporan warga &amp; bagikan</JudulSeksi>
           <StaggerGroup className="mt-4 grid gap-4 lg:grid-cols-2">
-            <StaggerItem>
+            <StaggerItem className="min-w-0">
               {statis ? (
                 <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
                   <h3 className="font-heading text-base font-semibold tracking-tight">
@@ -545,7 +545,7 @@ export function DossierProyek({
               )}
             </StaggerItem>
 
-            <StaggerItem>
+            <StaggerItem className="min-w-0">
               <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <h3 className="font-heading text-base font-semibold tracking-tight">
                   Bagikan laporan ini
