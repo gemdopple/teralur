@@ -50,3 +50,6 @@ data/foto/
 supabase/.temp/
 
 /.zcode
+# Artefak generator dokumen demo (dibuat ulang oleh scripts/dokumen-demo)
+scripts/dokumen-demo/proyek.json
+scripts/dokumen-demo/pdf/
