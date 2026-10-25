@@ -6,7 +6,7 @@ import { GrafikAspek, type BarisAspek } from "@/components/teralur/grafik-aspek"
 import { GrafikLaporan } from "@/components/teralur/grafik-laporan";
 import { GrafikNilai } from "@/components/teralur/grafik-nilai";
 import { LabelTiga } from "@/components/teralur/LabelTiga";
-import { PitaData, PitaSimulasi } from "@/components/teralur/Pita";
+import { PitaData } from "@/components/teralur/Pita";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { StaggerGroup, StaggerItem } from "@/components/teralur/anim/Stagger";
@@ -298,7 +298,7 @@ export function DossierProyek({
 
   return (
     <div className="flex-1">
-      {demo ? <PitaSimulasi /> : tanggalData ? <PitaData tanggal={tanggalData} /> : null}
+      {tanggalData ? <PitaData tanggal={tanggalData} /> : null}
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {/* Header */}

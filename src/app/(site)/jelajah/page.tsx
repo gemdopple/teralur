@@ -21,8 +21,13 @@ export const metadata: Metadata = {
 
 export const instant = false;
 
-export default async function HalamanJelajah() {
+export default async function HalamanJelajah({
+  searchParams,
+}: {
+  searchParams: Promise<{ pindai?: string }>;
+}) {
   await connection();
+  const { pindai } = await searchParams;
   const hariIni = jakartaToday();
   const proyek = daftarProyekPublik(hariIni);
 
@@ -45,19 +50,20 @@ export default async function HalamanJelajah() {
         </div>
       </section>
 
-      <section className="border-b border-border">
+      <section id="pindai" className="scroll-mt-20 border-b border-border">
         <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1fr_400px] md:items-center">
           <Reveal>
             <h2 className="text-balance font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
               Punya ponsel di lokasi?
             </h2>
             <p className="mt-3 max-w-md text-muted-foreground">
-              Pindai QR pada papan proyek langsung dari halaman ini. Kamera baru aktif setelah
-              Anda menekan tombol, dan gambar tidak pernah disimpan di mana pun.
+              Pindai QR pada papan proyek langsung dari halaman ini. Kamera aktif
+              hanya selama pemindai terbuka, dan gambar tidak pernah disimpan di
+              mana pun.
             </p>
           </Reveal>
           <Reveal delay={0.1}>
-            <PemindaiQr />
+            <PemindaiQr mulaiOtomatis={pindai === "1"} />
           </Reveal>
         </div>
       </section>

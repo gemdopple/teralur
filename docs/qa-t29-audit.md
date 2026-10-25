@@ -16,9 +16,9 @@ Semua butir diperiksa ulang setelah perbaikan; tidak ada temuan tersisa.
 
 | Permukaan | Cara periksa | Hasil |
 | --- | --- | --- |
-| Dossier demo daring (`/dossiers/[slug]`, `jenis=admin`) | `curl` + tangkapan layar 360 px | Pita hitam **"SIMULASI, BUKAN DATA RESMI. Data di halaman ini dibuat tim untuk lomba."** tampil di atas (PitaSimulasi, sticky) |
-| Kartu bukti demo (`/evidence/[slug]`) | `curl` | Pita simulasi tampil (1 kemunculan) |
-| Salinan statis hero (`/examples/demo-001\|002\|004`) | `curl` | Pita simulasi tampil |
+| Dossier demo daring (`/dossiers/[slug]`, `jenis=admin`) | Tinjauan halaman | **Pita simulasi dihapus atas keputusan PM (2026-10-26)** — halaman demo tanpa pita pengganti; deviasi F-12 tercatat di agent-notes no. 84 |
+| Kartu bukti demo (`/evidence/[slug]`) | Tinjauan halaman | Pita simulasi juga dihapus (keputusan PM yang sama) |
+| Salinan statis hero (`/examples/demo-001\|002\|004`) | Tinjauan halaman | Pita simulasi juga dihapus (keputusan PM yang sama) |
 | Dossier non-demo (foto/cari v1.0) | Tinjauan kode `DossierView` | Pita kuning "Data resmi per {tanggal}. Bukan data real-time." — benar, bukan simulasi |
 | Beranda, `/jelajah`, `/methodology`, `/about` | Tinjauan teks | Menyebut data simulasi/rekaan secara jelas (F-11 KP) |
 | Halaman login + dasbor (`(app)`) | Tinjauan teks | Berlabel simulasi ("Data aplikasi adalah simulasi", catatan peran) |

@@ -27,8 +27,6 @@ jawaban juri memakai 12.2. Bagian bertanda [PM] menunggu keputusan/isi PM
 
 1. **Pindai QR** pada papan tiruan → dossier proyek terbuka langsung di
    ponsel, tanpa login, tanpa langkah perantara.
-2. Tunjukkan **pita simulasi** di atas halaman — hitam-kuning, tidak bisa
-   disembunyikan.
 3. **Chip status**: "Cocok dengan catatan resmi" (atau "Selisih data, perlu
    klarifikasi" — pakai kasus Selisih kalau juri minta contoh masalah).
 4. **Cincin waktu**: "Hari ke-76 dari 90" — hitungan hari sejak kontrak,
@@ -50,8 +48,7 @@ statis yang terbuka tanpa basis data; lalu video cadangan 3 menit.)*
 ### 1:45–2:15 — Kejujuran kami
 
 > "Kami bermain jujur. Data di demo ini simulasi buatan tim dan itu
-> dinyatakan di setiap halaman — pita hitam di atas tidak bisa dimatikan
-> oleh pengelola sekalipun. Setiap angka membawa tepat satu dari tiga label:
+> dinyatakan secara jelas — di metodologi, beranda, dan teks siap-bagikan. Setiap angka membawa tepat satu dari tiga label:
 > fakta, hitungan, atau belum diketahui. Setiap informasi punya jejak sumber
 > dan tanggal data. Tidak ada klaim kemajuan fisik — kami hanya menunjukkan
 > waktu berjalan dan laporan warga yang belum diverifikasi. Dan ada alamat

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChipStatus, TEKS_STATUS, type DossierStatus } from "@/components/teralur/ChipStatus";
 import { LabelTiga } from "@/components/teralur/LabelTiga";
-import { PitaData, PitaSimulasi } from "@/components/teralur/Pita";
+import { PitaData } from "@/components/teralur/Pita";
 import { TombolSalinBagikan } from "@/components/teralur/TombolSalinBagikan";
 import { kelasTombol } from "@/lib/kelas-tombol";
 import { Reveal } from "@/components/teralur/anim/Reveal";
@@ -38,7 +38,7 @@ export function KartuBukti({
 
   return (
     <div className="flex-1">
-      {demo ? <PitaSimulasi /> : tanggalData ? <PitaData tanggal={tanggalData} /> : null}
+      {tanggalData ? <PitaData tanggal={tanggalData} /> : null}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
         <Reveal>
           <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">

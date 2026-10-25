@@ -54,7 +54,7 @@ function pesanUntuk(status: StatusPindai): string | undefined {
     : undefined;
 }
 
-export function PemindaiQr() {
+export function PemindaiQr({ mulaiOtomatis = false }: { mulaiOtomatis?: boolean }) {
   const router = useRouter();
   const kurangiGerak = useReducedMotion();
 
@@ -219,6 +219,16 @@ export function PemindaiQr() {
       }
     }
   }, [hentikanSemua, prosesBacaan]);
+
+  // Mulai otomatis (nav bawah: ?pindai=1): kamera menyala begitu halaman
+  // terbuka, sekali saja — pengguna tetap bisa menutup lewat tombol.
+  const sudahMulaiRef = useRef(false);
+  useEffect(() => {
+    if (mulaiOtomatis && !sudahMulaiRef.current) {
+      sudahMulaiRef.current = true;
+      void bukaKamera();
+    }
+  }, [mulaiOtomatis, bukaKamera]);
 
   const kameraTerlihat = status === "membuka" || status === "memindai";
   const pesanGalat = pesanUntuk(status);
