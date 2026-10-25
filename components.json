@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "base-luma",
+  "style": "aria-luma",
   "rsc": true,
   "tsx": true,
   "tailwind": {

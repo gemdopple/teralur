@@ -5,6 +5,8 @@ import { LabelTiga } from "@/components/teralur/LabelTiga";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
 import { PapanCatatanSection, type BarisTabel } from "@/components/teralur/PapanCatatanSection";
 import { VisitReportForm } from "@/components/teralur/VisitReportForm";
+import { Reveal } from "@/components/teralur/anim/Reveal";
+import { kelasTombol } from "@/lib/kelas-tombol";
 import { hitungCincin, inputCincin } from "@/lib/cincin";
 import type { ApiBoard } from "@/lib/api-contract";
 import type { RecordRow } from "@/lib/server-api";
@@ -135,37 +137,39 @@ export function DossierView({
   ];
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-widest text-neutral-600">
-            {evidenceOnly ? "Kartu bukti" : "Dossier proyek"}
-          </p>
-          <h1 className="mt-2 font-heading text-3xl font-extrabold">
-            {record?.nama_paket ?? board?.packageName ?? "Nama paket belum diketahui"}
-          </h1>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
+      <Reveal>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              {evidenceOnly ? "Kartu bukti" : "Dossier proyek"}
+            </p>
+            <h1 className="mt-2 break-words font-heading text-3xl font-bold tracking-tight">
+              {record?.nama_paket ?? board?.packageName ?? "Nama paket belum diketahui"}
+            </h1>
+          </div>
+          <ChipStatus status={status} />
         </div>
-        <ChipStatus status={status} />
-      </div>
 
-      {simulasi ? (
-        <>
-          <p className="mt-4 inline-flex border border-black bg-[#FFC400] px-3 py-2 text-sm font-semibold">
-            SIMULASI, BUKAN DATA RESMI. Kasus contoh untuk memperkenalkan alur Teralur.
-          </p>
-          {record && (
-            <p className="mt-2 text-sm text-neutral-700">
+        {simulasi ? (
+          <>
+            <p className="mt-4 inline-flex rounded-full bg-hitam-aspal px-3.5 py-1.5 text-sm font-semibold text-kuning-papan">
+              Kasus contoh untuk memperkenalkan alur Teralur.
+            </p>
+            {record && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Data resmi per {formatDate(record.snapshot_tanggal)}. Bukan data real-time.
+              </p>
+            )}
+          </>
+        ) : (
+          record && (
+            <p className="mt-4 inline-flex rounded-full bg-kuning-papan px-3.5 py-1.5 text-sm font-semibold text-hitam-aspal">
               Data resmi per {formatDate(record.snapshot_tanggal)}. Bukan data real-time.
             </p>
-          )}
-        </>
-      ) : (
-        record && (
-          <p className="mt-4 inline-flex border border-black bg-[#FFC400] px-3 py-2 text-sm font-semibold">
-            Data resmi per {formatDate(record.snapshot_tanggal)}. Bukan data real-time.
-          </p>
-        )
-      )}
+          )
+        )}
+      </Reveal>
 
       <PapanCatatanSection
         rows={rows}
@@ -176,38 +180,40 @@ export function DossierView({
         catatanResmi={status === "catatan_resmi"}
         statusSelisih={status === "selisih"}
         selisihCatatan={
-          <p className="mt-3 rounded-md border-l-4 border-[#D9480F] bg-orange-50 p-3 text-sm">
+          <p className="mt-3 rounded-xl border border-selisih/60 bg-selisih/10 p-3 text-sm">
             Perbedaan sering wajar, misalnya karena addendum atau perubahan kontrak. Perlu klarifikasi.{" "}
             <LabelTiga label="belum_diketahui" />
           </p>
         }
       />
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
-        <PanelJejak
-          judul="Jejak sumber"
-          baris={[
-            { label: "Sumber papan", nilai: board ? "Isian pengguna dari foto atau input manual; belum diverifikasi tim." : "Papan tidak tersedia untuk dibandingkan." },
-            { label: "ID catatan resmi", nilai: record?.id_sumber ?? "Belum diketahui" },
-            { label: "Sumber data", nilai: record?.sumber ?? "Catatan resmi belum tersedia" },
-            { label: "Tanggal snapshot", nilai: record ? formatDate(record.snapshot_tanggal) : "Belum diketahui" },
-            { label: "Rumus cincin", nilai: "Hari berjalan dibagi masa pelaksanaan; bukan persen kemajuan fisik." },
-          ]}
-        />
-        {!evidenceOnly && (
-          <section className="rounded-xl border border-neutral-300 bg-white p-5">
-            <h2 className="font-heading text-xl font-bold">Laporan warga</h2>
-            <p className="mt-1 text-sm text-neutral-700">
-              Belum diverifikasi; jumlah saja, bukan ukuran kemajuan. <LabelTiga label="belum_diketahui" />
-            </p>
-            <ul className="mt-3 space-y-1 text-sm">
-              <li>Ada aktivitas pekerjaan: {visitCounts.active}</li>
-              <li>Tidak terlihat aktivitas: {visitCounts.no_activity_seen}</li>
-              <li>Tampak selesai: {visitCounts.appears_complete}</li>
-            </ul>
-          </section>
-        )}
-      </div>
+      <Reveal>
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          <PanelJejak
+            judul="Jejak sumber"
+            baris={[
+              { label: "Sumber papan", nilai: board ? "Isian pengguna dari foto atau input manual; belum diverifikasi tim." : "Papan tidak tersedia untuk dibandingkan." },
+              { label: "ID catatan resmi", nilai: record?.id_sumber ?? "Belum diketahui" },
+              { label: "Sumber data", nilai: record?.sumber ?? "Catatan resmi belum tersedia" },
+              { label: "Tanggal snapshot", nilai: record ? formatDate(record.snapshot_tanggal) : "Belum diketahui" },
+              { label: "Rumus cincin", nilai: "Hari berjalan dibagi masa pelaksanaan; bukan persen kemajuan fisik." },
+            ]}
+          />
+          {!evidenceOnly && (
+            <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <h2 className="font-heading text-xl font-bold tracking-tight">Laporan warga</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Belum diverifikasi; jumlah saja, bukan ukuran kemajuan. <LabelTiga label="belum_diketahui" />
+              </p>
+              <ul className="mt-3 space-y-1 text-sm">
+                <li>Ada aktivitas pekerjaan: {visitCounts.active}</li>
+                <li>Tidak terlihat aktivitas: {visitCounts.no_activity_seen}</li>
+                <li>Tampak selesai: {visitCounts.appears_complete}</li>
+              </ul>
+            </section>
+          )}
+        </div>
+      </Reveal>
 
       {!evidenceOnly && (
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
@@ -219,21 +225,21 @@ export function DossierView({
             />
           )}
           <VisitReportForm dossierSlug={slug} />
-          <section className="rounded-xl border border-neutral-300 bg-white p-5">
-            <h2 className="font-heading text-xl font-bold">Batas informasi</h2>
-            <p className="mt-2 text-sm leading-6 text-neutral-700">
+          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h2 className="font-heading text-xl font-bold tracking-tight">Batas informasi</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
               Informasi papan dikonfirmasi oleh pengguna dan belum diverifikasi tim Teralur. Catatan resmi
               berasal dari data publik per {record ? formatDate(record.snapshot_tanggal) : "tanggal snapshot yang tersedia"}
               {" "}dan mungkin belum memuat perubahan kontrak. Perbedaan tidak berarti kesalahan.
             </p>
-            <Link href={`/evidence/${slug}`} className="mt-4 inline-block rounded-md border-2 border-black bg-[#FFC400] px-4 py-2 font-semibold">
+            <Link href={`/evidence/${slug}`} className={kelasTombol("default", "lg") + " mt-4"}>
               Buat kartu bukti
             </Link>
           </section>
         </div>
       )}
       {evidenceOnly && (
-        <p className="mt-6 border-t border-black/20 pt-4 text-sm text-neutral-700">
+        <p className="mt-6 border-t border-border pt-4 text-sm text-muted-foreground">
           Informasi papan dikonfirmasi pengguna dan belum diverifikasi tim Teralur. Perbedaan tidak berarti kesalahan.
           Sumber data publik: OCDS (Opentender/ICW), lisensi ODbL.
         </p>

@@ -10,6 +10,9 @@
 //    PERNAH disentuh. Status/skor dari compare() produksi (src/lib/compare.ts).
 //  - Tidak menghapus baris apa pun; aman dijalankan berulang tanpa duplikat.
 // Nama rekaan: lihat docs/demo-names.md (sudah diperiksa ke mesin pencari).
+// CATATAN: tiga hero unggulan (demo-001/002/004) digandakan sebagai salinan
+// statis di src/data/hero-dossiers.ts (T-28 mode cadangan); bila SEEDS di
+// bawah diubah, berkas itu wajib diubah dengan nilai yang sama.
 
 import { randomBytes } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";

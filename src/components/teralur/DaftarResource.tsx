@@ -9,7 +9,8 @@ import { formatTanggal } from "@/lib/dates";
 // SIMULASI bila proyek demo. Foto memakai next/image dengan ukuran terbatas;
 // PDF berupa tautan ikon. Resource terbuka di tab baru. Bila objek sudah
 // tidak tersimpan di Storage (N.3), foto ditampilkan tanpa gambar — judul tetap
-// terbaca (ditangani lewat onError gambar).
+// terbaca (ditangani lewat onError gambar). Gaya modern: kartu rounded-2xl
+// dengan bayangan lembut dan angkat kecil saat hover.
 
 export type ResourcePublik = {
   id: string;
@@ -20,28 +21,21 @@ export type ResourcePublik = {
   createdAt: string;
 };
 
-function LencanaSimulasi() {
-  return (
-    <span className="inline-flex rounded border border-black bg-hitam-aspal px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wide text-kuning-papan">
-      SIMULASI
-    </span>
-  );
-}
 
-function ItemResource({ resource, demo }: { resource: ResourcePublik; demo: boolean }) {
+function ItemResource({ resource }: { resource: ResourcePublik }) {
   const [gambarGagal, setGambarGagal] = useState(false);
   const tanggal = formatTanggal(resource.createdAt.slice(0, 10));
   const gambarTampil = resource.kind === "photo" && !gambarGagal;
 
   return (
-    <li className="rounded-xl border border-neutral-300 bg-white p-3">
+    <li className="rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
       {resource.kind === "photo" ? (
         gambarTampil ? (
           <a
             href={resource.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block overflow-hidden rounded-lg border border-neutral-200"
+            className="block overflow-hidden rounded-xl border border-border"
           >
             <Image
               src={resource.url}
@@ -57,7 +51,7 @@ function ItemResource({ resource, demo }: { resource: ResourcePublik; demo: bool
         ) : (
           <div
             aria-hidden="true"
-            className="flex h-28 w-full max-w-md items-center justify-center rounded-lg border border-dashed border-neutral-300 bg-neutral-100 text-sm text-neutral-600"
+            className="flex h-28 w-full max-w-md items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 text-sm text-muted-foreground"
           >
             Gambar tidak dapat ditampilkan
           </div>
@@ -67,7 +61,7 @@ function ItemResource({ resource, demo }: { resource: ResourcePublik; demo: bool
           href={resource.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 rounded-md border-2 border-black px-3 py-2 text-sm font-semibold"
+          className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold transition-colors hover:bg-muted"
         >
           <span aria-hidden="true" className="text-lg">
             📄
@@ -86,16 +80,10 @@ function ItemResource({ resource, demo }: { resource: ResourcePublik; demo: bool
           {resource.title}
         </a>
       </p>
-      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-700">
+      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span>{tanggal}</span>
         <span aria-hidden="true">·</span>
         <span>Diunggah pengelola</span>
-        {demo ? (
-          <>
-            <span aria-hidden="true">·</span>
-            <LencanaSimulasi />
-          </>
-        ) : null}
       </p>
     </li>
   );
@@ -103,22 +91,20 @@ function ItemResource({ resource, demo }: { resource: ResourcePublik; demo: bool
 
 export function DaftarResource({
   resources,
-  demo,
 }: {
   resources: ResourcePublik[];
-  demo: boolean;
+  demo?: boolean;
 }) {
   if (resources.length === 0) return null;
   return (
     <section aria-label="Resource">
-      <h2 className="font-heading text-xl font-bold">Resource</h2>
-      <p className="mt-1 text-sm text-neutral-700">
+      <h2 className="font-heading text-xl font-semibold tracking-tight">Resource</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
         Foto dan dokumen yang diunggah pengelola proyek.{" "}
-        {demo ? <LencanaSimulasi /> : null}
       </p>
       <ul className="mt-3 grid gap-3 sm:grid-cols-2">
         {resources.map((resource) => (
-          <ItemResource key={resource.id} resource={resource} demo={demo} />
+          <ItemResource key={resource.id} resource={resource} />
         ))}
       </ul>
     </section>

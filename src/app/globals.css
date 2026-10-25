@@ -52,41 +52,75 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --animate-marquee: marquee 42s linear infinite;
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.9s ease-out both;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 :root {
-  --background: #F6F2E8;
-  --foreground: #14110F;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #FFC400;
-  --primary-foreground: #14110F;
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
+  /* Fondasi bersih: kertas putih lembut, tinta pekat, aksen kuning papan */
+  --background: #FCFCFA;
+  --foreground: #1B1917;
+  --card: #FFFFFF;
+  --card-foreground: #1B1917;
+  --popover: #FFFFFF;
+  --popover-foreground: #1B1917;
+  --primary: #1B1917;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F3F3F0;
+  --secondary-foreground: #1B1917;
+  --muted: #F3F3F0;
   --muted-foreground: #6B6F76;
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent: #F0F0EC;
+  --accent-foreground: #1B1917;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: rgb(27 25 23 / 12%);
+  --input: rgb(27 25 23 / 12%);
+  --ring: #FFC400;
+  /* Grafik: cocok, selisih, kuning, biru, netral */
+  --chart-1: #1F8A5B;
+  --chart-2: #D9480F;
+  --chart-3: #FFC400;
+  --chart-4: #2563EB;
+  --chart-5: #6B6F76;
+  --radius: 0.75rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1B1917;
+  --sidebar-primary: #1B1917;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F3F3F0;
+  --sidebar-accent-foreground: #1B1917;
+  --sidebar-border: rgb(27 25 23 / 12%);
+  --sidebar-ring: #FFC400;
   /* Teralur brand tokens (light theme only — no dark mode by design) */
   --cocok: #1F8A5B;
   --selisih: #D9480F;
@@ -105,5 +139,57 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* Titik-titik halus (dot grid) untuk latar hero — 9% foreground, 22px */
+  .bg-dots {
+    background-image: radial-gradient(
+      color-mix(in oklab, var(--foreground) 9%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+  /* Pijar hangat (kuning papan + hijau) untuk bilasan hero yang lembut */
+  .bg-glow {
+    background-image:
+      radial-gradient(
+        42rem 22rem at 12% -4rem,
+        color-mix(in oklab, var(--kuning-papan) 24%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        46rem 24rem at 88% 0rem,
+        color-mix(in oklab, var(--cocok) 16%, transparent),
+        transparent 72%
+      );
+  }
+  /* Kaca lembut: nada kertas 78% + blur sedang */
+  .glass {
+    background: color-mix(in oklab, var(--kertas) 78%, transparent);
+    backdrop-filter: blur(12px);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .garis-teks {
+    background-image: linear-gradient(120deg, var(--hitam-aspal) 30%, var(--kuning-papan));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Pita marquee berhenti saat pengguna memilih animasi berkurang */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-fade-up,
+  .animate-fade-in {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }

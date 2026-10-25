@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 import { LabelTiga } from "@/components/teralur/LabelTiga";
+import { kelasTombol } from "@/lib/kelas-tombol";
+import { cn } from "@/lib/utils";
 
 const RESPONSE_SCHEMA = z.object({ status: z.string() });
 
@@ -56,23 +58,29 @@ export function CandidateSelector({
   }
 
   return (
-    <section className="rounded-xl border border-neutral-300 bg-white p-5">
-      <h2 className="font-heading text-xl font-bold">
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <h2 className="font-heading text-xl font-bold tracking-tight">
         {requiresSelection ? "Pilih catatan yang paling sesuai" : "Kandidat pembanding"}
       </h2>
-      <p className="mt-1 text-sm text-neutral-700">
+      <p className="mt-1 text-sm text-muted-foreground">
         {requiresSelection
           ? "Dua kandidat memiliki skor berdekatan. Periksa keduanya sebelum memilih."
           : "Jika catatan teratas bukan proyek yang dimaksud, pilih kandidat lain."}
       </p>
       <div className="mt-4 grid gap-3">
         {candidates.map((candidate) => (
-          <article key={candidate.id} className="rounded-md border border-neutral-300 p-3">
+          <article
+            key={candidate.id}
+            className={cn(
+              "rounded-xl border bg-card p-3.5 transition-all",
+              candidate.selected ? "border-hitam-aspal shadow-sm" : "border-border",
+            )}
+          >
             <p className="font-semibold">{candidate.packageName}</p>
-            <p className="mt-1 text-sm text-neutral-700">
+            <p className="mt-1 text-sm text-muted-foreground">
               {candidate.supplier ?? "Penyedia belum diketahui"} · {rupiah(candidate.contractValue)}
             </p>
-            <p className="mt-1 flex items-center gap-2 font-mono text-xs text-neutral-600">
+            <p className="mt-1 flex items-center gap-2 font-mono text-xs text-muted-foreground">
               Skor kemiripan: {(candidate.score * 100).toFixed(1)}%
               <LabelTiga label="hitungan" />
             </p>
@@ -80,7 +88,7 @@ export function CandidateSelector({
               type="button"
               disabled={working || candidate.selected}
               onClick={() => void choose(candidate.id)}
-              className="mt-3 rounded border border-black px-3 py-2 text-sm font-semibold disabled:opacity-50"
+              className={cn(kelasTombol(candidate.selected ? "outline" : "default"), "mt-3")}
             >
               {candidate.selected ? "Catatan dipilih" : "Pilih catatan ini"}
             </button>

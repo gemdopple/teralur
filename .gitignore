@@ -48,3 +48,5 @@ data/foto/
 # secrets and CLI state - never commit
 .env
 supabase/.temp/
+
+/.zcode

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -89,7 +88,7 @@ const URUTAN_FIELD: FieldKey[] = [
 
 const NAMA_SISI: Record<Sisi, string> = {
   board: "Data papan",
-  record: "Data resmi simulasi",
+  record: "Data resmi",
 };
 
 const BLOK_KOSONG: Blok = {
@@ -699,13 +698,13 @@ export function FormProyek({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" variant="outline" disabled={sedangProses}>
+          <Button type="submit" variant="outline" isDisabled={sedangProses}>
             Simpan draf
           </Button>
           <Button
             type="button"
             onClick={() => void publikasikan()}
-            disabled={sedangProses || adaGalatGabungan}
+            isDisabled={sedangProses || adaGalatGabungan}
           >
             Publikasikan
           </Button>
@@ -714,7 +713,7 @@ export function FormProyek({
               type="button"
               variant="outline"
               onClick={() => void tarikDariPublik()}
-              disabled={sedangProses}
+              isDisabled={sedangProses}
             >
               Tarik dari publik
             </Button>
@@ -724,7 +723,7 @@ export function FormProyek({
               type="button"
               variant="destructive"
               onClick={() => setDialogNonaktif(true)}
-              disabled={sedangProses}
+              isDisabled={sedangProses}
             >
               Nonaktifkan proyek
             </Button>
@@ -732,8 +731,7 @@ export function FormProyek({
         </div>
       </div>
 
-      <Dialog open={dialogNonaktif} onOpenChange={setDialogNonaktif}>
-        <DialogContent showCloseButton={false}>
+      <Dialog isOpen={dialogNonaktif} onOpenChange={setDialogNonaktif} showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>Nonaktifkan proyek?</DialogTitle>
             <DialogDescription>
@@ -742,14 +740,13 @@ export function FormProyek({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogNonaktif(false)} disabled={sedangProses}>
+            <Button variant="outline" onClick={() => setDialogNonaktif(false)} isDisabled={sedangProses}>
               Batal
             </Button>
-            <Button variant="destructive" onClick={() => void nonaktifkan()} disabled={sedangProses}>
+            <Button variant="destructive" onClick={() => void nonaktifkan()} isDisabled={sedangProses}>
               Nonaktifkan proyek
             </Button>
           </DialogFooter>
-        </DialogContent>
       </Dialog>
     </form>
   );

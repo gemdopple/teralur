@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
-import { Archivo, Inter, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { SiteFooter } from "@/components/teralur/SiteFooter";
-import { SiteHeader } from "@/components/teralur/SiteHeader";
+import { Toaster } from "@/components/ui/sonner";
 
-const archivoHeading = Archivo({
+const geistSans = Geist({
   subsets: ["latin"],
-  weight: "800",
+  variable: "--font-sans",
+});
+
+const geistHeading = Geist({
+  subsets: ["latin"],
   variable: "--font-heading",
 });
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
 
 export const metadata: Metadata = {
   title: "Teralur: Transparansi Proyek Publik",
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
     "Periksa informasi papan proyek publik terhadap catatan pengadaan resmi dengan sumber dan batas yang jelas.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="id"
@@ -29,15 +30,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         "h-full",
         "antialiased",
         "font-sans",
-        inter.variable,
-        archivoHeading.variable,
-        jetbrainsMono.variable,
+        geistSans.variable,
+        geistHeading.variable,
+        geistMono.variable,
       )}
     >
       <body className="min-h-full flex flex-col">
-        <SiteHeader />
         {children}
-        <SiteFooter />
+        <Toaster />
       </body>
     </html>
   );
