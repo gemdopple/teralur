@@ -240,3 +240,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan nav bawah di dasbor + login (2026-10-26, sesi lanjutan)
 
 109. **Nav bawah kini tampil juga di `/login` dan seluruh area `(app)` (dasbor + admin) (permintaan PM: "while Masuk ke dasbor the mobile navbar gone")**: `ShellDasbor` me-render `<NavBawah />` + spacer `h-20 md:hidden` setelah konten; halaman `/login` sama. NavBawah diberi `print:hidden` agar lembar cetak QR dari ponsel tetap bersih. Sidebar/hamburger dasbor tetap (navigasi konteks dasbor), nav bawah memberi jalan pulang ke situs publik. Diverifikasi hidup: login admin → `/dashboard` memuat nav bawah; sesi uji dikeluarkan kembali setelah verifikasi.
+
+## Catatan nav terang + FAB turun (2026-10-26, sesi lanjutan)
+
+110. **Nav bawah kembali terang + penyesuaian FAB (permintaan PM)**: bar `bg-card/95` + border tipis (rounded-3xl dipertahankan); item aktif `text-foreground` dengan pil `bg-kuning-papan/30`; FAB turun `-top-8` → `-top-6` (menyelam 32 px ke bar), bingkai hitam DIHAPUS (lingkaran kuning bersih, bayangan lembut tinta), label "Scan papan" kembali `text-foreground`. Verifikasi: latar bar oklab≈1/0.95, border FAB 0 px, fabTop −23 px dari atas bar.
