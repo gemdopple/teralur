@@ -18,18 +18,35 @@ export type RecordRow = {
   tahun: number | null;
   satuan_kerja: string | null;
   snapshot_tanggal: string;
+  // E.12: hanya diisi oleh search_records; baris kandidat (find_record_candidates)
+  // tidak mengembalikan kedua kolom ini.
+  demo?: boolean;
+  slug?: string | null;
 };
 
 export type SubmissionRow = {
   id: string;
   slug: string;
-  jenis: "foto" | "cari";
+  jenis: "foto" | "cari" | "admin";
   papan: Record<string, unknown> | null;
   record_id: string | null;
   status: string | null;
   kandidat: unknown;
   dibuat: string;
   demo: boolean;
+  // E.11: visibilitas proyek admin (draf/nonaktif = 404 di jalur publik).
+  terbit: boolean;
+  dinonaktifkan: boolean;
+  unggulan: boolean;
+  diperbarui: string;
+};
+
+export type ResourceRow = {
+  id: string;
+  jenis: "photo" | "document";
+  judul: string;
+  path_penyimpanan: string;
+  dibuat: string;
 };
 
 export const storedCandidateBundleSchema = z.object({
@@ -58,6 +75,7 @@ export type DossierData = {
   candidates: DossierCandidate[];
   requiresSelection: boolean;
   visitCounts: { active: number; no_activity_seen: number; appears_complete: number };
+  resources: ResourceRow[];
 };
 
 export function databaseConfigured(): boolean {
@@ -137,13 +155,19 @@ export async function findRecordCandidates(board: ApiBoard): Promise<RecordRow[]
 
 export async function getDossier(slug: string): Promise<DossierData | null> {
   const supabase = getSupabaseAdmin();
+  // Satu round trip (H.1): submission + resource ter-embed, resource urut dibuat asc.
   const { data: submission, error } = await supabase
     .from("submissions")
-    .select("*")
+    .select("*, resources(id, jenis, judul, path_penyimpanan, dibuat)")
     .eq("slug", slug)
+    .order("dibuat", { referencedTable: "resources", ascending: true })
     .maybeSingle();
   if (error) throw new Error(`Dossier lookup failed: ${error.message}`);
   if (!submission) return null;
+  // E.11: draf (terbit=false) dan nonaktif tidak pernah terlihat publik.
+  if (!submission.terbit || submission.dinonaktifkan) return null;
+  const resourceRows = (Array.isArray(submission.resources) ? submission.resources : []) as ResourceRow[];
+  delete (submission as Record<string, unknown>).resources;
 
   let record: RecordRow | null = null;
   if (submission.record_id) {
@@ -195,6 +219,7 @@ export async function getDossier(slug: string): Promise<DossierData | null> {
     candidates,
     requiresSelection: storedCandidates.data.requiresSelection,
     visitCounts,
+    resources: resourceRows,
   };
 }
 

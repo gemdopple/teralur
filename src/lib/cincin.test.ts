@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { hitungCincin, inputCincin } from "./cincin";
+import { computeTimeRing, hitungCincin, inputCincin, RING_NOTE } from "./cincin";
+import type { RingInput } from "./cincin";
 
 const HARI_INI = "2026-10-19";
 const MULAI = "2026-07-11"; // tepat 100 hari kalender sebelum HARI_INI
@@ -85,5 +86,146 @@ describe("inputCincin (presedensi fallback §6.5)", () => {
   it("tidak ada sumber: keduanya null", () => {
     expect(inputCincin(null, null)).toEqual({ masaHari: null, tanggalMulai: null });
     expect(inputCincin({}, {})).toEqual({ masaHari: null, tanggalMulai: null });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cincin lengkap Lampiran G.1 — sepuluh vektor G.2 (hari ini = 2026-10-24).
+
+const HARI_INI_G2 = "2026-10-24";
+
+function masuk(overrides: Partial<RingInput>): RingInput {
+  return {
+    boardDurationDays: null,
+    recordDurationDays: null,
+    boardContractDate: null,
+    recordContractDate: null,
+    today: HARI_INI_G2,
+    ...overrides,
+  };
+}
+
+describe("computeTimeRing (vektor G.2, hari ini = 2026-10-24)", () => {
+  it("1. masa 90 dari papan, mulai 2026-08-11 dari catatan: running 74/90", () => {
+    const ring = computeTimeRing(
+      masuk({ boardDurationDays: 90, recordContractDate: "2026-08-11" }),
+    );
+    expect(ring.state).toBe("running");
+    expect(ring.elapsedDays).toBe(74);
+    expect(ring.totalDays).toBe(90);
+    expect(ring.centerText).toBe("74/90");
+    expect(ring.caption).toBe("Hari ke-74 dari 90");
+    expect(ring.totalSource).toBe("board");
+    expect(ring.startSource).toBe("record");
+    expect(ring.fillRatio).toBeCloseTo(74 / 90, 10);
+    expect(ring.overDays).toBeNull();
+  });
+
+  it("2. masa 90 hanya dari catatan resmi: running 74/90 (total dari catatan)", () => {
+    const ring = computeTimeRing(
+      masuk({ recordDurationDays: 90, recordContractDate: "2026-08-11" }),
+    );
+    expect(ring.state).toBe("running");
+    expect(ring.centerText).toBe("74/90");
+    expect(ring.caption).toBe("Hari ke-74 dari 90");
+    expect(ring.totalSource).toBe("record");
+    expect(ring.startSource).toBe("record");
+  });
+
+  it("3. melewati 60 hari: over dengan caption persis", () => {
+    const ring = computeTimeRing(
+      masuk({ boardDurationDays: 90, recordContractDate: "2026-05-27" }),
+    );
+    expect(ring.state).toBe("over");
+    expect(ring.overDays).toBe(60);
+    expect(ring.centerText).toBe("90/90");
+    expect(ring.fillRatio).toBe(1);
+    expect(ring.caption).toBe(
+      "Melewati masa kontrak tercatat 60 hari. Addendum atau perpanjangan mungkin ada.",
+    );
+  });
+
+  it("4. tanpa tanggal mulai: unknown 'Tanggal mulai tidak tersedia'", () => {
+    const ring = computeTimeRing(masuk({ boardDurationDays: 90 }));
+    expect(ring.state).toBe("unknown");
+    expect(ring.caption).toBe("Tanggal mulai tidak tersedia");
+    expect(ring.centerText).toBe("–");
+    expect(ring.fillRatio).toBe(0);
+    expect(ring.startDate).toBeNull();
+    expect(ring.startSource).toBeNull();
+  });
+
+  it("5. tanpa masa pelaksanaan: unknown 'Masa pelaksanaan tidak tersedia' (C-02)", () => {
+    const ring = computeTimeRing(masuk({ recordContractDate: "2026-10-14" }));
+    expect(ring.state).toBe("unknown");
+    expect(ring.caption).toBe("Masa pelaksanaan tidak tersedia");
+    expect(ring.centerText).toBe("–");
+    expect(ring.fillRatio).toBe(0);
+    expect(ring.totalDays).toBeNull();
+    expect(ring.totalSource).toBeNull();
+  });
+
+  it("6. mulai dari papan 2026-10-19: running 5/90", () => {
+    const ring = computeTimeRing(
+      masuk({ boardDurationDays: 90, boardContractDate: "2026-10-19" }),
+    );
+    expect(ring.state).toBe("running");
+    expect(ring.centerText).toBe("5/90");
+    expect(ring.startSource).toBe("board");
+    expect(ring.totalSource).toBe("board");
+  });
+
+  it("7. mulai hari ini: running 0/90", () => {
+    const ring = computeTimeRing(
+      masuk({ boardDurationDays: 90, recordContractDate: "2026-10-24" }),
+    );
+    expect(ring.state).toBe("running");
+    expect(ring.elapsedDays).toBe(0);
+    expect(ring.centerText).toBe("0/90");
+    expect(ring.caption).toBe("Hari ke-0 dari 90");
+    expect(ring.fillRatio).toBe(0);
+  });
+
+  it("8. tepat di batas (90 hari): running 90/90, bukan over", () => {
+    const ring = computeTimeRing(
+      masuk({ boardDurationDays: 90, recordContractDate: "2026-07-26" }),
+    );
+    expect(ring.state).toBe("running");
+    expect(ring.centerText).toBe("90/90");
+    expect(ring.fillRatio).toBe(1);
+    expect(ring.overDays).toBeNull();
+    expect(ring.caption).toBe("Hari ke-90 dari 90");
+  });
+
+  it("9. satu hari setelah batas: over 1 hari", () => {
+    const ring = computeTimeRing(
+      masuk({ boardDurationDays: 90, recordContractDate: "2026-07-25" }),
+    );
+    expect(ring.state).toBe("over");
+    expect(ring.overDays).toBe(1);
+    expect(ring.caption).toBe(
+      "Melewati masa kontrak tercatat 1 hari. Addendum atau perpanjangan mungkin ada.",
+    );
+  });
+
+  it("10. tanggal mulai di masa depan: not_started 0/90 (C-01)", () => {
+    const ring = computeTimeRing(
+      masuk({ boardDurationDays: 90, recordContractDate: "2026-10-29" }),
+    );
+    expect(ring.state).toBe("not_started");
+    expect(ring.centerText).toBe("0/90");
+    expect(ring.fillRatio).toBe(0);
+    expect(ring.caption).toBe("Belum dimulai. Tanggal mulai tercatat 29 Oktober 2026.");
+  });
+
+  it("RING_NOTE konstan", () => {
+    expect(RING_NOTE).toBe("Ini waktu yang telah berjalan, bukan kemajuan fisik.");
+  });
+
+  it("tidak mengubah masukan", () => {
+    const input = masuk({ boardDurationDays: 90, recordContractDate: "2026-08-11" });
+    const salinan = structuredClone(input);
+    computeTimeRing(input);
+    expect(input).toEqual(salinan);
   });
 });

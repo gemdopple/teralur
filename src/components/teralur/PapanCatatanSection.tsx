@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Cincin } from "@/components/teralur/Cincin";
 import { LabelTiga } from "@/components/teralur/LabelTiga";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
+import { kelasTombol } from "@/lib/kelas-tombol";
 import type { Cincin as DataCincin } from "@/lib/cincin";
 
 export type BarisTabel = {
@@ -49,15 +50,15 @@ export function PapanCatatanSection({
   }, [terpilih]);
 
   return (
-    <section className="mt-6 grid gap-6 rounded-xl border-2 border-black bg-white p-5 md:grid-cols-[1fr_13rem]">
+    <section className="mt-6 grid gap-6 rounded-2xl border border-border bg-card p-5 shadow-sm md:grid-cols-[1fr_13rem]">
       <div>
-        <h2 className="font-heading text-xl font-bold">Papan dan catatan resmi</h2>
+        <h2 className="font-heading text-xl font-bold tracking-tight">Papan dan catatan resmi</h2>
         {catatanResmi && (
-          <p className="mt-2 text-sm text-neutral-700">
-            Tidak ada papan untuk dibandingkan. Informasi berikut berasal dari catatan resmi.
+          <p className="mt-2 text-sm text-muted-foreground">
+            Papan tidak tersedia untuk dibandingkan. Informasi berikut berasal dari catatan resmi.
           </p>
         )}
-        <div className="mt-4 divide-y divide-neutral-200">
+        <div className="mt-4 grid gap-1">
           {rows.map((row) => (
             <button
               key={row.key}
@@ -70,18 +71,18 @@ export function PapanCatatanSection({
                   adaCatatan: row.record !== null,
                 })
               }
-              className="grid w-full gap-3 py-3 text-left sm:grid-cols-[1fr_1fr_1fr]"
+              className="grid w-full gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-muted/60 sm:grid-cols-[1fr_1fr_1fr]"
             >
               <div className="font-semibold">
                 {row.label}
                 <LabelTiga label={row.board || row.record ? "tercatat" : "belum_diketahui"} className="ml-2" />
               </div>
               <div>
-                <p className="text-xs text-neutral-500">Papan</p>
+                <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Papan</p>
                 <p className="text-sm">{row.board ?? "Belum diketahui"}</p>
               </div>
               <div>
-                <p className="text-xs text-neutral-500">Catatan resmi</p>
+                <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Catatan resmi</p>
                 <p className="text-sm">{row.record ?? "Tidak ditemukan"}</p>
               </div>
             </button>
@@ -89,7 +90,7 @@ export function PapanCatatanSection({
         </div>
         {statusSelisih && selisihCatatan}
       </div>
-      <div className="flex items-center justify-center border-t border-neutral-200 pt-4 md:border-l md:border-t-0 md:pl-4 md:pt-0">
+      <div className="flex items-center justify-center border-t border-border pt-4 md:border-l md:border-t-0 md:pl-4 md:pt-0">
         <div>
           <Cincin data={ring} />
           <button
@@ -102,7 +103,7 @@ export function PapanCatatanSection({
                 adaCatatan: recordId !== null,
               })
             }
-            className="mt-3 rounded-md border border-neutral-400 px-3 py-1.5 text-sm font-medium"
+            className={kelasTombol("outline") + " mt-3"}
           >
             Lihat jejak cincin
           </button>
@@ -115,9 +116,9 @@ export function PapanCatatanSection({
             type="button"
             aria-label="Tutup panel jejak"
             onClick={() => setTerpilih(null)}
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-hitam-aspal/40"
           />
-          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t-2 border-black bg-white p-5 md:inset-y-0 md:left-auto md:right-0 md:w-[26rem] md:max-h-none md:rounded-none md:border-t-0 md:border-l-2">
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-border bg-card p-5 shadow-xl md:inset-y-0 md:left-auto md:right-0 md:w-[26rem] md:max-h-none md:rounded-t-none md:rounded-l-2xl">
             <PanelJejak
               judul={`Jejak sumber: ${terpilih.judul}`}
               baris={[
@@ -140,13 +141,13 @@ export function PapanCatatanSection({
               ]}
             />
             <div className="mt-4">
-              <p className="text-sm text-neutral-600">ID catatan resmi</p>
+              <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">ID catatan resmi</p>
               <TombolSalin teks={recordId ?? "Belum diketahui"} dinonaktifkan={recordId === null} />
             </div>
             <button
               type="button"
               onClick={() => setTerpilih(null)}
-              className="mt-5 rounded-md border-2 border-black px-4 py-2 text-sm font-semibold"
+              className={kelasTombol() + " mt-5"}
             >
               Tutup
             </button>
@@ -178,19 +179,19 @@ function TombolSalin({ teks, dinonaktifkan }: { teks: string; dinonaktifkan: boo
   }, [teks]);
 
   return (
-    <div className="mt-1 flex items-center gap-3">
-      <code id="id-catatan-resmi" className="break-all rounded border border-neutral-300 bg-neutral-50 px-2 py-1 font-mono text-sm">
+    <div className="mt-1 flex flex-wrap items-center gap-3">
+      <code id="id-catatan-resmi" className="break-all rounded-lg border border-border bg-muted px-2 py-1 font-mono text-sm">
         {teks}
       </code>
       <button
         type="button"
         onClick={salin}
         disabled={dinonaktifkan}
-        className="rounded-md border border-neutral-500 px-3 py-1 text-sm font-medium disabled:opacity-50"
+        className={kelasTombol("outline")}
       >
         Salin ID
       </button>
-      {status && <span role="status" className="text-sm text-neutral-700">{status}</span>}
+      {status && <span role="status" className="text-sm text-muted-foreground">{status}</span>}
     </div>
   );
 }

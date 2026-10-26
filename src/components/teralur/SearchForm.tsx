@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
+import { kelasTombol } from "@/lib/kelas-tombol";
+import { cn } from "@/lib/utils";
 
 const RESULT_SCHEMA = z.object({
   id: z.string().uuid(),
@@ -88,43 +90,51 @@ export function SearchForm() {
 
   return (
     <>
-      <form onSubmit={search} className="grid gap-3 rounded-xl border-2 border-black bg-white p-5 sm:grid-cols-[1fr_10rem_auto]">
-        <label>
-          <span className="sr-only">Nama paket atau penyedia</span>
+      {/* Kartu formulir: tidak dianimasikan (internal formulir tetap statis). */}
+      <form
+        onSubmit={search}
+        className="grid gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-[1fr_10rem_auto] sm:items-end sm:p-6"
+      >
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium">Nama paket atau penyedia</span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Nama paket atau penyedia"
             maxLength={120}
-            className="w-full rounded-md border border-neutral-400 px-3 py-3"
+            className="h-11 w-full rounded-xl border border-border bg-card px-3.5 text-sm outline-none transition-[color,box-shadow,border-color] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
           />
         </label>
-        <label>
-          <span className="sr-only">Tahun anggaran (opsional)</span>
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium">Tahun anggaran (opsional)</span>
           <input
             inputMode="numeric"
             value={year}
             onChange={(event) => setYear(event.target.value.replace(/[^\d]/g, ""))}
             placeholder="Tahun (opsional)"
             maxLength={4}
-            className="w-full rounded-md border border-neutral-400 px-3 py-3"
+            className="h-11 w-full rounded-xl border border-border bg-card px-3.5 font-mono text-sm outline-none transition-[color,box-shadow,border-color] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
           />
         </label>
-        <button
-          type="submit"
-          disabled={working}
-          className="rounded-md border-2 border-black bg-[#FFC400] px-5 py-3 font-bold disabled:opacity-50"
-        >
+        <button type="submit" disabled={working} className={cn(kelasTombol("default", "lg"), "sm:justify-self-start")}>
           {working ? "Mencari…" : "Cari"}
         </button>
       </form>
-      {message && <p role="status" className="mt-4 rounded-md bg-white p-4 text-sm">{message}</p>}
+      {message && (
+        <p role="status" className="animate-fade-in mt-4 rounded-xl border border-border bg-card px-4 py-3 text-sm shadow-sm">
+          {message}
+        </p>
+      )}
       <div className="mt-4 grid gap-3">
-        {results.map((result) => (
-          <article key={result.id} className="flex flex-col gap-3 rounded-xl border border-black/20 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        {results.map((result, index) => (
+          <article
+            key={result.id}
+            style={{ animationDelay: `${Math.min(index * 60, 300)}ms` }}
+            className="animate-fade-up flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:p-5"
+          >
             <div>
               <h2 className="font-semibold">{result.packageName}</h2>
-              <p className="mt-1 text-sm text-neutral-700">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {result.supplier ?? "Penyedia belum diketahui"} · {result.fiscalYear ?? "Tahun tidak tersedia"}
               </p>
               <p className="mt-1 font-mono text-sm">{rupiah(result.contractValue)}</p>
@@ -133,14 +143,14 @@ export function SearchForm() {
               type="button"
               disabled={working}
               onClick={() => void openRecord(result.id)}
-              className="rounded-md border border-black px-4 py-2 text-sm font-semibold hover:bg-[#FFC400] disabled:opacity-50"
+              className={kelasTombol("outline")}
             >
               Lihat catatan resmi
             </button>
           </article>
         ))}
       </div>
-      <p className="mt-6 text-sm text-neutral-700">
+      <p className="mt-6 text-sm text-muted-foreground">
         <Link href="/methodology" className="underline underline-offset-4">Cara kerja pencarian dan batas data</Link>
       </p>
     </>

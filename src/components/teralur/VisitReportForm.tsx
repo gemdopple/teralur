@@ -11,6 +11,9 @@ const RESPONSE_SCHEMA = z.object({
   }),
 });
 
+// Form laporan warga — kartu lembut modern: kartu rounded-2xl dengan bayangan
+// tipis, masukan rounded-xl, tombol kirim pil tinta.
+
 export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
   const [activityStatus, setActivityStatus] = useState("active");
   const [note, setNote] = useState("");
@@ -57,9 +60,9 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="rounded-xl border border-neutral-300 bg-white p-5">
-      <h2 className="font-heading text-xl font-bold">Saya sudah lihat</h2>
-      <p className="mt-1 text-sm text-neutral-700">Laporan warga, belum diverifikasi.</p>
+    <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <h2 className="font-heading text-lg font-semibold tracking-tight">Saya sudah lihat</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Laporan warga, belum diverifikasi.</p>
       <label className="mt-4 block text-sm font-semibold" htmlFor="activity-status">
         Apa yang terlihat?
       </label>
@@ -67,7 +70,7 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
         id="activity-status"
         value={activityStatus}
         onChange={(event) => setActivityStatus(event.target.value)}
-        className="mt-1 w-full rounded-md border border-neutral-400 px-3 py-2"
+        className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
       >
         <option value="active">Ada aktivitas pekerjaan</option>
         <option value="no_activity_seen">Tidak terlihat aktivitas</option>
@@ -81,13 +84,13 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
         value={note}
         maxLength={200}
         onChange={(event) => setNote(event.target.value)}
-        className="mt-1 min-h-20 w-full rounded-md border border-neutral-400 px-3 py-2"
+        className="mt-1 min-h-20 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
       />
-      <p className="mt-1 text-xs text-neutral-600">{note.length}/200 karakter</p>
+      <p className="mt-1 text-xs text-muted-foreground">{note.length}/200 karakter</p>
       <button
         type="submit"
         disabled={working}
-        className="mt-4 rounded-md border-2 border-black bg-[#FFC400] px-4 py-2 font-semibold disabled:opacity-50"
+        className="mt-4 inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-white transition-all hover:bg-primary/85 active:translate-y-px disabled:pointer-events-none disabled:opacity-50"
       >
         {working ? "Mengirim…" : "Kirim laporan"}
       </button>

@@ -8,6 +8,7 @@ import {
 import { match, FieldKunciKurang } from "@/lib/match/match";
 import type { RecordResmi } from "@/lib/match/types";
 import { getSupabaseAdmin } from "@/lib/db";
+import { photoFlowEnabled } from "@/lib/flags";
 import {
   createPublicSlug,
   databaseConfigured,
@@ -17,6 +18,14 @@ import {
 } from "@/lib/server-api";
 
 export async function POST(request: Request) {
+  // Jalur foto dibekukan (PRD v1.1, Lampiran B.3): bila flag mati, /api/match
+  // tidak tersedia dan mengembalikan 404, bukan hasil pencocokan.
+  if (!photoFlowEnabled()) {
+    return NextResponse.json(
+      { error: "NOT_FOUND", message: "Endpoint tidak ditemukan." },
+      { status: 404 },
+    );
+  }
   const body = await readJsonBody(request);
   if (!body.valid) {
     return NextResponse.json({ error: "INVALID_JSON", message: "Isi permintaan tidak valid." }, { status: 400 });

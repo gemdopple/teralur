@@ -20,6 +20,24 @@ describe("normalisasiTeks", () => {
     expect(normalisasiTeks("")).toBe("");
     expect(normalisasiTeks("... !!!")).toBe("");
   });
+
+  // Empat vektor normalisasi F.4 PRD v1.1.
+  describe("vektor normalisasi F.4", () => {
+    const vektor: Array<[string, string]> = [
+      ["PT. Karya Bangun, Nusantara Jaya", "karya bangun nusantara jaya"],
+      ["Jl. Melati Raya Kec. Sukamaju", "jalan melati raya kecamatan sukamaju"],
+      [
+        "Rehab Drainase Ds. Tirtamulya Tahun Anggaran 2026",
+        "rehabilitasi drainase desa tirtamulya 2026",
+      ],
+      ["CV Sinar Tirta Konstruksi", "sinar tirta konstruksi"],
+    ];
+    for (const [masukan, diharapkan] of vektor) {
+      it(`"${masukan}" → "${diharapkan}"`, () => {
+        expect(normalisasiTeks(masukan)).toBe(diharapkan);
+      });
+    }
+  });
 });
 
 describe("normalisasiAngka", () => {
