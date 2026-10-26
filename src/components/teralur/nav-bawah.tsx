@@ -42,10 +42,17 @@ function SelNav({ item, hidup }: { item: ItemBawah; hidup: boolean }) {
       aria-current={hidup ? "page" : undefined}
       className={cn(
         "flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 text-[11px] font-medium transition-colors",
-        hidup ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground",
+        hidup ? "text-kuning-papan" : "text-kertas/70 hover:text-kertas",
       )}
     >
-      <HugeiconsIcon icon={item.ikon} className="size-5" strokeWidth={hidup ? 2.2 : 1.7} />
+      <span
+        className={cn(
+          "flex size-8 items-center justify-center rounded-full transition-colors",
+          hidup ? "bg-kuning-papan/20" : "bg-transparent",
+        )}
+      >
+        <HugeiconsIcon icon={item.ikon} className="size-5" strokeWidth={hidup ? 2.2 : 1.7} />
+      </span>
       <span className="max-w-full truncate">{item.label}</span>
     </Link>
   );
@@ -66,7 +73,7 @@ export function NavBawah() {
         className="fixed inset-x-3 z-50"
         style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-      <div className="relative mx-auto grid max-w-md grid-cols-5 items-center gap-1 rounded-2xl border border-border bg-card/95 px-2 py-1.5 shadow-xl shadow-hitam-aspal/15 backdrop-blur">
+      <div className="relative mx-auto grid max-w-md grid-cols-5 items-center gap-1 rounded-3xl bg-hitam-aspal/95 px-2 py-1.5 shadow-2xl shadow-hitam-aspal/40 ring-1 ring-kertas/10 backdrop-blur">
         {ITEM_KIRI.map((item) => (
           <SelNav key={item.href} item={item} hidup={aktif(pathname, item.href)} />
         ))}
@@ -82,10 +89,10 @@ export function NavBawah() {
           aria-label="Scan papan — pindai QR papan proyek"
           className="absolute -top-8 left-1/2 flex -translate-x-1/2 flex-col items-center"
         >
-          <span className="flex size-14 items-center justify-center rounded-full border-4 border-card bg-kuning-papan text-hitam-aspal shadow-lg shadow-hitam-aspal/25 transition-transform active:scale-95">
-            <HugeiconsIcon icon={QrCodeScanIcon} className="size-6" strokeWidth={2} />
+          <span className="flex size-14 items-center justify-center rounded-full border-4 border-hitam-aspal bg-kuning-papan text-hitam-aspal shadow-lg shadow-kuning-papan/40 transition-transform active:scale-95">
+            <HugeiconsIcon icon={QrCodeScanIcon} className="size-6" strokeWidth={2.2} />
           </span>
-          <span className="mt-0.5 text-[10px] font-bold leading-none tracking-tight text-foreground">
+          <span className="mt-0.5 text-[10px] font-bold leading-none tracking-tight text-kuning-papan">
             Scan papan
           </span>
         </Link>
