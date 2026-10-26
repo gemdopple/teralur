@@ -77,11 +77,13 @@ export function NavBawah() {
         {/* Tombol pindai QR menonjol di tengah bar — halaman pindai khusus. */}
         <Link
           href="/pindai"
-          aria-label="Pindai QR papan proyek"
-          className="absolute -top-6 left-1/2 flex size-14 -translate-x-1/2 flex-col items-center justify-center rounded-full border-4 border-card bg-kuning-papan text-hitam-aspal shadow-lg shadow-hitam-aspal/25 transition-transform active:scale-95"
+          aria-label="Scan papan — pindai QR papan proyek"
+          className="absolute -top-7 left-1/2 flex size-16 -translate-x-1/2 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-card bg-kuning-papan text-hitam-aspal shadow-lg shadow-hitam-aspal/25 transition-transform active:scale-95"
         >
-          <HugeiconsIcon icon={QrCodeScanIcon} className="size-7" strokeWidth={2} />
-          <span className="sr-only">Pindai QR</span>
+          <HugeiconsIcon icon={QrCodeScanIcon} className="size-6" strokeWidth={2} />
+          <span className="text-[9px] font-bold leading-none tracking-tight">
+            Scan papan
+          </span>
         </Link>
 
         {ITEM_KANAN.map((item) => (

@@ -206,3 +206,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan perbaikan sel tengah nav bawah (2026-10-26, sesi lanjutan)
 
 99. **Perbaikan nav 4+FAB**: grid 5 kolom dengan 4 item mengisi kolom 1-4 secara otomatis — kolom 5 kosong sehingga "Contoh" tepat di bawah FAB dan ada lubang di kanan. Diperbaiki dengan sel kosong eksplisit (`<div aria-hidden />`) di antara ITEM_KIRI dan ITEM_KANAN: item kini di kolom 1,2 dan 4,5, FAB berdiri di atas kolom 3 yang benar-benar kosong. Diverifikasi terprogram: x = 21/82/205/267, tidak ada item bertabrakan dengan FAB, simetris terhadap tengah bar (172 px).
+
+## Catatan teks "Scan papan" pada FAB (2026-10-26, sesi lanjutan)
+
+100. **FAB nav bawah kini berlabel teks "Scan papan"** (permintaan PM): tombol tengah diperbesar size-14 → size-16, ikon size-7 → size-6, dengan teks 9px bold di bawah ikom (sebelumnya sr-only). Terverifikasi: teks muat dalam lingkaran 64 px (scrollWidth ≤ lebar − 8). Label aksesibilitas diperbarui ("Scan papan — pindai QR papan proyek").
