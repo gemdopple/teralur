@@ -6,7 +6,6 @@ import gsap from "gsap";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import { ChipStatus } from "@/components/teralur/ChipStatus";
 import { kelasTombol } from "@/lib/kelas-tombol";
 
 // Hero beranda (klien): garis waktu GSAP — judul fade-up per baris, kartu
@@ -112,11 +111,7 @@ function KartuPratinjau() {
         className="absolute -inset-5 rounded-[2rem] bg-kuning-papan/25 blur-2xl"
       />
       <article className="relative rounded-2xl border border-border bg-card p-5 shadow-2xl shadow-hitam-aspal/10 sm:p-6">
-        <div className="flex items-center justify-between gap-3">
-          <ChipStatus status="selisih" />
-          <span className="font-mono text-xs text-muted-foreground">demo-001</span>
-        </div>
-        <h2 className="mt-4 font-heading text-base font-semibold leading-snug tracking-tight">
+        <h2 className="font-heading text-base font-semibold leading-snug tracking-tight">
           Rehabilitasi jalan desa (paket contoh)
         </h2>
         <div className="mt-5 space-y-4">

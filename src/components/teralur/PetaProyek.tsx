@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import { buttonVariants } from "@/components/ui/button";
-import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";
+import type { DossierStatus } from "@/components/teralur/ChipStatus";
 import { formatRupiahRingkas } from "@/lib/format-rupiah";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon, PinLocation01Icon, Loading03Icon, ArrowUpRightIcon } from "@hugeicons/core-free-icons";
+import { Search01Icon, Location01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import type { ProyekDemo } from "@/data/proyek-demo";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +73,10 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
     );
   }, [items, kueri, filter, posisiSaya]);
 
-  function cariTerdekat() {
+  // Default: proyek terdekat — minta lokasi sekali saat panel dibuka; bila
+  // ditolak, daftar tetap terurut biasa dan tautan kecil disediakan untuk
+  // mencoba lagi (permintaan PM: tanpa tombol besar "Proyek terdekat").
+  const cariTerdekat = useCallback(() => {
     setGalatLokasi(null);
     if (!("geolocation" in navigator)) {
       setGalatLokasi("Perangkat Anda belum mendukung deteksi lokasi.");
@@ -87,12 +89,16 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
         setMencariLokasi(false);
       },
       () => {
-        setGalatLokasi("Izin lokasi ditolak. Anda tetap bisa mencari lewat nama atau lokasi.");
+        setGalatLokasi("Izin lokasi tidak aktif.");
         setMencariLokasi(false);
       },
       { timeout: 10_000 },
     );
-  }
+  }, []);
+
+  useEffect(() => {
+    cariTerdekat();
+  }, [cariTerdekat]);
 
   const labelJarak = (item: ProyekDemo) =>
     posisiSaya ? `${jarakKm(posisiSaya, item).toFixed(1).replace(".", ",")} km dari Anda` : null;
@@ -136,85 +142,77 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={cariTerdekat}
-          disabled={mencariLokasi}
-          className={cn(buttonVariants({ variant: posisiSaya ? "secondary" : "default" }), "w-full")}
-        >
-          <HugeiconsIcon
-            icon={mencariLokasi ? Loading03Icon : PinLocation01Icon}
-            data-icon="inline-start"
-            className={cn(mencariLokasi && "animate-spin")}
-          />
-          {posisiSaya ? "Perbarui lokasi saya" : "Proyek terdekat dari saya"}
-        </button>
-        {galatLokasi && (
-          <p role="alert" className="text-xs leading-5 text-muted-foreground">
-            {galatLokasi}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            {hasil.length} proyek ditemukan
           </p>
-        )}
-        {posisiSaya && (
-          <p className="text-xs text-muted-foreground">
-            Menampilkan hasil terdekat dari lokasi Anda (jarak garis lurus).
-          </p>
-        )}
-
-        <p className="text-sm text-muted-foreground" aria-live="polite">
-          {hasil.length} proyek ditemukan
-        </p>
+          {posisiSaya ? (
+            <p className="text-xs text-muted-foreground">
+              Terurut dari terdekat · jarak garis lurus
+            </p>
+          ) : galatLokasi ? (
+            <button
+              type="button"
+              onClick={cariTerdekat}
+              className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            >
+              {mencariLokasi ? "Mencari lokasi…" : `${galatLokasi} Coba lagi`}
+            </button>
+          ) : (
+            <p className="text-xs text-muted-foreground">Mencari lokasi Anda…</p>
+          )}
+        </div>
 
         <ul className="grid gap-2 lg:max-h-[26rem] lg:overflow-y-auto lg:pr-1">
           {hasil.map((item, index) => (
             <li key={item.kunci}>
-              {/* Kartu daftar lembut; terpilih ditandai bingkai tinta. */}
-              <article
+              {/* Kartu satu ketukan (permintaan PM): tanpa chip status (cukup
+                  filter), seluruh kartu menuju dossier; sentuh/hover menandai
+                  penanda peta. */}
+              <Link
+                href={item.href}
+                onMouseEnter={() => setTerpilih(item.kunci)}
+                onFocus={() => setTerpilih(item.kunci)}
                 style={{ animationDelay: `${Math.min(index * 50, 250)}ms` }}
                 className={cn(
-                  "animate-fade-up rounded-2xl border bg-card p-4 shadow-sm transition-all",
+                  "animate-fade-up group block rounded-2xl border bg-card p-4 shadow-sm transition-all active:bg-muted/40",
                   terpilih === item.kunci
                     ? "border-hitam-aspal"
                     : "border-border hover:-translate-y-0.5 hover:shadow-md",
                 )}
               >
-                <button
-                  type="button"
-                  onClick={() => setTerpilih(item.kunci)}
-                  className="w-full text-left"
-                  aria-label={`Tampilkan ${item.nama} pada peta`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <ChipStatus status={item.status} />
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       {item.kategori}
-                    </span>
-                  </div>
-                  <h3 className="mt-2.5 font-heading text-sm font-semibold leading-snug tracking-tight">
-                    {item.nama}
-                  </h3>
-                  <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                    <span>{item.lokasi}</span>
-                    {labelJarak(item) && (
-                      <span className="font-medium text-foreground">· {labelJarak(item)}</span>
-                    )}
-                  </p>
-                  {item.nilaiKontrak !== null && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Nilai kontrak:{" "}
-                      <span className="font-mono font-medium text-foreground">
-                        {formatRupiahRingkas(item.nilaiKontrak)}
-                      </span>
                     </p>
+                    <h3 className="mt-1 line-clamp-2 font-heading text-sm font-semibold leading-snug tracking-tight">
+                      {item.nama}
+                    </h3>
+                  </div>
+                  <span
+                    aria-hidden
+                    className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-hitam-aspal group-hover:text-kertas"
+                  >
+                    <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+                  </span>
+                </div>
+                <p className="mt-2.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+                  <HugeiconsIcon icon={Location01Icon} className="size-3.5 shrink-0" />
+                  <span className="truncate">{item.lokasi}</span>
+                  {labelJarak(item) && (
+                    <span className="font-medium text-foreground">· {labelJarak(item)}</span>
                   )}
-                </button>
-                <Link
-                  href={item.href}
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-foreground underline-offset-4 hover:underline"
-                >
-                  Buka laporan lengkap
-                  <HugeiconsIcon icon={ArrowUpRightIcon} className="size-3.5" />
-                </Link>
-              </article>
+                </p>
+                {item.nilaiKontrak !== null && (
+                  <p className="mt-3 flex items-baseline justify-between gap-2 border-t border-border pt-2.5 text-xs">
+                    <span className="text-muted-foreground">Nilai kontrak</span>
+                    <span className="font-semibold text-foreground">
+                      {formatRupiahRingkas(item.nilaiKontrak)}
+                    </span>
+                  </p>
+                )}
+              </Link>
             </li>
           ))}
           {hasil.length === 0 && (

@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChipStatus } from "@/components/teralur/ChipStatus";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { StaggerGroup, StaggerItem } from "@/components/teralur/anim/Stagger";
 import { HeroBeranda } from "@/components/teralur/HeroBeranda";
@@ -147,13 +146,7 @@ async function BlokDinamis() {
                 href={`/examples/${dossier.exampleId}`}
                 className="group flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <ChipStatus status={dossier.status} />
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {dossier.exampleId}
-                  </span>
-                </div>
-                <h3 className="mt-4 font-heading text-base font-semibold leading-snug tracking-tight">
+                <h3 className="font-heading text-base font-semibold leading-snug tracking-tight">
                   {dossier.packageName}
                 </h3>
                 <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -172,9 +165,7 @@ async function BlokDinamis() {
                   </p>
                   <div className="mt-2 h-1.5 rounded-full bg-muted">
                     <div
-                      className={`h-full rounded-full ${
-                        dossier.status === "selisih" ? "bg-selisih" : "bg-cocok"
-                      }`}
+                      className="h-full rounded-full bg-hitam-aspal"
                       style={{ width: `${Math.round(dossier.timeRing.fillRatio * 100)}%` }}
                     />
                   </div>
