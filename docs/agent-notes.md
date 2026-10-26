@@ -202,3 +202,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan nav bawah 4 + tengah (2026-10-26, sesi lanjutan)
 
 98. **Nav bawah disederhanakan jadi 4 + FAB tengah (permintaan PM, rujukan desain rapi 2-kiri/2-kanan)**: item "Metode" dikeluarkan; susunan akhir: Beranda, Jelajah, [FAB], Contoh, Masuk. Spacing longgar kembali (`gap-1`, `px-1`). Metodologi tetap terjangkau lewat footer; verifikasi terprogram 360 px tanpa label terpotong.
+
+## Catatan perbaikan sel tengah nav bawah (2026-10-26, sesi lanjutan)
+
+99. **Perbaikan nav 4+FAB**: grid 5 kolom dengan 4 item mengisi kolom 1-4 secara otomatis — kolom 5 kosong sehingga "Contoh" tepat di bawah FAB dan ada lubang di kanan. Diperbaiki dengan sel kosong eksplisit (`<div aria-hidden />`) di antara ITEM_KIRI dan ITEM_KANAN: item kini di kolom 1,2 dan 4,5, FAB berdiri di atas kolom 3 yang benar-benar kosong. Diverifikasi terprogram: x = 21/82/205/267, tidak ada item bertabrakan dengan FAB, simetris terhadap tengah bar (172 px).

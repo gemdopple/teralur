@@ -71,6 +71,9 @@ export function NavBawah() {
           <SelNav key={item.href} item={item} hidup={aktif(pathname, item.href)} />
         ))}
 
+        {/* Sel kosong di tengah — tempat tombol pindai menonjol berdiri. */}
+        <div aria-hidden className="order-none" />
+
         {/* Tombol pindai QR menonjol di tengah bar — halaman pindai khusus. */}
         <Link
           href="/pindai"
