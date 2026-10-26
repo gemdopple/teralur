@@ -74,14 +74,18 @@ export function NavBawah() {
         {/* Sel kosong di tengah — tempat tombol pindai menonjol berdiri. */}
         <div aria-hidden className="order-none" />
 
-        {/* Tombol pindai QR menonjol di tengah bar — halaman pindai khusus. */}
+        {/* Tombol pindai QR menonjol di tengah bar — halaman pindai khusus.
+            Label "Scan papan" di bawah lingkaran (di sel tengah yang kosong)
+            agar lebih terbaca daripada teks di dalam lingkaran. */}
         <Link
           href="/pindai"
           aria-label="Scan papan — pindai QR papan proyek"
-          className="absolute -top-7 left-1/2 flex size-16 -translate-x-1/2 flex-col items-center justify-center gap-0.5 rounded-full border-4 border-card bg-kuning-papan text-hitam-aspal shadow-lg shadow-hitam-aspal/25 transition-transform active:scale-95"
+          className="absolute -top-8 left-1/2 flex -translate-x-1/2 flex-col items-center"
         >
-          <HugeiconsIcon icon={QrCodeScanIcon} className="size-6" strokeWidth={2} />
-          <span className="text-[9px] font-bold leading-none tracking-tight">
+          <span className="flex size-14 items-center justify-center rounded-full border-4 border-card bg-kuning-papan text-hitam-aspal shadow-lg shadow-hitam-aspal/25 transition-transform active:scale-95">
+            <HugeiconsIcon icon={QrCodeScanIcon} className="size-6" strokeWidth={2} />
+          </span>
+          <span className="mt-0.5 text-[10px] font-bold leading-none tracking-tight text-foreground">
             Scan papan
           </span>
         </Link>
