@@ -248,3 +248,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan tabel dasbor ramah ponsel (2026-10-26, sesi lanjutan)
 
 111. **Tabel dasbor kini kartu di ponsel (permintaan PM aksesibilitas — tidak memakai pesan "buka di laptop")**: komponen baru `KartuProyekDasbor` (judul + kategori/kunci, chip status + lencana Draf, dl Lokasi/Nilai resmi/Penyedia, tombol panah ke laporan). Dipakai di `/dashboard/proyek` (10 kartu, tabel `hidden md:block` tetap utuh di layar lebar) dan tabel "Proyek terbaru" ringkasan (5 kartu). Diverifikasi hidup dengan sesi admin di 360×800: kartu tampil, tabel tersembunyi, **0 px luapan horizontal** (tabel lama min-w-44rem memaksa gulir menyamping); sesi uji dikeluarkan kembali. Tabel area admin tidak diubah (konteks pengelolaan, umumnya dibuka di layar lebar).
+
+## Catatan tombol Filter netral (2026-10-26, sesi lanjutan)
+
+112. **Tombol Filter tidak lagi menunjukkan status aktif (permintaan PM)**: lencana kuning label terpilih dan gaya tinta saat aktif dihapus — tombol selalu tampil seperti keadaan awal (garis tepi terang, teks "Filter"); pemilihan tetap berfungsi (terverifikasi: pilih Cocok → tombul putih polos, daftar terfilter 4 kartu; satu-satunya penanda aktif = centang pada opsi dropdown saat dibuka).

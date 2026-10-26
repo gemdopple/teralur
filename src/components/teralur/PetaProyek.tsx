@@ -133,20 +133,10 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
             onClick={() => setBukaFilter((v) => !v)}
             aria-expanded={bukaFilter}
             aria-haspopup="listbox"
-            className={cn(
-              "inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-xs font-semibold transition-colors",
-              filter === "semua"
-                ? "border-border bg-card text-foreground hover:bg-muted"
-                : "border-hitam-aspal bg-hitam-aspal text-kertas",
-            )}
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
           >
             <HugeiconsIcon icon={FilterIcon} className="size-4" strokeWidth={2} />
             Filter
-            {filter !== "semua" && (
-              <span className="rounded-full bg-kuning-papan px-1.5 py-0.5 text-[10px] font-bold text-hitam-aspal">
-                {FILTERS.find((f) => f.nilai === filter)?.label}
-              </span>
-            )}
           </button>
           {bukaFilter && (
             <div
