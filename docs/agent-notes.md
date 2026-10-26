@@ -236,3 +236,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan baris hitungan dihapus (2026-10-26, sesi lanjutan)
 
 108. **Baris "X proyek ditemukan" + status lokasi dihapus TOTAL dari jelajah (permintaan PM: tanpa pengganti)**: seluruh blok (hitungan aria-live, "Terurut dari terdekat", "Mencari lokasi Anda…", tautan "Coba lagi") dihapus. Geolokasi otomatis kini DIAM — berhasil = kartu terurut terdekat + label jarak pada kartu; gagal/ditolak = urutan biasa tanpa pesan. State `mencariLokasi`/`galatLokasi` dihapus (tak ada pemakai). Panel jelajah kini: pencarian + tombol Filter → daftar kartu.
+
+## Catatan nav bawah di dasbor + login (2026-10-26, sesi lanjutan)
+
+109. **Nav bawah kini tampil juga di `/login` dan seluruh area `(app)` (dasbor + admin) (permintaan PM: "while Masuk ke dasbor the mobile navbar gone")**: `ShellDasbor` me-render `<NavBawah />` + spacer `h-20 md:hidden` setelah konten; halaman `/login` sama. NavBawah diberi `print:hidden` agar lembar cetak QR dari ponsel tetap bersih. Sidebar/hamburger dasbor tetap (navigasi konteks dasbor), nav bawah memberi jalan pulang ke situs publik. Diverifikasi hidup: login admin → `/dashboard` memuat nav bawah; sesi uji dikeluarkan kembali setelah verifikasi.

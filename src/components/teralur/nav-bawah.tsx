@@ -62,7 +62,7 @@ export function NavBawah() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Navigasi bawah" className="md:hidden">
+    <nav aria-label="Navigasi bawah" className="print:hidden md:hidden">
       {/* Latar pudar di belakang bar + FAB: konten yang lewat di bawahnya
           memudar menyatu, bukan menabrak tombol menonjol (z-40 < bar z-50). */}
       <div

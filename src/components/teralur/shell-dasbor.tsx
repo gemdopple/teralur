@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { NavBawah } from "@/components/teralur/nav-bawah";
 import {
   DashboardSpeedIcon,
   FileValidationIcon,
@@ -194,6 +195,10 @@ export function ShellDasbor({
         )}
 
         <div className="flex-1">{children}</div>
+        {/* Nav bawah melayang (ponsel) — sama dengan situs publik, agar navigasi
+            tidak hilang setelah masuk dasbor. */}
+        <div aria-hidden className="h-20 print:hidden md:hidden" />
+        <NavBawah />
       </div>
     </div>
   );

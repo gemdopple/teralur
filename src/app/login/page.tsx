@@ -10,6 +10,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, Building01Icon, HardHatIcon, ShieldUserIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/teralur/anim/Reveal";
+import { NavBawah } from "@/components/teralur/nav-bawah";
 import {
   DAFTAR_ROLE,
   META_ROLE,
@@ -249,6 +250,10 @@ export default function HalamanMasuk() {
           </Reveal>
         </div>
       </section>
+
+      {/* Nav bawah melayang (ponsel) agar navigasi tetap ada sebelum masuk. */}
+      <div aria-hidden className="h-20 md:hidden" />
+      <NavBawah />
     </main>
   );
 }
