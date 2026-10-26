@@ -7,7 +7,13 @@ import { Input } from "@/components/ui/input";
 import type { DossierStatus } from "@/components/teralur/ChipStatus";
 import { formatRupiahRingkas } from "@/lib/format-rupiah";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon, Location01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import {
+  Search01Icon,
+  Location01Icon,
+  ArrowRight01Icon,
+  FilterIcon,
+  CheckmarkCircle01Icon,
+} from "@hugeicons/core-free-icons";
 import type { ProyekDemo } from "@/data/proyek-demo";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +62,7 @@ function termasukFilter(status: DossierStatus, filter: FilterStatus): boolean {
 export function PetaProyek({ items }: { items: ProyekDemo[] }) {
   const [kueri, setKueri] = useState("");
   const [filter, setFilter] = useState<FilterStatus>("semua");
+  const [bukaFilter, setBukaFilter] = useState(false);
   const [posisiSaya, setPosisiSaya] = useState<{ lat: number; lng: number } | null>(null);
   const [mencariLokasi, setMencariLokasi] = useState(false);
   const [galatLokasi, setGalatLokasi] = useState<string | null>(null);
@@ -107,39 +114,88 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
     <div className="grid gap-4 lg:grid-cols-[24rem_1fr]">
       {/* Panel pencarian + daftar */}
       <div className="flex flex-col gap-3">
-        <div className="relative">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            type="search"
-            value={kueri}
-            onChange={(e) => setKueri(e.target.value)}
-            placeholder="Cari nama paket, lokasi, atau penyedia…"
-            aria-label="Cari proyek"
-            className="rounded-xl border-border bg-card pl-9"
-          />
-        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative min-w-0 flex-1">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              type="search"
+              value={kueri}
+              onChange={(e) => setKueri(e.target.value)}
+              placeholder="Cari nama paket, lokasi, atau penyedia…"
+              aria-label="Cari proyek"
+              className="rounded-xl border-border bg-card pl-9"
+            />
+          </div>
 
-        {/* Chip filter pil; aktif = latar tinta dengan teks kertas. */}
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter status">
-          {FILTERS.map((pilihan) => (
+          {/* Satu tombol Filter (permintaan PM) — pilihan status dalam dropdown. */}
+          <div className="relative shrink-0">
+          {bukaFilter && (
             <button
-              key={pilihan.nilai}
               type="button"
-              onClick={() => setFilter(pilihan.nilai)}
-              aria-pressed={filter === pilihan.nilai}
-              className={cn(
-                "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
-                filter === pilihan.nilai
-                  ? "border-hitam-aspal bg-hitam-aspal text-kertas"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground",
-              )}
+              aria-label="Tutup filter"
+              tabIndex={-1}
+              onClick={() => setBukaFilter(false)}
+              className="fixed inset-0 z-20 cursor-default"
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => setBukaFilter((v) => !v)}
+            aria-expanded={bukaFilter}
+            aria-haspopup="listbox"
+            className={cn(
+              "inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-xs font-semibold transition-colors",
+              filter === "semua"
+                ? "border-border bg-card text-foreground hover:bg-muted"
+                : "border-hitam-aspal bg-hitam-aspal text-kertas",
+            )}
+          >
+            <HugeiconsIcon icon={FilterIcon} className="size-4" strokeWidth={2} />
+            Filter
+            {filter !== "semua" && (
+              <span className="rounded-full bg-kuning-papan px-1.5 py-0.5 text-[10px] font-bold text-hitam-aspal">
+                {FILTERS.find((f) => f.nilai === filter)?.label}
+              </span>
+            )}
+          </button>
+          {bukaFilter && (
+            <div
+              role="listbox"
+              aria-label="Filter status"
+              className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-2xl border border-border bg-card shadow-xl shadow-hitam-aspal/15"
             >
-              {pilihan.label}
-            </button>
-          ))}
+              {FILTERS.map((pilihan) => (
+                <button
+                  key={pilihan.nilai}
+                  type="button"
+                  role="option"
+                  aria-selected={filter === pilihan.nilai}
+                  onClick={() => {
+                    setFilter(pilihan.nilai);
+                    setBukaFilter(false);
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between px-4 py-2.5 text-left text-xs font-medium transition-colors",
+                    filter === pilihan.nilai
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                  )}
+                >
+                  {pilihan.label}
+                  {filter === pilihan.nilai && (
+                    <HugeiconsIcon
+                      icon={CheckmarkCircle01Icon}
+                      className="size-4 text-foreground"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">

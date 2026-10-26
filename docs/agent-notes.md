@@ -228,3 +228,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan restyle nav bawah gaya papan (2026-10-26, sesi lanjutan)
 
 106. **Nav bawah restyle identitas kuning-hitam papan proyek (permintaan PM "better styling")**: bar kini tinta gelap (`bg-hitam-aspal/95`, rounded-3xl, ring-1 kertas/10, shadow-2xl) alih-alih kartu putih; item tidak aktif `text-kertas/70`, aktif `text-kuning-papan` + pil kuning lembut 20% di belakang ikon (pola Material 3); FAB tetap kuning dengan border menyatu warna bar (`border-hitam-aspal`) + bayangan kuning `shadow-kuning-papan/40`, label "Scan papan" kuning. Gradien pudar latar halaman tidak berubah. Desktop tidak terpengaruh (md:hidden).
+
+## Catatan satu tombol Filter di jelajah (2026-10-26, sesi lanjutan)
+
+107. **Baris chip status diganti SATU tombol "Filter" (permintaan PM)**: tombol (ikon corong `FilterIcon`) berada di kanan kolom pencarian dalam satu baris; mengklik membuka dropdown `listbox` (Semua status/Cocok/Selisih/Lainnya, opsi terpilih bertanda `CheckmarkCircle01Icon`, klik luar menutup via backdrop tetap). Filter aktif ≠ semua → tombol jadi tinta gelap dengan lencana kuning berisi label (mis. "Cocok"). Diverifikasi penuh di 360×800: buka dropdown → pilih Cocok → dropdown tutup, lencana tampil, daftar terfilter 4 proyek. A11y: aria-expanded/haspopup/listbox/option terpasang.
