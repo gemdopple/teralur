@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { connection } from "next/server";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { QrCodeScanIcon } from "@hugeicons/core-free-icons";
 import { PetaProyek } from "@/components/teralur/PetaProyek";
 import { PemindaiQr } from "@/components/teralur/PemindaiQr";
 import { Reveal } from "@/components/teralur/anim/Reveal";
@@ -48,25 +45,19 @@ export default async function HalamanJelajah() {
         </div>
       </section>
 
-      <section id="pindai" className="scroll-mt-20 border-b border-border">
+      {/* Seksi pindai hanya di layar lebar (kartu pemindai); di ponsel seksi ini
+          digantikan pratinjau peta di bagian atas PetaProyek. */}
+      <section id="pindai" className="hidden scroll-mt-20 border-b border-border md:block">
         <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1fr_400px] md:items-center">
           <Reveal>
             <h2 className="text-balance font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
               Punya ponsel di lokasi?
             </h2>
             <p className="mt-3 max-w-md text-muted-foreground">
-              Pindai QR pada papan proyek langsung dari ponsel Anda. Kamera aktif
+              Pindai QR pada papan proyek langsung dari halaman ini. Kamera aktif
               hanya selama pemindai terbuka, dan gambar tidak pernah disimpan di
               mana pun.
             </p>
-            {/* Ponsel: pindai pindah ke halaman khusus agar fokus ke kamera. */}
-            <Link
-              href="/pindai"
-              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-kuning-papan px-5 py-2.5 text-sm font-bold text-hitam-aspal shadow-sm md:hidden"
-            >
-              <HugeiconsIcon icon={QrCodeScanIcon} className="size-4.5" strokeWidth={2.2} />
-              Buka pemindai QR
-            </Link>
           </Reveal>
           {/* Kartu pemindai hanya di layar lebar; ponsel memakai halaman /pindai. */}
           <Reveal delay={0.1} className="hidden md:block">

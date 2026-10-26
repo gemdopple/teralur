@@ -224,8 +224,9 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
         </ul>
       </div>
 
-      {/* Peta */}
-      <div className="relative h-[24rem] overflow-hidden rounded-2xl border border-border bg-muted/40 lg:h-[38rem]">
+      {/* Peta — di ponsel tampil paling atas sebagai pratinjau (permintaan
+          PM: menggantikan seksi teks pemindai), di layar lebar tetap di kanan. */}
+      <div className="relative order-first h-[24rem] overflow-hidden rounded-2xl border border-border bg-muted/40 lg:order-none lg:h-[38rem]">
         <PetaDalam items={hasil} selectedKey={terpilih} />
         <p className="pointer-events-none absolute bottom-2 left-2 z-[500] rounded-full bg-card/90 px-2.5 py-1 text-[10px] text-muted-foreground">
           Peta © OpenStreetMap

@@ -220,3 +220,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan label FAB di bawah lingkaran (2026-10-26, sesi lanjutan)
 
 104. **Label "Scan papan" dipindah ke bawah lingkaran FAB** (permintaan PM, keterbacaan): lingkaran kembali size-14 hanya ikon (border-4 card); label 10px bold kini di LUAR lingkaran, tepat di sel tengah bar yang kosong (`-top-8`, flex-col). Terverifikasi: label di bawah lingkaran, dalam batas bar, tidak bertabrakan item kiri/kanan; ketukan tetap satu area (label bagian dari tautan yang sama).
+
+## Catatan jelajah ponsel: pratinjau peta menggantikan seksi teks (2026-10-26)
+
+105. **Seksi teks pemindai dihapus di ponsel, diganti pratinjau peta (permintaan PM)**: seksi `#pindai` (judul "Punya ponsel di lokasi?", paragraf, CTA "Buka pemindai QR", kartu pemindai) kini `hidden md:block` — utuh di desktop dengan kartu pemindai; di ponsel seluruhnya tidak dirender. Sebagai gantinya, kontainer peta pada `PetaProyek` diberi `order-first lg:order-none` sehingga di ponsel peta tampil PALING ATAS (pratinjau) sebelum pencarian/filter/kartu; desktop tetap panel kiri + peta kanan. Tautan kembali /pindai (desktop) tetap menuju #pindai yang kini hanya-desktop. Verifikasi 360×800: teks tidak terlihat (innerText), peta sebelum kolom pencarian; 128 uji lulus.
