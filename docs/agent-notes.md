@@ -194,3 +194,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan tombol kembali disembunyikan di ponsel (2026-10-26, sesi lanjutan)
 
 96. **Tombol kembali disembunyikan di ponsel (permintaan PM) — hanya pada halaman publik yang punya nav bawah**: (1) `/pindai` — lingkaran panah kembali kini `hidden md:inline-flex` (desktop tetap ada karena di sana tidak ada nav bawah); (2) kartu bukti — tautan "← Kembali ke dossier" `hidden sm:inline-flex`. **Tidak disentuh**: tautan kembali di area admin (`/admin/projects/[id]`, lembar QR) dan layar galat `(app)/layout.tsx` — konteks itu tidak memiliki nav bawah sehingga tautan kembali masih dibutuhkan. Verifikasi 360×800: tombol kembali /pindai `display:none`, judul tetap; di HTML server tombol tetap ada untuk desktop. Build, lint (0 galat), tsc bersih.
+
+## Catatan Contoh kembali ke nav bawah (2026-10-26, sesi lanjutan)
+
+97. **"Contoh" dikembalikan ke nav bawah (permintaan PM — "add one more button")**: kembali ke grid 6 kolom dengan padding rapat (`px-0.5`, `gap-0.5`) yang sebelumnya terverifikasi muat: Beranda, Jelajah, [FAB], Contoh, Metode, Masuk. Diverifikasi terprogram di 360 px: tidak ada label terpotong (`scrollWidth <= clientWidth` untuk semua).
