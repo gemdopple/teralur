@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";
 import { Reveal } from "@/components/teralur/anim/Reveal";
+import { KartuProyekDasbor } from "@/components/teralur/KartuProyekDasbor";
 import { StaggerGroup, StaggerItem } from "@/components/teralur/anim/Stagger";
 import { jakartaToday } from "@/lib/dates";
 import { daftarProyekDemo, type ProyekDemo } from "@/data/proyek-demo";
@@ -154,7 +155,13 @@ export default async function HalamanRingkasanDasbor() {
                   <HugeiconsIcon icon={ArrowRight01Icon} className="size-3.5" />
                 </Link>
               </div>
-              <div className="mt-3 overflow-x-auto">
+              {/* Ponsel: kartu; layar lebar: tabel (permintaan PM aksesibilitas). */}
+              <ul className="mt-3 grid gap-3 md:hidden">
+                {terbaru.map((proyek) => (
+                  <KartuProyekDasbor key={proyek.kunci} proyek={proyek} />
+                ))}
+              </ul>
+              <div className="mt-3 hidden overflow-x-auto md:block">
                 <table className="w-full min-w-[34rem] text-sm">
                   <thead>
                     <tr className="border-b border-border text-left">

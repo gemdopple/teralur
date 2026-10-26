@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";
+import { KartuProyekDasbor } from "@/components/teralur/KartuProyekDasbor";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { jakartaToday } from "@/lib/dates";
 import { daftarProyekDemo, type ProyekDemo } from "@/data/proyek-demo";
@@ -62,7 +63,13 @@ export default async function HalamanProyekDasbor() {
       />
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <Reveal>
-          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          {/* Ponsel: kartu; layar lebar: tabel (permintaan PM aksesibilitas). */}
+          <ul className="grid gap-3 md:hidden">
+            {proyek.map((p) => (
+              <KartuProyekDasbor key={p.kunci} proyek={p} />
+            ))}
+          </ul>
+          <div className="hidden overflow-hidden rounded-2xl border border-border bg-card shadow-sm md:block">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[44rem] text-sm">
                 <thead>

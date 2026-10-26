@@ -244,3 +244,7 @@ Kumpulan penyimpangan antara Lampiran A–N dan kode repo yang sudah ada. Aturan
 ## Catatan nav terang + FAB turun (2026-10-26, sesi lanjutan)
 
 110. **Nav bawah kembali terang + penyesuaian FAB (permintaan PM)**: bar `bg-card/95` + border tipis (rounded-3xl dipertahankan); item aktif `text-foreground` dengan pil `bg-kuning-papan/30`; FAB turun `-top-8` → `-top-6` (menyelam 32 px ke bar), bingkai hitam DIHAPUS (lingkaran kuning bersih, bayangan lembut tinta), label "Scan papan" kembali `text-foreground`. Verifikasi: latar bar oklab≈1/0.95, border FAB 0 px, fabTop −23 px dari atas bar.
+
+## Catatan tabel dasbor ramah ponsel (2026-10-26, sesi lanjutan)
+
+111. **Tabel dasbor kini kartu di ponsel (permintaan PM aksesibilitas — tidak memakai pesan "buka di laptop")**: komponen baru `KartuProyekDasbor` (judul + kategori/kunci, chip status + lencana Draf, dl Lokasi/Nilai resmi/Penyedia, tombol panah ke laporan). Dipakai di `/dashboard/proyek` (10 kartu, tabel `hidden md:block` tetap utuh di layar lebar) dan tabel "Proyek terbaru" ringkasan (5 kartu). Diverifikasi hidup dengan sesi admin di 360×800: kartu tampil, tabel tersembunyi, **0 px luapan horizontal** (tabel lama min-w-44rem memaksa gulir menyamping); sesi uji dikeluarkan kembali. Tabel area admin tidak diubah (konteks pengelolaan, umumnya dibuka di layar lebar).
