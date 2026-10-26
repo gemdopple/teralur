@@ -64,8 +64,6 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
   const [filter, setFilter] = useState<FilterStatus>("semua");
   const [bukaFilter, setBukaFilter] = useState(false);
   const [posisiSaya, setPosisiSaya] = useState<{ lat: number; lng: number } | null>(null);
-  const [mencariLokasi, setMencariLokasi] = useState(false);
-  const [galatLokasi, setGalatLokasi] = useState<string | null>(null);
   const [terpilih, setTerpilih] = useState<string | null>(null);
 
   const hasil = useMemo(() => {
@@ -83,24 +81,13 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
   // Default: proyek terdekat — minta lokasi sekali saat panel dibuka; bila
   // ditolak, daftar tetap terurut biasa dan tautan kecil disediakan untuk
   // mencoba lagi (permintaan PM: tanpa tombol besar "Proyek terdekat").
+  // Diam sesuai permintaan PM: tanpa pesan status apa pun — berhasil = terurut
+  // terdekat (label jarak muncul di kartu), gagal = urutan biasa.
   const cariTerdekat = useCallback(() => {
-    setGalatLokasi(null);
-    if (!("geolocation" in navigator)) {
-      setGalatLokasi("Perangkat Anda belum mendukung deteksi lokasi.");
-      return;
-    }
-    setMencariLokasi(true);
-    navigator.geolocation.getCurrentPosition(
-      (posisi) => {
-        setPosisiSaya({ lat: posisi.coords.latitude, lng: posisi.coords.longitude });
-        setMencariLokasi(false);
-      },
-      () => {
-        setGalatLokasi("Izin lokasi tidak aktif.");
-        setMencariLokasi(false);
-      },
-      { timeout: 10_000 },
-    );
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition((posisi) => {
+      setPosisiSaya({ lat: posisi.coords.latitude, lng: posisi.coords.longitude });
+    }, undefined, { timeout: 10_000 });
   }, []);
 
   useEffect(() => {
@@ -198,26 +185,6 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <p className="text-sm text-muted-foreground" aria-live="polite">
-            {hasil.length} proyek ditemukan
-          </p>
-          {posisiSaya ? (
-            <p className="text-xs text-muted-foreground">
-              Terurut dari terdekat · jarak garis lurus
-            </p>
-          ) : galatLokasi ? (
-            <button
-              type="button"
-              onClick={cariTerdekat}
-              className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
-              {mencariLokasi ? "Mencari lokasi…" : `${galatLokasi} Coba lagi`}
-            </button>
-          ) : (
-            <p className="text-xs text-muted-foreground">Mencari lokasi Anda…</p>
-          )}
-        </div>
 
         <ul className="grid gap-2 lg:max-h-[26rem] lg:overflow-y-auto lg:pr-1">
           {hasil.map((item, index) => (
