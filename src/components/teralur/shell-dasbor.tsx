@@ -133,7 +133,7 @@ function LabelPeran({ peran }: { peran: AppRole }) {
   return (
     <div>
       <p className="text-xs font-medium text-muted-foreground">Peran akun</p>
-      <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-border bg-muted px-3 py-2">
+      <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
         <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-kuning-papan" />
         <span className="text-sm font-semibold">{META_ROLE[peran].label}</span>
       </div>

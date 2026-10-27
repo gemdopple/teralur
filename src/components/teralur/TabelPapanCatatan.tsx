@@ -105,7 +105,7 @@ export function TabelPapanCatatan({
       </div>
 
       {selisih.length > 0 ? (
-        <div className="mt-4 rounded-xl border border-selisih/30 bg-selisih/5 p-4">
+        <div className="mt-4 rounded-lg border border-selisih/30 bg-selisih/5 p-4">
           {selisih.map((item) => (
             <div key={item.field} className="mt-1 first:mt-0">
               <p className="text-sm font-semibold">{item.fieldLabel} berbeda:</p>

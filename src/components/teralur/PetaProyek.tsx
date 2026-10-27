@@ -228,13 +228,13 @@ export function PetaProyek({
               onChange={(e) => setKueri(e.target.value)}
               placeholder="Cari nama paket, lokasi, atau penyedia…"
               aria-label="Cari proyek"
-              className="rounded-xl border-border bg-card pl-9"
+              className="border-border bg-card pl-9"
             />
           </div>
 
           {/* Satu tombol Filter (permintaan PM) — pilihan status dalam dropdown.
-              Sama tinggi dengan Input (h-9, rounded-xl). Kuning saat saringan
-              aktif agar pengguna melihat daftar sedang tersaring. */}
+              Default ui/button: sama tinggi (h-9) dan radius (lg) dengan Input.
+              Kuning saat saringan aktif agar pengguna melihat daftar tersaring. */}
           <div className="relative shrink-0">
           {bukaFilter && (
             <button
@@ -252,7 +252,7 @@ export function PetaProyek({
             aria-expanded={bukaFilter}
             aria-haspopup="listbox"
             className={cn(
-              "rounded-xl px-3",
+              "px-3",
               filter !== "semua" &&
                 "border-transparent! bg-kuning-papan! text-hitam-aspal! hover:bg-kuning-papan/90! hover:text-hitam-aspal! aria-expanded:bg-kuning-papan! aria-expanded:text-hitam-aspal!",
             )}

@@ -60,7 +60,7 @@ export function TombolSalinBagikan(props: Props) {
         </span>
       )}
       {teksGagal && (
-        <pre className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-border bg-muted/50 p-3 text-sm">
+        <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/50 p-3 text-sm">
           {teksGagal}
         </pre>
       )}

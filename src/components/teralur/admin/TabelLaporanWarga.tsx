@@ -66,7 +66,7 @@ export function TabelLaporanWarga({ projectId }: { projectId: string }) {
       ) : null}
 
       {laporan !== null && laporan.length > 0 ? (
-        <div className="mt-3 overflow-x-auto rounded-xl border border-neutral-300 bg-white">
+        <div className="mt-3 overflow-x-auto rounded-lg border border-neutral-300 bg-white">
           <table className="w-full min-w-[28rem] text-left text-sm">
             <thead>
               <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-600">

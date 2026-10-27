@@ -72,7 +72,7 @@ export function CandidateSelector({
           <article
             key={candidate.id}
             className={cn(
-              "rounded-xl border bg-card p-3.5 transition-all",
+              "rounded-lg border bg-card p-3.5 transition-all",
               candidate.selected ? "border-hitam-aspal shadow-sm" : "border-border",
             )}
           >

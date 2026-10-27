@@ -12,7 +12,7 @@ const RESPONSE_SCHEMA = z.object({
 });
 
 // Form laporan warga — kartu lembut modern: kartu rounded-lg dengan bayangan
-// tipis, masukan rounded-xl, tombol kirim pil tinta.
+// tipis, masukan rounded-lg, tombol kirim pil tinta.
 
 export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
   const [activityStatus, setActivityStatus] = useState("active");
@@ -70,7 +70,7 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
         id="activity-status"
         value={activityStatus}
         onChange={(event) => setActivityStatus(event.target.value)}
-        className="mt-1 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+        className="mt-1 w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
       >
         <option value="active">Ada aktivitas pekerjaan</option>
         <option value="no_activity_seen">Tidak terlihat aktivitas</option>
@@ -84,7 +84,7 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
         value={note}
         maxLength={200}
         onChange={(event) => setNote(event.target.value)}
-        className="mt-1 min-h-20 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+        className="mt-1 min-h-20 w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
       />
       <p className="mt-1 text-xs text-muted-foreground">{note.length}/200 karakter</p>
       <button

@@ -180,7 +180,7 @@ export function DossierView({
         catatanResmi={status === "catatan_resmi"}
         statusSelisih={status === "selisih"}
         selisihCatatan={
-          <p className="mt-3 rounded-xl border border-selisih/60 bg-selisih/10 p-3 text-sm">
+          <p className="mt-3 rounded-lg border border-selisih/60 bg-selisih/10 p-3 text-sm">
             Perbedaan sering wajar, misalnya karena addendum atau perubahan kontrak. Perlu klarifikasi.{" "}
             <LabelTiga label="belum_diketahui" />
           </p>

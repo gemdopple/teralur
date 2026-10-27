@@ -51,7 +51,7 @@ export function SiteHeader() {
         >
           <span
             aria-hidden
-            className="flex size-8 items-center justify-center rounded-[0.4rem] bg-kuning-papan font-heading text-lg leading-none font-bold text-hitam-aspal"
+            className="flex size-8 items-center justify-center rounded-lg bg-kuning-papan font-heading text-lg leading-none font-bold text-hitam-aspal"
           >
             t
           </span>

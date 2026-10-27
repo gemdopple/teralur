@@ -71,7 +71,7 @@ export function PapanCatatanSection({
                   adaCatatan: row.record !== null,
                 })
               }
-              className="grid w-full gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-muted/60 sm:grid-cols-[1fr_1fr_1fr]"
+              className="grid w-full gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted/60 sm:grid-cols-[1fr_1fr_1fr]"
             >
               <div className="font-semibold">
                 {row.label}

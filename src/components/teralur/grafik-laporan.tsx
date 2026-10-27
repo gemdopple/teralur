@@ -74,7 +74,7 @@ export function GrafikLaporan({
 
   if (total === 0) {
     return (
-      <div className="grid h-40 w-full place-items-center rounded-xl bg-muted/50 text-sm text-muted-foreground">
+      <div className="grid h-40 w-full place-items-center rounded-lg bg-muted/50 text-sm text-muted-foreground">
         Belum ada laporan warga untuk proyek ini.
       </div>
     );

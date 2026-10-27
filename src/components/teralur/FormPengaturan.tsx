@@ -184,7 +184,7 @@ export function FormPengaturan({
               defaultValue={nilai[bidang.nama] ?? bidang.bawaan}
               placeholder={bidang.placeholder}
               key={`${peran}-${bidang.nama}-${dimuat}`}
-              className="rounded-xl border-border bg-white"
+              className="rounded-lg border-border bg-white"
             />
             {bidang.bantuan && (
               <p className="text-xs leading-5 text-muted-foreground">{bidang.bantuan}</p>

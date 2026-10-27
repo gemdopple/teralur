@@ -176,7 +176,7 @@ export default function HalamanMasuk() {
               {galat ? (
                 <p
                   role="alert"
-                  className="rounded-xl border border-selisih bg-selisih/10 px-3.5 py-2.5 text-sm font-medium text-selisih-teks"
+                  className="rounded-lg border border-selisih bg-selisih/10 px-3.5 py-2.5 text-sm font-medium text-selisih-teks"
                 >
                   {PESAN_GALAT}
                 </p>
@@ -193,7 +193,7 @@ export default function HalamanMasuk() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={sedangMasuk}
-                  className="rounded-xl border-border bg-card"
+                  className="rounded-lg border-border bg-card"
                 />
               </div>
               <div className="space-y-2">
@@ -207,7 +207,7 @@ export default function HalamanMasuk() {
                   value={kataSandi}
                   onChange={(e) => setKataSandi(e.target.value)}
                   disabled={sedangMasuk}
-                  className="rounded-xl border-border bg-card"
+                  className="rounded-lg border-border bg-card"
                 />
               </div>
               <button type="submit" disabled={sedangMasuk} className={cn(buttonVariants({ size: "lg" }), "w-full")}>

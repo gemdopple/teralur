@@ -231,7 +231,7 @@ export function PengunggahResource({
         }}
         onDragLeave={() => setSeret(false)}
         onDrop={onDrop}
-        className={`mt-3 rounded-xl border-2 border-dashed p-4 text-center ${
+        className={`mt-3 rounded-lg border-2 border-dashed p-4 text-center ${
           seret ? "border-hitam-aspal bg-kuning-papan/40" : "border-neutral-400 bg-white"
         }`}
       >
@@ -303,7 +303,7 @@ export function PengunggahResource({
       ) : null}
 
       {resources.length > 0 ? (
-        <ul className="mt-4 divide-y divide-neutral-200 rounded-xl border border-neutral-300 bg-white">
+        <ul className="mt-4 divide-y divide-neutral-200 rounded-lg border border-neutral-300 bg-white">
           {resources.map((resource) => (
             <li key={resource.id} className="flex items-center gap-3 p-3">
               {resource.kind === "photo" ? (
@@ -350,7 +350,7 @@ export function PengunggahResource({
           ))}
         </ul>
       ) : (
-        <p className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-700">
+        <p className="mt-4 rounded-lg border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-700">
           Belum ada berkas pada proyek ini.
         </p>
       )}

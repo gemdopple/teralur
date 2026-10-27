@@ -35,7 +35,7 @@ function ItemResource({ resource }: { resource: ResourcePublik }) {
             href={resource.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block overflow-hidden rounded-xl border border-border"
+            className="block overflow-hidden rounded-lg border border-border"
           >
             <Image
               src={resource.url}
@@ -51,7 +51,7 @@ function ItemResource({ resource }: { resource: ResourcePublik }) {
         ) : (
           <div
             aria-hidden="true"
-            className="flex h-28 w-full max-w-md items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 text-sm text-muted-foreground"
+            className="flex h-28 w-full max-w-md items-center justify-center rounded-lg border border-dashed border-border bg-muted/50 text-sm text-muted-foreground"
           >
             Gambar tidak dapat ditampilkan
           </div>

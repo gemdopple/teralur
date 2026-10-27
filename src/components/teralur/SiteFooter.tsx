@@ -27,7 +27,7 @@ export function SiteFooter() {
           <Link href="/" className="flex items-center gap-2.5" aria-label="Teralur, ke beranda">
             <span
               aria-hidden
-              className="flex size-8 items-center justify-center rounded-[0.6rem] bg-kuning-papan font-heading text-lg leading-none font-bold text-hitam-aspal"
+              className="flex size-8 items-center justify-center rounded-lg bg-kuning-papan font-heading text-lg leading-none font-bold text-hitam-aspal"
             >
               t
             </span>

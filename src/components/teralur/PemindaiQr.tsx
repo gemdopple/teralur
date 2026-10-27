@@ -236,7 +236,7 @@ export function PemindaiQr({ mulaiOtomatis = false }: { mulaiOtomatis?: boolean 
   return (
     <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
       <div className="flex items-start gap-3.5">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-kuning-papan text-hitam-aspal">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-kuning-papan text-hitam-aspal">
           <HugeiconsIcon icon={QrCodeScanIcon} className="size-5" />
         </div>
         <div>
@@ -252,7 +252,7 @@ export function PemindaiQr({ mulaiOtomatis = false }: { mulaiOtomatis?: boolean 
 
       <div
         className={cn(
-          "relative mt-5 overflow-hidden rounded-xl bg-hitam-aspal",
+          "relative mt-5 overflow-hidden rounded-lg bg-hitam-aspal",
           !kameraTerlihat && "hidden",
         )}
       >
@@ -299,12 +299,12 @@ export function PemindaiQr({ mulaiOtomatis = false }: { mulaiOtomatis?: boolean 
             </p>
           )}
           {pesanGalat && (
-            <p className="rounded-xl border border-selisih/30 bg-selisih/10 px-3 py-2 text-selisih-teks">
+            <p className="rounded-lg border border-selisih/30 bg-selisih/10 px-3 py-2 text-selisih-teks">
               {pesanGalat}
             </p>
           )}
           {tautanAsing && (
-            <p className="rounded-xl border border-netral/30 bg-netral/10 px-3 py-2 text-netral">
+            <p className="rounded-lg border border-netral/30 bg-netral/10 px-3 py-2 text-netral">
               QR ini bukan tautan Teralur.
             </p>
           )}
