@@ -36,10 +36,19 @@ export const storedBoardSchema = z.object({
 });
 
 export const matchRequestSchema = z.object({ board: boardSchema });
+// Bukti kerja anti-massa: klien mengembalikan tantangan yang diterbitkan
+// server beserta nonce hasil pemecahan (lihat src/lib/pow*.ts).
+export const buktiPoWSchema = z.object({
+  tantangan: z.string(),
+  nonce: z.string().regex(/^[0-9a-f]{1,16}$/),
+});
 export const visitReportRequestSchema = z.object({
   dossierSlug: z.string().regex(/^[A-Za-z0-9_-]{12}$/),
   activityStatus: z.enum(["active", "no_activity_seen", "appears_complete"]),
   note: z.string().max(200).optional(),
+  bukti: buktiPoWSchema,
+  // Honeypot: kolom tersembunyi untuk bot — harus kosong/tidak dikirim.
+  website: z.string().max(200).optional(),
 });
 
 export type ApiMatchStatus = "matched" | "discrepancy" | "not_found";

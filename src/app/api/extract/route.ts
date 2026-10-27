@@ -6,6 +6,7 @@ import {
   requestIp,
 } from "@/lib/server-api";
 import { boardToApi } from "@/lib/api-contract";
+import { photoFlowEnabled } from "@/lib/flags";
 import { extractPapan, ModelTimeoutError } from "@/lib/vision";
 
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
@@ -38,6 +39,14 @@ function contentMatchesType(bytes: Uint8Array, type: string): boolean {
 }
 
 export async function POST(request: Request) {
+  // Jalur foto dibekukan (PRD v1.1, Lampiran B.3): sama dengan /api/match —
+  // ekstraksi tidak dikecualikan agar alur mati benar-benar mati.
+  if (!photoFlowEnabled()) {
+    return NextResponse.json(
+      { error: "NOT_FOUND", message: "Endpoint tidak ditemukan." },
+      { status: 404 },
+    );
+  }
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (contentLength > MAX_PHOTO_BYTES + 64 * 1024) {
     return NextResponse.json(

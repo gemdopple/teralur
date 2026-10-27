@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     const projectKey = submission.record_id ?? submission.id;
     const { data: rows, error: reportsError } = await getSupabaseAdmin()
       .from("kunjungan")
-      .select("id, keadaan, catatan, tanggal")
+      .select("id, keadaan, catatan, tanggal, tampil")
       .eq("kunci_proyek", projectKey)
       .order("tanggal", { ascending: false })
       .order("id", { ascending: false });
@@ -69,6 +69,7 @@ export async function GET(request: Request) {
             activityStatus,
             note: row.catatan, // verbatim, hanya untuk tim (F-14)
             date: row.tanggal,
+            tampil: row.tampil,
           },
         ];
       }),

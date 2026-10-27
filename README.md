@@ -101,7 +101,7 @@ configured.
 | `NEXT_PUBLIC_SITE_URL` | Public site origin used to generate project and QR-code links. |
 | `NEXT_PUBLIC_CORRECTION_EMAIL` | Optional public email address for corrections. |
 | `ADMIN_EMAILS` | Comma-separated allowlist of administrator email addresses. Accounts listed here are treated as `admin` even without a `profiles` row. |
-| `PHOTO_FLOW_ENABLED` | Set to `true` to enable the otherwise disabled photo workflow. |
+| `PHOTO_FLOW_ENABLED` | Enabled by default; set to `false` to freeze the photo workflow (nav link, /check, match and extract endpoints all 404). |
 
 The variables included in `.env.example` are the main application settings.
 `MODEL_BASE_URL` and `MODEL_NAME` are optional provider-specific settings.
@@ -119,8 +119,8 @@ For command-line scripts that use `tsx --env-file=.env`, also create a private
 - `/dossiers/[slug]` and `/evidence/[slug]` — project dossiers and evidence
 - `/examples` and `/examples/[exampleId]` — examples
 - `/methodology` and `/about` — methodology and project information
-- `/check` — signboard checking; the photo/checking workflow is disabled unless
-  `PHOTO_FLOW_ENABLED=true`
+- `/check` — signboard checking; the photo workflow is enabled by default and
+  can be frozen with `PHOTO_FLOW_ENABLED=false`
 - `/pindai` — QR scanning
 
 ### Dashboard and administration

@@ -70,7 +70,6 @@ export const NAV_DASBOR: ItemNav[] = [
       { href: "/dashboard/akun/kontraktor", label: "Kontraktor" },
     ],
   },
-  { href: "/dashboard/pengaturan", label: "Pengaturan", peran: ["pemerintah", "kontraktor", "admin"] },
 ];
 
 export function navUntukRole(peran: AppRole): ItemNav[] {

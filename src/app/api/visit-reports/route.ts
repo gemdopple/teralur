@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { visitReportRequestSchema } from "@/lib/api-contract";
 import { getSupabaseAdmin } from "@/lib/db";
+import { verifikasiPoW } from "@/lib/pow-server";
 import {
   consumeRateLimit,
   databaseConfigured,
   deviceRateKey,
+  ipRateKey,
   readJsonBody,
+  requestIp,
 } from "@/lib/server-api";
 
 const ACTIVITY_TO_INTERNAL = {
@@ -49,7 +52,26 @@ export async function POST(request: Request) {
     );
   }
 
-  const { dossierSlug, activityStatus, note } = parsed.data;
+  const { dossierSlug, activityStatus, note, bukti, website } = parsed.data;
+
+  // Honeypot: bot yang mengisi kolom tersembunyi dianggap sukses (bentuk
+  // respons sama) tetapi TIDAK menyimpan apa pun — tak memberi isyarat.
+  if (website && website.trim() !== "") {
+    return NextResponse.json(
+      { counts: { active: 0, no_activity_seen: 0, appears_complete: 0 } },
+      { status: 201 },
+    );
+  }
+
+  // Bukti kerja wajib (anti-massa): nonce harus memecahkan tantangan HMAC
+  // yang diterbitkan GET /api/visit-reports/challenge (maks. 10 menit).
+  if (!verifikasiPoW(bukti.tantangan, bukti.nonce)) {
+    return NextResponse.json(
+      { error: "POW_INVALID", message: "Verifikasi perangkat gagal. Muat ulang halaman lalu coba lagi." },
+      { status: 403 },
+    );
+  }
+
   const { data: submission, error: lookupError } = await getSupabaseAdmin()
     .from("submissions")
     .select("id,record_id")
@@ -73,6 +95,25 @@ export async function POST(request: Request) {
       { error: "RATE_LIMITED", message: "Batas laporan per jam tercapai. Coba lagi nanti." },
       { status: 429 },
     );
+  }
+
+  // Lapis kedua anti-massa: device ID dibuat klien (mudah dipalsukan), jadi
+  // IP juga dibatasi. IP bisa tak tersedia (header dibuang) — lapis perangkat
+  // tetap berjalan.
+  let ip: string | null = null;
+  try {
+    ip = await requestIp();
+  } catch {
+    // header IP tidak tersedia — lapis perangkat tetap berjalan
+  }
+  if (ip) {
+    const allowedIp = await consumeRateLimit(`visit-ip:${ipRateKey(ip)}`, 30);
+    if (!allowedIp) {
+      return NextResponse.json(
+        { error: "RATE_LIMITED", message: "Batas laporan per jam tercapai. Coba lagi nanti." },
+        { status: 429 },
+      );
+    }
   }
 
   const projectKey = submission.record_id ?? submission.id;

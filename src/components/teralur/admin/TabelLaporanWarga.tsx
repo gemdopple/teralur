@@ -3,17 +3,18 @@
 import { useEffect, useState } from "react";
 import { formatTanggal } from "@/lib/dates";
 
-// Moderasi laporan warga (T-47 UI, Lampiran L.6 / E.13): tabel hanya-baca
-// tanggal, keadaan (dalam Bahasa Indonesia), dan catatan apa adanya — hanya
-// untuk tim. Data dari GET /api/admin/visit-reports?projectId={records.id};
-// sesi admin dikirim otomatis lewat cookie httpOnly same-origin. Bersifat
-// hanya-baca; tanpa tombol hapus di v1.1.
+// Moderasi laporan warga (T-47 UI, Lampiran L.6 / E.13): tabel tanggal,
+// keadaan (dalam Bahasa Indonesia), dan catatan apa adanya — hanya untuk tim.
+// Data dari GET /api/admin/visit-reports?projectId={records.id}; sesi admin
+// dikirim otomatis lewat cookie httpOnly same-origin. Anti-massa: laporan
+// spam bisa disembunyikan dari hitungan publik (tampil = false) tanpa dihapus.
 
 type Laporan = {
   id: string;
   activityStatus: "active" | "no_activity_seen" | "appears_complete";
   note: string | null;
   date: string;
+  tampil: boolean;
 };
 
 const KEADAAN: Record<Laporan["activityStatus"], string> = {
@@ -25,6 +26,26 @@ const KEADAAN: Record<Laporan["activityStatus"], string> = {
 export function TabelLaporanWarga({ projectId }: { projectId: string }) {
   const [laporan, setLaporan] = useState<Laporan[] | null>(null);
   const [gagal, setGagal] = useState(false);
+  const [sedangUbah, setSedangUbah] = useState<string | null>(null);
+
+  async function alihkanTampil(id: string, tampil: boolean) {
+    setSedangUbah(id);
+    try {
+      const res = await fetch(`/api/admin/visit-reports/${id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ tampil }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      setLaporan((nilai) =>
+        (nilai ?? []).map((item) => (item.id === id ? { ...item, tampil } : item)),
+      );
+    } catch {
+      // biarkan keadaan tabel; admin bisa mencoba lagi
+    } finally {
+      setSedangUbah(null);
+    }
+  }
 
   useEffect(() => {
     let batal = false;
@@ -79,16 +100,36 @@ export function TabelLaporanWarga({ projectId }: { projectId: string }) {
                 <th scope="col" className="px-3 py-2 font-semibold">
                   Catatan
                 </th>
+                <th scope="col" className="px-3 py-2 text-right font-semibold">
+                  Moderasi
+                </th>
               </tr>
             </thead>
             <tbody>
               {laporan.map((item) => (
-                <tr key={item.id} className="border-b border-neutral-100 last:border-b-0">
+                <tr
+                  key={item.id}
+                  className={`border-b border-neutral-100 last:border-b-0 ${item.tampil ? "" : "opacity-50"}`}
+                >
                   <td className="px-3 py-2 align-top whitespace-nowrap">
                     {formatTanggal(item.date.slice(0, 10))}
                   </td>
                   <td className="px-3 py-2 align-top">{KEADAAN[item.activityStatus] ?? item.activityStatus}</td>
                   <td className="px-3 py-2 align-top break-words">{item.note ?? "—"}</td>
+                  <td className="px-3 py-2 text-right align-top">
+                    <button
+                      type="button"
+                      disabled={sedangUbah === item.id}
+                      onClick={() => void alihkanTampil(item.id, !item.tampil)}
+                      className="text-xs font-semibold text-neutral-600 underline underline-offset-4 hover:text-neutral-900 disabled:opacity-50"
+                    >
+                      {sedangUbah === item.id
+                        ? "Memproses…"
+                        : item.tampil
+                          ? "Sembunyikan dari hitungan"
+                          : "Tampilkan lagi"}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

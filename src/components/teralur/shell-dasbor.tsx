@@ -10,7 +10,6 @@ import {
   FileValidationIcon,
   MapIcon,
   NoteIcon,
-  AccountSetting01Icon,
   UserAccountIcon,
   Menu01Icon,
   Cancel01Icon,
@@ -28,7 +27,6 @@ const IKON_NAV: Record<string, typeof DashboardSpeedIcon> = {
   "/dashboard/peta": MapIcon,
   "/dashboard/laporan": NoteIcon,
   "/dashboard/akun": UserAccountIcon,
-  "/dashboard/pengaturan": AccountSetting01Icon,
 };
 
 // Logo ubin kuning inline: kotak rounded dengan huruf "t" tebal + wordmark.

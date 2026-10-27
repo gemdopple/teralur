@@ -10,11 +10,14 @@ import type { RecordResmi } from "@/lib/match/types";
 import { getSupabaseAdmin } from "@/lib/db";
 import { photoFlowEnabled } from "@/lib/flags";
 import {
+  consumeRateLimit,
   createPublicSlug,
   databaseConfigured,
   findRecordCandidates,
+  ipRateKey,
   readJsonBody,
   recordToApi,
+  requestIp,
 } from "@/lib/server-api";
 
 export async function POST(request: Request) {
@@ -25,6 +28,23 @@ export async function POST(request: Request) {
       { error: "NOT_FOUND", message: "Endpoint tidak ditemukan." },
       { status: 404 },
     );
+  }
+  // Pencocokan memanggil model AI — mahal, jadi dibatasi per IP seperti
+  // /api/extract (10/jam).
+  let ip: string | null = null;
+  try {
+    ip = await requestIp();
+  } catch {
+    // header IP tidak tersedia — lewati batas IP
+  }
+  if (ip) {
+    const allowed = await consumeRateLimit(`match:${ipRateKey(ip)}`, 10);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "RATE_LIMITED", message: "Batas pencocokan per jam tercapai. Coba lagi nanti." },
+        { status: 429 },
+      );
+    }
   }
   const body = await readJsonBody(request);
   if (!body.valid) {

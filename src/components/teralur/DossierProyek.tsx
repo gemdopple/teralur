@@ -6,6 +6,7 @@ import { GrafikNilai } from "@/components/teralur/grafik-nilai";
 import { LabelTiga } from "@/components/teralur/LabelTiga";
 import { PitaData } from "@/components/teralur/Pita";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
+import { VisitReportForm } from "@/components/teralur/VisitReportForm";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { StaggerGroup, StaggerItem } from "@/components/teralur/anim/Stagger";
 import {
@@ -152,6 +153,7 @@ function BarisDokumen({ label, url }: { label: string; url: string }) {
 }
 
 export function DossierProyek({
+  slug,
   status,
   demo,
   packageName,
@@ -163,8 +165,6 @@ export function DossierProyek({
   visitCounts,
   statis = false,
 }: {
-  /** Dipertahankan di API komponen (pemanggil masih mengirim); tak dipakai
-   * lagi setelah seksi bagikan/evidence dihapus dari dossier v2. */
   slug: string;
   status: DossierStatus;
   demo: boolean;
@@ -523,6 +523,18 @@ export function DossierProyek({
             )}
           </section>
         </Reveal>
+
+        {/* Laporan warga (anti-massa: PoW + honeypot, lihat VisitReportForm):
+            warga tanpa akun melaporkan kondisi lapangan sebagai pemeriksa
+            silang terhadap data papan dan catatan resmi. Tidak ada pada
+            salinan statis (T-28). */}
+        {!statis && (
+          <Reveal>
+            <div className="mx-auto mt-12 w-full max-w-2xl">
+              <VisitReportForm dossierSlug={slug} />
+            </div>
+          </Reveal>
+        )}
       </main>
     </div>
   );
