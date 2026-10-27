@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { KotakInfo } from "@/components/teralur/KotakInfo";
 import {
   Dialog,
   DialogDescription,
@@ -349,9 +350,9 @@ export function KelolaAkun({ jenis, awal }: { jenis: JenisAkun; awal: AkunBaris[
       </div>
 
       {daftar.length === 0 ? (
-        <p className="mt-4 rounded-lg border border-border bg-card px-4 py-6 text-sm text-muted-foreground shadow-sm">
+        <KotakInfo tengah className="mt-4">
           Belum ada akun {label.satuan}. Buat yang pertama lewat tombol di atas.
-        </p>
+        </KotakInfo>
       ) : (
         <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card shadow-sm">
           <div className="overflow-x-auto">

@@ -16,6 +16,7 @@ import {
 import { Menu, MenuItem, MenuTrigger, Popover } from "react-aria-components";
 import { ChipStatusRingkas, type DossierStatus } from "@/components/teralur/ChipStatus";
 import { DialogHapusProyek } from "@/components/teralur/TombolHapusProyek";
+import { KotakInfo } from "@/components/teralur/KotakInfo";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -402,13 +403,11 @@ export function DaftarProyekDasbor({
       )}
 
       {terlihat.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground shadow-sm">
-          {baris.length === 0
-            ? null
-            : tersaring
-              ? "Tidak ada proyek yang cocok dengan pencarian atau saringan."
-              : "Semua baris disembunyikan. Tampilkan semua untuk melihatnya lagi."}
-          {(tersaring || tersembunyi.size > 0) && baris.length > 0 && (
+        <KotakInfo tengah>
+          {tersaring
+            ? "Tidak ada proyek yang cocok dengan pencarian atau saringan."
+            : "Semua baris disembunyikan. Tampilkan semua untuk melihatnya lagi."}
+          {(tersaring || tersembunyi.size > 0) && (
             <button
               type="button"
               onClick={() => {
@@ -421,7 +420,7 @@ export function DaftarProyekDasbor({
               Atur ulang
             </button>
           )}
-        </div>
+        </KotakInfo>
       ) : (
         <div className="overflow-hidden rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
           {/* Ponsel: kartu; layar lebar: tabel. */}

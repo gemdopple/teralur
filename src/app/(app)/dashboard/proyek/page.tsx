@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { DaftarProyekDasbor, type BarisProyek } from "@/components/teralur/DaftarProyekDasbor";
+import { KotakInfo } from "@/components/teralur/KotakInfo";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { parseStoredBoard } from "@/lib/admin-projects";
 import { getSupabaseAdmin } from "@/lib/db";
@@ -139,13 +140,11 @@ export default async function HalamanProyekDasbor() {
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         {!databaseConfigured() ? (
           <Reveal>
-            <p className="rounded-lg border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-sm">
-              Basis data belum dikonfigurasi. Hubungkan Supabase untuk melihat proyek.
-            </p>
+            <KotakInfo>Basis data belum dikonfigurasi. Hubungkan Supabase untuk melihat proyek.</KotakInfo>
           </Reveal>
         ) : rows.length === 0 ? (
           <Reveal>
-            <div className="rounded-lg border border-border bg-card px-4 py-6 text-sm text-muted-foreground shadow-sm">
+            <KotakInfo tengah>
               <p>{pesanKosong}</p>
               {bisaBuat && (
                 <Link href={hrefBuat} className={`${kelasTombol()} mt-4`}>
@@ -153,7 +152,7 @@ export default async function HalamanProyekDasbor() {
                   {peran === "admin" ? "Buat proyek" : "Tugaskan proyek"}
                 </Link>
               )}
-            </div>
+            </KotakInfo>
           </Reveal>
         ) : (
           <Reveal>

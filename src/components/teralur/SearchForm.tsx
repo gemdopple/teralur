@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
-import { kelasTombol } from "@/lib/kelas-tombol";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { KotakInfo } from "@/components/teralur/KotakInfo";
 
 const RESULT_SCHEMA = z.object({
   id: z.string().uuid(),
@@ -97,33 +98,30 @@ export function SearchForm() {
       >
         <label className="grid gap-1.5">
           <span className="text-sm font-medium">Nama paket atau penyedia</span>
-          <input
+          <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Nama paket atau penyedia"
             maxLength={120}
-            className="h-11 w-full rounded-xl border border-border bg-card px-3.5 text-sm outline-none transition-[color,box-shadow,border-color] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
           />
         </label>
         <label className="grid gap-1.5">
           <span className="text-sm font-medium">Tahun anggaran (opsional)</span>
-          <input
+          <Input
             inputMode="numeric"
             value={year}
             onChange={(event) => setYear(event.target.value.replace(/[^\d]/g, ""))}
             placeholder="Tahun (opsional)"
             maxLength={4}
-            className="h-11 w-full rounded-xl border border-border bg-card px-3.5 font-mono text-sm outline-none transition-[color,box-shadow,border-color] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+            className="font-mono"
           />
         </label>
-        <button type="submit" disabled={working} className={cn(kelasTombol("default", "lg"), "sm:justify-self-start")}>
+        <Button type="submit" isDisabled={working} className="sm:justify-self-start">
           {working ? "Mencari…" : "Cari"}
-        </button>
+        </Button>
       </form>
       {message && (
-        <p role="status" className="animate-fade-in mt-4 rounded-xl border border-border bg-card px-4 py-3 text-sm shadow-sm">
-          {message}
-        </p>
+        <KotakInfo className="animate-fade-in mt-4">{message}</KotakInfo>
       )}
       <div className="mt-4 grid gap-3">
         {results.map((result, index) => (
@@ -139,14 +137,14 @@ export function SearchForm() {
               </p>
               <p className="mt-1 font-mono text-sm">{rupiah(result.contractValue)}</p>
             </div>
-            <button
+            <Button
               type="button"
-              disabled={working}
-              onClick={() => void openRecord(result.id)}
-              className={kelasTombol("outline")}
+              variant="outline"
+              isDisabled={working}
+              onPress={() => void openRecord(result.id)}
             >
               Lihat catatan resmi
-            </button>
+            </Button>
           </article>
         ))}
       </div>

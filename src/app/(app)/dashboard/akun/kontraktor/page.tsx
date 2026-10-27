@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { KelolaAkun, type AkunBaris } from "@/components/teralur/admin/KelolaAkun";
 import { Reveal } from "@/components/teralur/anim/Reveal";
+import { KotakInfo } from "@/components/teralur/KotakInfo";
 import { identitasSaatIni } from "@/lib/identitas";
 import { getSupabaseAdmin } from "@/lib/db";
 import { databaseConfigured } from "@/lib/server-api";
@@ -50,9 +51,9 @@ export default async function HalamanAkunKontraktor() {
       />
       <Reveal className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         {!databaseConfigured() ? (
-          <p className="rounded-lg border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-sm">
+          <KotakInfo>
             Basis data belum dikonfigurasi. Hubungkan Supabase untuk mengelola akun.
-          </p>
+          </KotakInfo>
         ) : (
           <KelolaAkun jenis="kontraktor" awal={akun} />
         )}
