@@ -11,13 +11,15 @@ import {
   MapIcon,
   NoteIcon,
   AccountSetting01Icon,
+  UserAccountIcon,
   Menu01Icon,
   Cancel01Icon,
   Logout03Icon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { DAFTAR_ROLE, META_ROLE, navUntukRole, simpanCookiePeran, type AppRole } from "@/lib/roles";
+import { META_ROLE, navAktif, navUntukRole, type AppRole } from "@/lib/roles";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 const IKON_NAV: Record<string, typeof DashboardSpeedIcon> = {
@@ -25,6 +27,7 @@ const IKON_NAV: Record<string, typeof DashboardSpeedIcon> = {
   "/dashboard/proyek": FileValidationIcon,
   "/dashboard/peta": MapIcon,
   "/dashboard/laporan": NoteIcon,
+  "/dashboard/akun": UserAccountIcon,
   "/dashboard/pengaturan": AccountSetting01Icon,
 };
 
@@ -45,64 +48,98 @@ function LogoTeralur() {
 
 function DaftarNav({ peran, onNavigasi }: { peran: AppRole; onNavigasi?: () => void }) {
   const pathname = usePathname();
+  // Induk beranak adalah pengalih dropdown, bukan tautan: klik membuka
+  // sub-menu di tempat. Default mengikuti sektor aktif; klik pengguna
+  // menimpanya hanya sampai navigasi berikutnya (komponen diberi
+  // key={pathname} di ShellDasbor, jadi state reset tiap pindah halaman).
+  const [alihan, setAlihan] = useState<{
+    href: string;
+    terbuka: boolean;
+  } | null>(null);
+
+  function alihkan(href: string, terbukaBerikut: boolean) {
+    setAlihan({ href, terbuka: terbukaBerikut });
+  }
+
   return (
     <nav aria-label="Navigasi dasbor" className="grid gap-0.5">
       {navUntukRole(peran).map((item) => {
         const Ikon = IKON_NAV[item.href] ?? DashboardSpeedIcon;
-        const aktif =
-          item.href === "/dashboard"
-            ? pathname === "/dashboard"
-            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const aktif = navAktif(item, pathname);
+        const anak = item.anak ?? [];
+        const adaAnak = anak.length > 0;
+        const terbukaSekarang =
+          alihan && alihan.href === item.href ? alihan.terbuka : aktif;
+        const kelasItem = cn(
+          "flex items-center gap-2.5 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+          aktif
+            ? "bg-accent text-accent-foreground"
+            : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+        );
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigasi}
-            aria-current={aktif ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-2.5 rounded-full px-3 py-2 text-sm font-medium transition-colors",
-              aktif
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+          <div key={item.href} className="grid gap-0.5">
+            {adaAnak ? (
+              <button type="button" onClick={() => alihkan(item.href, !terbukaSekarang)} aria-expanded={terbukaSekarang} className={kelasItem}>
+                <HugeiconsIcon icon={Ikon} className="size-4" />
+                {item.label}
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  className={cn("ml-auto size-3.5 transition-transform", terbukaSekarang && "rotate-90")}
+                />
+              </button>
+            ) : (
+              <Link href={item.href} onClick={onNavigasi} aria-current={pathname === item.href ? "page" : undefined} className={kelasItem}>
+                <HugeiconsIcon icon={Ikon} className="size-4" />
+                {item.label}
+              </Link>
             )}
-          >
-            <HugeiconsIcon icon={Ikon} className="size-4" />
-            {item.label}
-          </Link>
+            {/* Sub-menu (dropdown satu tingkat): tampil saat induknya dibuka,
+                tanpa navigasi ke halaman ringkasan. */}
+            {adaAnak && terbukaSekarang && (
+              <ul className="ml-[1.4rem] grid gap-0.5 border-l border-border pl-3">
+                {anak.map((anakItem) => {
+                  const anakAktif =
+                    pathname === anakItem.href || pathname.startsWith(`${anakItem.href}/`);
+                  return (
+                    <li key={anakItem.href}>
+                      <Link
+                        href={anakItem.href}
+                        onClick={onNavigasi}
+                        aria-current={anakAktif ? "page" : undefined}
+                        className={cn(
+                          "block rounded-full py-1.5 pl-2.5 pr-3 text-[13px] font-medium transition-colors",
+                          anakAktif
+                            ? "text-foreground"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {anakItem.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
         );
       })}
     </nav>
   );
 }
 
-function PengalihPeran({ peran }: { peran: AppRole }) {
-  const router = useRouter();
-  function ganti(nilai: AppRole) {
-    simpanCookiePeran(nilai);
-    router.refresh();
-  }
+// Peran kini datang dari akun (server), bukan pilihan pengguna. Panel ini
+// hanya menampilkan peran yang sedang aktif — tanpa pengalih sudut pandang.
+function LabelPeran({ peran }: { peran: AppRole }) {
   return (
     <div>
-      <p className="text-xs font-medium text-muted-foreground">Sudut pandang</p>
-      <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-xl border border-border bg-muted p-1">
-        {DAFTAR_ROLE.map((nilai) => (
-          <button
-            key={nilai}
-            type="button"
-            onClick={() => ganti(nilai)}
-            aria-pressed={peran === nilai}
-            title={META_ROLE[nilai].label}
-            className={cn(
-              "rounded-lg px-1 py-1.5 text-xs font-medium transition-colors",
-              peran === nilai
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {META_ROLE[nilai].label}
-          </button>
-        ))}
+      <p className="text-xs font-medium text-muted-foreground">Peran akun</p>
+      <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-border bg-muted px-3 py-2">
+        <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-kuning-papan" />
+        <span className="text-sm font-semibold">{META_ROLE[peran].label}</span>
       </div>
+      <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">
+        {META_ROLE[peran].ringkas}.
+      </p>
     </div>
   );
 }
@@ -123,7 +160,7 @@ function IsiAkun({ email }: { email: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-muted/50 p-3">
+    <div className="rounded-lg border border-border bg-muted/50 p-3">
       <p className="truncate text-sm font-medium" title={email}>
         {email}
       </p>
@@ -151,6 +188,7 @@ export function ShellDasbor({
   children: React.ReactNode;
 }) {
   const [menuTerbuka, setMenuTerbuka] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="flex min-h-dvh bg-background">
@@ -159,8 +197,8 @@ export function ShellDasbor({
         <div className="px-1 pt-2">
           <LogoTeralur />
         </div>
-        <PengalihPeran peran={peran} />
-        <DaftarNav peran={peran} />
+        <LabelPeran peran={peran} />
+        <DaftarNav key={pathname} peran={peran} />
         <div className="mt-auto">
           <IsiAkun email={email} />
         </div>
@@ -182,10 +220,10 @@ export function ShellDasbor({
         </header>
         {menuTerbuka && (
           <div className="sticky top-14 z-40 px-4 pb-4 lg:hidden">
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-lg">
-              <PengalihPeran peran={peran} />
+            <div className="rounded-lg border border-border bg-card p-4 shadow-lg">
+              <LabelPeran peran={peran} />
               <div className="mt-3">
-                <DaftarNav peran={peran} onNavigasi={() => setMenuTerbuka(false)} />
+                <DaftarNav key={pathname} peran={peran} onNavigasi={() => setMenuTerbuka(false)} />
               </div>
               <div className="mt-4">
                 <IsiAkun email={email} />
