@@ -7,28 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buttonVariants } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon, Building01Icon, HardHatIcon, ShieldUserIcon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { NavBawah } from "@/components/teralur/nav-bawah";
-import {
-  DAFTAR_ROLE,
-  META_ROLE,
-  simpanCookiePeran,
-  type AppRole,
-} from "@/lib/roles";
+import { DAFTAR_ROLE, META_ROLE } from "@/lib/roles";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
-// Halaman masuk terpadu (redesign v2): pemilihan peran (mode sudut pandang
-// dasbor, disimpan di cookie) + autentikasi Supabase yang sama dengan admin.
-// Warga tidak perlu masuk — laporan publik selalu terbuka.
+// Halaman masuk terpadu: autentikasi Supabase. Peran TIDAK dipilih di sini —
+// peran ditentukan oleh akun (tabel `profiles`) di server, sehingga akun
+// kontraktor hanya bisa masuk sebagai kontraktor. Warga tidak perlu masuk —
+// laporan publik selalu terbuka.
 // Tata letak terbagi: panel merek tinta di kiri, formulir bersih di kanan.
-
-const IKON_ROLE = {
-  pemerintah: Building01Icon,
-  kontraktor: HardHatIcon,
-  admin: ShieldUserIcon,
-} as const;
 
 const PESAN_GALAT = "Email atau kata sandi salah.";
 
@@ -49,9 +39,26 @@ function Logo({ diPanelTinta = false }: { diPanelTinta?: boolean }) {
   );
 }
 
+function bersihkanCookieSesi() {
+  // Hapus cookie sesi Supabase yang tersisa di browser. Nama cookie default
+  // `sb-<ref>-auth-token`; bentuk -chunk-0 dipakai untuk token besar. Cookie
+  // dihapus dengan mengosongkan nilainya DAN menyetel max-age=0 supaya browser
+  // benar-benar membuangnya. Dipakai hanya saat server sudah MEMBUKTIKAN bahwa
+  // cookie gagal membentuk sesi yang sah (lihat efek di bawah) — jadi ini bukan
+  // pembersihan serampangan.
+  const kedaluwarsa = "path=/; max-age=0; samesite=lax";
+  for (const keping of document.cookie.split(";")) {
+    const nama = keping.split("=")[0]?.trim() ?? "";
+    if (!nama.startsWith("sb-") || !nama.includes("-auth-token")) continue;
+    const akar = nama.replace(/-chunk-\d+$/, "");
+    document.cookie = `${nama}=; ${kedaluwarsa}`;
+    document.cookie = `${akar}=; ${kedaluwarsa}`;
+    document.cookie = `${akar}-chunk-0=; ${kedaluwarsa}`;
+  }
+}
+
 export default function HalamanMasuk() {
   const router = useRouter();
-  const [peran, setPeran] = useState<AppRole>("pemerintah");
   const [email, setEmail] = useState("");
   const [kataSandi, setKataSandi] = useState("");
   const [sedangMasuk, setSedangMasuk] = useState(false);
@@ -59,24 +66,42 @@ export default function HalamanMasuk() {
 
   // Nyaman: bila sesi sudah ada, langsung ke dasbor. Pemeriksaan tidak
   // memblokir formulir — bila gagal atau lambat, tombol Masuk tetap aktif.
+  //
+  // PENTING: hanya alihkan bila dasbor benar-benar menerima sesi ini. Cookie
+  // Supabase yang sudah kedaluwarsa/terputus tetap membuat getSession() di
+  // klien mengembalikan sesuatu, tetapi server menolaknya; mengalihkan ke
+  // /dashboard berdasarkan klien saja menghasilkan pantulan /login <->
+  // /dashboard tanpa akhir. Karena itu tujuannya DIPROBE dulu: satu permintaan
+  // ringan ke /dashboard; bila server mengalihkan balik ke /login, cookie
+  // rusak — bersihkan, lalu tetap tampilkan formulir masuk.
   useEffect(() => {
     let aktif = true;
-    getSupabaseBrowser()
-      .then((supabase) => supabase.auth.getUser())
-      .then(({ data }) => {
-        if (aktif && data.user) router.replace("/dashboard");
-      })
-      .catch(() => {});
+    let batal: AbortController | null = null;
+    (async () => {
+      const supabase = await getSupabaseBrowser();
+      const { data } = await supabase.auth.getUser();
+      if (!aktif || !data.user) return;
+      batal = new AbortController();
+      const jawaban = await fetch("/dashboard", {
+        redirect: "manual",
+        cache: "no-store",
+        signal: batal.signal,
+      });
+      if (!aktif) return;
+      if (jawaban.status >= 300 && jawaban.status < 400) {
+        // Server menolak sesi ini (dasbor mengalihkan kembali ke /login).
+        // Alihkan ke dasbor hanya jika server MENYIMPANNYA; bersihkan cookie
+        // agar tidak ada lagi pantulan.
+        bersihkanCookieSesi();
+        return;
+      }
+      router.replace("/dashboard");
+    })().catch(() => {});
     return () => {
       aktif = false;
+      batal?.abort();
     };
   }, [router]);
-
-  function pilihPeran(nilai: AppRole) {
-    setPeran(nilai);
-    // Cookie dibaca layout dasbor untuk menentukan sudut pandang.
-    simpanCookiePeran(nilai);
-  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -99,21 +124,16 @@ export default function HalamanMasuk() {
 
   return (
     <main className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
-      {/* Panel merek — tinta pekat, teks kertas, butir kuning */}
-      <section className="relative hidden flex-col justify-between overflow-hidden rounded-none bg-hitam-aspal p-10 text-kertas lg:flex">
-        {/* Pijar kuning lembut di sudut atas */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 -right-20 size-80 rounded-full bg-kuning-papan/15 blur-3xl"
-        />
+      {/* Panel merek — tinta pekat, teks kertas */}
+      <section className="relative hidden flex-col justify-between bg-hitam-aspal p-10 text-kertas lg:flex">
         <Logo diPanelTinta />
         <Reveal className="relative max-w-md">
           <h2 className="text-balance font-heading text-4xl font-bold tracking-tight">
-            Satu akun, tiga sudut pandang.
+            Satu akun, satu peran.
           </h2>
           <p className="mt-4 text-sm leading-7 text-kertas/70">
-            Pilih peran untuk menyesuaikan dasbor. Data ditampilkan langsung dari basis data
-            pengelola dan diperbarui berkala.
+            Peran melekat pada akun Anda dan ditentukan pengelola — kontraktor hanya melihat proyek
+            yang ditugaskan kepadanya. Data diambil langsung dari basis data pengelola.
           </p>
           <ul className="mt-8 space-y-3 text-sm">
             {DAFTAR_ROLE.map((nilai) => (
@@ -152,54 +172,11 @@ export default function HalamanMasuk() {
           </Reveal>
 
           <Reveal delay={0.08}>
-            <fieldset className="mt-8">
-              <legend className="text-sm font-medium text-muted-foreground">Pilih peran</legend>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {DAFTAR_ROLE.map((nilai) => {
-                  const meta = META_ROLE[nilai];
-                  const Ikon = IKON_ROLE[nilai];
-                  return (
-                    <button
-                      key={nilai}
-                      type="button"
-                      onClick={() => pilihPeran(nilai)}
-                      aria-pressed={peran === nilai}
-                      className={cn(
-                        "rounded-2xl border p-3.5 text-left transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/30",
-                        peran === nilai
-                          ? "border-hitam-aspal bg-hitam-aspal text-kertas shadow-sm"
-                          : "border-border bg-card hover:border-foreground/25 hover:shadow-sm",
-                      )}
-                    >
-                      <HugeiconsIcon
-                        icon={Ikon}
-                        className={cn("size-5", peran === nilai ? "text-kuning-papan" : "text-muted-foreground")}
-                      />
-                      <span className="mt-2 block text-sm font-semibold">{meta.label}</span>
-                      <span
-                        className={cn(
-                          "mt-0.5 block text-[11px] leading-4",
-                          peran === nilai ? "text-kertas/70" : "text-muted-foreground",
-                        )}
-                      >
-                        {meta.ringkas}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-2.5 text-xs leading-5 text-muted-foreground">
-                {META_ROLE[peran].deskripsi}
-              </p>
-            </fieldset>
-          </Reveal>
-
-          <Reveal delay={0.16}>
             <form onSubmit={onSubmit} className="mt-8 space-y-4" noValidate>
               {galat ? (
                 <p
                   role="alert"
-                  className="rounded-xl border border-selisih bg-selisih/10 px-3.5 py-2.5 text-sm font-medium text-selisih"
+                  className="rounded-xl border border-selisih bg-selisih/10 px-3.5 py-2.5 text-sm font-medium text-selisih-teks"
                 >
                   {PESAN_GALAT}
                 </p>
@@ -234,7 +211,7 @@ export default function HalamanMasuk() {
                 />
               </div>
               <button type="submit" disabled={sedangMasuk} className={cn(buttonVariants({ size: "lg" }), "w-full")}>
-                {sedangMasuk ? "Memproses…" : `Masuk sebagai ${META_ROLE[peran].label}`}
+                {sedangMasuk ? "Memproses…" : "Masuk"}
                 {!sedangMasuk && <HugeiconsIcon icon={ArrowRight01Icon} data-icon="inline-end" />}
               </button>
             </form>

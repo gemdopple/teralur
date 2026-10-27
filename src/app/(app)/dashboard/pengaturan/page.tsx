@@ -1,18 +1,19 @@
-import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { FormPengaturan } from "@/components/teralur/FormPengaturan";
 import { Reveal } from "@/components/teralur/anim/Reveal";
-import { peranDariNilai, META_ROLE, ROLE_COOKIE } from "@/lib/roles";
+import { META_ROLE } from "@/lib/roles";
+import { identitasSaatIni } from "@/lib/identitas";
 
 // Pengaturan dasbor (konfigurasi per peran): pemerintah dan kontraktor
-// mengatur preferensi tampilan; admin melihat keadaan lingkungan (flag,
-// domain) dan tautan konsol.
+// mengatur preferensi tampilan; admin melihat keadaan lingkungan. Pengelolaan
+// akun tidak ada di sini lagi — sudah punya seksi sendiri di sidebar (Akun).
 
 export const instant = false;
 
 export default async function HalamanPengaturan() {
-  const cookieStore = await cookies();
-  const peran = peranDariNilai(cookieStore.get(ROLE_COOKIE)?.value);
+  await connection();
+  const { role: peran } = await identitasSaatIni();
 
   return (
     <>

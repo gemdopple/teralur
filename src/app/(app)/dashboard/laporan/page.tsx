@@ -83,7 +83,7 @@ export default async function HalamanLaporanWarga() {
             <StaggerGroup className="grid gap-4 sm:grid-cols-3">
               {Object.entries(LABEL_KEADAAN).map(([kunci, label]) => (
                 <StaggerItem key={kunci}>
-                  <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
+                  <article className="h-full rounded-lg border border-border bg-card p-5 shadow-sm">
                     <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
                     <p className="mt-2 font-mono text-3xl font-semibold tracking-tight text-foreground">
                       {hitungan[kunci] ?? 0}
@@ -96,7 +96,7 @@ export default async function HalamanLaporanWarga() {
         )}
 
         <Reveal>
-          <section className="mt-4 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <section className="mt-4 overflow-hidden rounded-lg border border-border bg-card shadow-sm">
             {baris.length === 0 ? (
               <p className="p-8 text-center text-sm text-muted-foreground">{alasanKosong}</p>
             ) : (
