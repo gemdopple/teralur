@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { connection } from "next/server";
-import { PetaProyek } from "@/components/teralur/PetaProyek";
+import { PetaProyekPublik } from "@/components/teralur/PetaProyek";
 import { PemindaiQr } from "@/components/teralur/PemindaiQr";
 import { Reveal } from "@/components/teralur/anim/Reveal";
-import { jakartaToday } from "@/lib/dates";
-import { daftarProyekPublik } from "@/data/proyek-demo";
 
 // Peta publik warga (redesign v2): cari proyek di sekitar lokasi tanpa akun.
 // Data memakai dataset simulasi statis (mode cadangan) sehingga peta tetap
@@ -12,6 +9,13 @@ import { daftarProyekPublik } from "@/data/proyek-demo";
 //
 // Pemindai QR di sisi klien: akses kamera hanya berjalan pada konteks aman —
 // produksi wajib HTTPS, sedangkan localhost dikecualikan browser secara bawaan.
+//
+// Navigasi instan: seluruh halaman berupa static shell. Dulu komponen halaman
+// memanggil `await connection()` lalu menghitung daftar proyek (butuh tanggal
+// hari ini WIB) dan memakai `instant = false`, sehingga klik dari beranda
+// menahan render server ±1,1 detik sebelum apa pun tampil. Kini daftar dihitung
+// di klien setelah mount (PetaProyekPublik) dan peta Leaflet dipasang satu kali
+// — lihat catatan di PetaProyek.tsx.
 
 export const metadata: Metadata = {
   title: "Jelajah Peta Proyek | Teralur",
@@ -19,18 +23,10 @@ export const metadata: Metadata = {
     "Temukan proyek publik di sekitar lokasi Anda dan baca laporan lengkapnya tanpa perlu akun.",
 };
 
-export const instant = false;
-
-export default async function HalamanJelajah() {
-  await connection();
-  const hariIni = jakartaToday();
-  const proyek = daftarProyekPublik(hariIni);
-
+export default function HalamanJelajah() {
   return (
     <div className="flex-1">
-      <section className="relative overflow-hidden border-b border-border">
-        <div aria-hidden className="absolute inset-0 bg-glow" />
-        <div aria-hidden className="absolute inset-0 bg-dots" />
+      <section className="border-b border-border">
         <div className="relative mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
           <p className="font-mono text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Peta publik
@@ -68,7 +64,7 @@ export default async function HalamanJelajah() {
 
       <section className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <Reveal>
-          <PetaProyek items={proyek} />
+          <PetaProyekPublik />
         </Reveal>
       </section>
     </div>

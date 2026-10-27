@@ -50,7 +50,7 @@ export function PapanCatatanSection({
   }, [terpilih]);
 
   return (
-    <section className="mt-6 grid gap-6 rounded-2xl border border-border bg-card p-5 shadow-sm md:grid-cols-[1fr_13rem]">
+    <section className="mt-6 grid gap-6 rounded-lg border border-border bg-card p-5 shadow-sm md:grid-cols-[1fr_13rem]">
       <div>
         <h2 className="font-heading text-xl font-bold tracking-tight">Papan dan catatan resmi</h2>
         {catatanResmi && (

@@ -58,7 +58,7 @@ export function CandidateSelector({
   }
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <h2 className="font-heading text-xl font-bold tracking-tight">
         {requiresSelection ? "Pilih catatan yang paling sesuai" : "Kandidat pembanding"}
       </h2>

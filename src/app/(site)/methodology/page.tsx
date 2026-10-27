@@ -50,7 +50,7 @@ async function MethodologyContent() {
 
       <div className="mt-8 space-y-5">
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 01
@@ -73,7 +73,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 02
@@ -88,7 +88,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 03
@@ -124,7 +124,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 04
@@ -149,7 +149,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 05
@@ -176,7 +176,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 06
@@ -200,7 +200,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 07
@@ -215,7 +215,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 08
@@ -241,7 +241,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 09
@@ -262,7 +262,7 @@ async function MethodologyContent() {
         </Reveal>
 
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 10

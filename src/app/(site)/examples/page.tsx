@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { connection } from "next/server";
 import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";
 import { daftarProyekPublik, type ProyekDemo } from "@/data/proyek-demo";
@@ -13,17 +14,17 @@ import { ArrowUpRightIcon } from "@hugeicons/core-free-icons";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { StaggerGroup, StaggerItem } from "@/components/teralur/anim/Stagger";
 
-// Galeri contoh kasus (7.5, F-13/Alur C): proyek unggulan terbit dari basis
+// Galeri contoh kasus (7.5, F-13/Alur C): proyek unggulan aktif dari basis
 // data ditautkan ke dossier hidup /dossiers/[slug]; di bawahnya salinan statis
-// seluruh proyek seed terbit (T-28 mode cadangan, diperluas) yang terbuka
+// seluruh proyek seed (T-28 mode cadangan, diperluas) yang terbuka
 // tanpa koneksi dan tanpa API (N.2 butir 11). Halaman contoh warisan v1.0
 // (contoh-*) tetap dapat dibuka lewat tautan lama tetapi tidak didaftar.
 
 export const metadata: Metadata = { title: "Contoh Kasus | Teralur" };
 
-// Render dinamis ringan: daftar unggulan harus segar saat demo (proyek baru
-// diterbitkan langsung tampil); satu kueri, halaman tetap cepat.
-export const instant = false;
+// Daftar unggulan harus segar saat demo (proyek baru langsung tampil
+// tampil). Kebutuhan itu ditangani oleh <Suspense> di DaftarContoh, bukan lagi
+// dengan menghentikan seluruh halaman (instant = false).
 
 type Unggulan = { slug: string; nama: string; status: DossierStatus };
 
@@ -34,7 +35,6 @@ async function ambilUnggulan(): Promise<Unggulan[]> {
       .from("submissions")
       .select("slug, status, papan, records!record_id(nama_paket)")
       .eq("jenis", "admin")
-      .eq("terbit", true)
       .eq("dinonaktifkan", false)
       .eq("unggulan", true)
       .limit(3);
@@ -76,13 +76,12 @@ function KartuProyek({ proyek }: { proyek: ProyekDemo }) {
   return (
     <Link
       href={proyek.href}
-      className="group flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="group flex h-full flex-col rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/30"
     >
       <div className="flex items-center justify-between gap-2">
         <ChipStatus status={proyek.status} />
         {proyek.featured && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-kuning-papan/20 px-2.5 py-0.5 text-[11px] font-semibold text-foreground">
-            <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
             Unggulan
           </span>
         )}
@@ -107,19 +106,14 @@ function KartuProyek({ proyek }: { proyek: ProyekDemo }) {
   );
 }
 
-export default async function ExamplesPage() {
-  await connection();
-  const unggulan = await ambilUnggulan();
-  const hariIni = jakartaToday();
-  const salinan = [...daftarProyekPublik(hariIni)].sort(
-    (a, b) => Number(b.featured) - Number(a.featured) || a.kunci.localeCompare(b.kunci),
-  );
-
+// Navigasi instan: judul dan salinan halaman membentuk static shell; hanya
+// daftar kartu — yang membaca tanggal hari ini (WIB) dan, bila basis data
+// dikonfigurasi, satu kueri unggulan — menunggu di dalam <Suspense>.
+export default function ExamplesPage() {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
       <Reveal>
-        <p className="inline-flex items-center gap-2 rounded-full border border-kuning-papan/40 bg-kuning-papan/15 px-3.5 py-1 text-xs font-semibold text-foreground">
-          <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
+        <p className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
           Kasus contoh
         </p>
         <h1 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
@@ -131,19 +125,37 @@ export default async function ExamplesPage() {
         </p>
       </Reveal>
 
+      <Suspense fallback={<KerangkaKartu />}>
+        <DaftarContoh />
+      </Suspense>
+    </main>
+  );
+}
+
+async function DaftarContoh() {
+  await connection();
+  const unggulan = await ambilUnggulan();
+  const hariIni = jakartaToday();
+  const salinan = [...daftarProyekPublik(hariIni)].sort(
+    (a, b) => Number(b.featured) - Number(a.featured) || a.kunci.localeCompare(b.kunci),
+  );
+
+  return (
+    <>
       {unggulan.length > 0 ? (
         <section className="mt-10" aria-label="Proyek unggulan daring">
           <h2 className="font-heading text-xl font-bold tracking-tight">Proyek unggulan (daring)</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Dossier lengkap yang sudah diterbitkan dan hidup di basis data.
+            Dossier lengkap yang hidup di basis data.
           </p>
           <StaggerGroup className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {unggulan.map((proyek) => (
               <StaggerItem key={proyek.slug} className="h-full">
-                {/* Bagian daring: kartu lembut bernuansa kuning papan. */}
+                {/* Bagian daring: aksen garis kiri kuning papan — bukan kartu
+                    bernuansa penuh. */}
                 <Link
                   href={`/dossiers/${proyek.slug}`}
-                  className="group flex h-full flex-col rounded-2xl border border-kuning-papan/40 bg-kuning-papan/15 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                  className="group flex h-full flex-col rounded-lg border border-border border-l-2 border-l-kuning-papan bg-card p-5 transition-colors hover:border-foreground/30"
                 >
                   <ChipStatus status={proyek.status} />
                   <p className="mt-3 font-heading text-sm font-semibold leading-snug tracking-tight">
@@ -177,6 +189,25 @@ export default async function ExamplesPage() {
           ))}
         </StaggerGroup>
       </section>
-    </main>
+    </>
+  );
+}
+
+// Kerangka kartu: menjaga tinggi perkiraan agar tata letak tidak melompat
+// saat daftar selesai dimuat.
+function KerangkaKartu() {
+  return (
+    <div aria-hidden className="mt-10 space-y-10">
+      {[0, 1].map((blok) => (
+        <div key={blok}>
+          <div className="h-6 w-64 rounded-md bg-muted/70" />
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2].map((kartu) => (
+              <div key={kartu} className="h-40 animate-pulse rounded-lg border border-border bg-card" />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

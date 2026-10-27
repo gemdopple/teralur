@@ -22,7 +22,7 @@ export default function AboutPage() {
       </Reveal>
       <div className="mt-8 space-y-5">
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 01
@@ -36,7 +36,7 @@ export default function AboutPage() {
           </section>
         </Reveal>
         <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <span aria-hidden className="size-1.5 rounded-full bg-kuning-papan" />
               Bagian 02

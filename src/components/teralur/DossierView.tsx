@@ -200,7 +200,7 @@ export function DossierView({
             ]}
           />
           {!evidenceOnly && (
-            <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
               <h2 className="font-heading text-xl font-bold tracking-tight">Laporan warga</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Belum diverifikasi; jumlah saja, bukan ukuran kemajuan. <LabelTiga label="belum_diketahui" />
@@ -225,12 +225,15 @@ export function DossierView({
             />
           )}
           <VisitReportForm dossierSlug={slug} />
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <h2 className="font-heading text-xl font-bold tracking-tight">Batas informasi</h2>
+          {/* "Dari mana data berasal" menggantikan "Batas informasi" (permintaan
+              PM 2026-10-27); tombol kartu bukti tetap sebagai navigasi. */}
+          <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+            <h2 className="font-heading text-xl font-bold tracking-tight">Dari mana data berasal</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Informasi papan dikonfirmasi oleh pengguna dan belum diverifikasi tim Teralur. Catatan resmi
-              berasal dari data publik per {record ? formatDate(record.snapshot_tanggal) : "tanggal snapshot yang tersedia"}
-              {" "}dan mungkin belum memuat perubahan kontrak. Perbedaan tidak berarti kesalahan.
+              Catatan resmi berasal dari data publik{" "}
+              {record ? `per ${formatDate(record.snapshot_tanggal)}` : "dari snapshot yang tersedia"} —
+              sumber: OCDS (Opentender/ICW), lisensi ODbL. Dokumen sumber tersimpan pada arsip
+              pengelola.
             </p>
             <Link href={`/evidence/${slug}`} className={kelasTombol("default", "lg") + " mt-4"}>
               Buat kartu bukti

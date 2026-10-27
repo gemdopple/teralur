@@ -93,7 +93,7 @@ export function SearchForm() {
       {/* Kartu formulir: tidak dianimasikan (internal formulir tetap statis). */}
       <form
         onSubmit={search}
-        className="grid gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-[1fr_10rem_auto] sm:items-end sm:p-6"
+        className="grid gap-4 rounded-lg border border-border bg-card p-5 shadow-sm sm:grid-cols-[1fr_10rem_auto] sm:items-end sm:p-6"
       >
         <label className="grid gap-1.5">
           <span className="text-sm font-medium">Nama paket atau penyedia</span>
@@ -130,7 +130,7 @@ export function SearchForm() {
           <article
             key={result.id}
             style={{ animationDelay: `${Math.min(index * 60, 300)}ms` }}
-            className="animate-fade-up flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:p-5"
+            className="animate-fade-up flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-foreground/30 sm:flex-row sm:items-center sm:justify-between sm:p-5"
           >
             <div>
               <h2 className="font-semibold">{result.packageName}</h2>

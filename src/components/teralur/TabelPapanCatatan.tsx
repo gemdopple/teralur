@@ -1,6 +1,6 @@
 // TabelPapanCatatan (H.3): kolom Informasi · Papan · Catatan resmi — gaya kartu
 // modern yang ringkas: baris text-sm dengan py-2.5, kepala kolom kecil biasa,
-// kartu rounded-2xl dengan bayangan lembut. Tiga field kunci selalu tampil;
+// kartu rounded-lg dengan bayangan lembut. Tiga field kunci selalu tampil;
 // tujuh field lain hanya bila terisi di salah satu sisi. Sel null menampilkan
 // "—". Pada selisih, sel field yang gagal diberi tint selisih rounded-md dan
 // teks "Berbeda". Di layar 360 px tabel berubah menjadi kartu bertumpuk tanpa
@@ -48,7 +48,7 @@ function SelNilai({
       )}
       {berbeda && !kosong ? (
         <p className="mt-1">
-          <span className="inline-flex rounded-md bg-selisih/15 px-2 py-0.5 text-[0.65rem] font-bold text-selisih">
+          <span className="inline-flex rounded-md bg-selisih/15 px-2 py-0.5 text-[0.65rem] font-bold text-selisih-teks">
             Berbeda
           </span>
         </p>
@@ -69,7 +69,7 @@ export function TabelPapanCatatan({
 }) {
   return (
     <section
-      className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5"
+      className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5"
       aria-label="Papan dan catatan resmi"
     >
       <h2 className="font-heading text-lg font-semibold tracking-tight">

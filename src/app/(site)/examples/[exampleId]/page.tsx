@@ -4,19 +4,19 @@ import { connection } from "next/server";
 import { DossierProyek } from "@/components/teralur/DossierProyek";
 import { DossierView } from "@/components/teralur/DossierView";
 import { ambilContoh, EXAMPLE_DOSSIERS } from "@/data/examples";
-import { dossierDemo, KUNCI_STATIS_TERBIT, namaDemo } from "@/data/proyek-demo";
+import { dossierDemo, KUNCI_STATIS, namaDemo } from "@/data/proyek-demo";
 import { jakartaToday } from "@/lib/dates";
 import type { RecordRow } from "@/lib/server-api";
 
 // Dua sumber data, semuanya statis tanpa API (F-13):
-//  1. exampleId "demo-001" dst. — salinan statis seluruh proyek seed terbit
+//  1. exampleId "demo-001" dst. — salinan statis seluruh proyek seed
 //     (Lampiran M; draf demo-010 tidak dilayani), dossier lengkap memakai
 //     tata letak v2 (DossierProyek chart-first);
 //  2. exampleId "contoh-*" warisan v1.0 — dipertahankan untuk tautan lama.
 // Cincin memakai tanggal hari ini sehingga halaman tetap dirender dinamis.
 export const instant = false;
 
-const SEMUA_ID = [...KUNCI_STATIS_TERBIT, ...EXAMPLE_DOSSIERS.map((d) => d.exampleId)];
+const SEMUA_ID = [...KUNCI_STATIS, ...EXAMPLE_DOSSIERS.map((d) => d.exampleId)];
 
 export function generateStaticParams(): { exampleId: string }[] {
   return SEMUA_ID.map((exampleId) => ({ exampleId }));
@@ -60,7 +60,7 @@ export default async function ExampleDetailPage({
   // tanggal kontrak dihitung dari offset hari yang sama dengan seed sehingga
   // keadaan cincin tetap sesuai M.2 pada hari mana pun; status dihitung
   // compare() produksi.
-  const demo = KUNCI_STATIS_TERBIT.includes(exampleId)
+  const demo = KUNCI_STATIS.includes(exampleId)
     ? dossierDemo(exampleId, jakartaToday())
     : null;
   if (demo) {
@@ -104,7 +104,7 @@ export default async function ExampleDetailPage({
 
   return (
     <div className="flex flex-1 flex-col">
-      <p className="mx-auto w-full max-w-5xl px-4 pt-6 text-sm font-semibold text-selisih">
+      <p className="mx-auto w-full max-w-5xl px-4 pt-6 text-sm font-semibold text-selisih-teks">
         CONTOH KASUS — {contoh.ringkasanVerifikasi}
       </p>
       <DossierView

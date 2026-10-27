@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { ChipStatus, TEKS_STATUS, type DossierStatus } from "@/components/teralur/ChipStatus";
-import { CincinWaktuAnim } from "@/components/teralur/cincin-anim";
+import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";import { CincinWaktuAnim } from "@/components/teralur/cincin-anim";
 import { DaftarResource, type ResourcePublik } from "@/components/teralur/DaftarResource";
 import { GrafikAspek, type BarisAspek } from "@/components/teralur/grafik-aspek";
 import { GrafikLaporan } from "@/components/teralur/grafik-laporan";
@@ -10,17 +8,14 @@ import { PitaData } from "@/components/teralur/Pita";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { StaggerGroup, StaggerItem } from "@/components/teralur/anim/Stagger";
-import { TombolSalinBagikan } from "@/components/teralur/TombolSalinBagikan";
 import {
   TabelPapanCatatan,
   type BarisPapanCatatan,
   type SelisihProyek,
 } from "@/components/teralur/TabelPapanCatatan";
-import { VisitReportForm } from "@/components/teralur/VisitReportForm";
-import { kelasTombol } from "@/lib/kelas-tombol";
 import { formatTanggal } from "@/lib/dates";
 import { formatRupiah } from "@/lib/format-rupiah";
-import { RING_NOTE, type TimeRing } from "@/lib/cincin";
+import { type TimeRing } from "@/lib/cincin";
 import type { ApiBoard } from "@/lib/api-contract";
 import type { RecordProyek } from "@/components/teralur/proyek-view-data";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -30,12 +25,13 @@ import { cn } from "@/lib/utils";
 // Dossier proyek admin (T-45, Lampiran H.1) — gaya kartu modern (bukan lembar
 // spesifikasi). Urutan seksi: pita simulasi/data → header → [1] Rincian data
 // (tabel H.3 ringkas) → [2] Grafik (cincin waktu, nilai kontrak, kecocokan per
-// aspek, laporan warga) → [3] Jejak sumber + dokumen → [4] Laporan warga +
-// bagikan → [5] Batas informasi (9.2) → footer global.
-
-// Pernyataan batas 9.2 — verbatim.
-const BATAS_DATA_NYATA =
-  "Informasi papan dimasukkan atau dikonfirmasi pengguna dan belum diverifikasi tim Teralur. Catatan resmi berasal dari data publik per {snapshot} dan mungkin belum memuat perubahan kontrak. Perbedaan tidak berarti kesalahan. Hubungi kami untuk koreksi atau klarifikasi.";
+// aspek, laporan warga) → [3] Jejak sumber + dokumen → [4] Dari mana data
+// berasal → footer global.
+//
+// Seksi "Laporan warga & bagikan" dan "Batas informasi" dihapus atas permintaan
+// PM (2026-10-27): formulir laporan/bagikan membingungkan di mode demo, dan
+// batas informasi digantikan seksi "Dari mana data berasal" yang lebih
+// konkret (dokumen sumber + tautan portal).
 
 type KeadaanField = "cocok" | "selisih" | "kosong";
 
@@ -156,7 +152,6 @@ function BarisDokumen({ label, url }: { label: string; url: string }) {
 }
 
 export function DossierProyek({
-  slug,
   status,
   demo,
   packageName,
@@ -168,6 +163,8 @@ export function DossierProyek({
   visitCounts,
   statis = false,
 }: {
+  /** Dipertahankan di API komponen (pemanggil masih mengirim); tak dipakai
+   * lagi setelah seksi bagikan/evidence dihapus dari dossier v2. */
   slug: string;
   status: DossierStatus;
   demo: boolean;
@@ -355,7 +352,7 @@ export function DossierProyek({
           <StaggerGroup className="mt-4 grid gap-4 lg:grid-cols-2">
             {/* 1) Cincin waktu */}
             <StaggerItem className="min-w-0">
-              <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <article className="h-full rounded-lg border border-border bg-card p-5 shadow-sm">
                 <h3 className="text-sm font-semibold">Waktu pelaksanaan</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Hitungan hari sejak kontrak, bukan kemajuan fisik.
@@ -387,7 +384,7 @@ export function DossierProyek({
 
             {/* 2) Grafik nilai */}
             <StaggerItem className="min-w-0">
-              <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <article className="h-full rounded-lg border border-border bg-card p-5 shadow-sm">
                 <h3 className="text-sm font-semibold">Nilai kontrak</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Papan dibandingkan dengan catatan resmi.
@@ -396,7 +393,7 @@ export function DossierProyek({
                   <GrafikNilai papan={board?.contractValue ?? null} resmi={record?.contractValue ?? null} />
                 </div>
                 {persenSelisih !== null && persenSelisih > 0 && (
-                  <p className="mt-2 rounded-md bg-selisih/10 px-3.5 py-2.5 text-xs leading-5 text-selisih">
+                  <p className="mt-2 rounded-md bg-selisih/10 px-3.5 py-2.5 text-xs leading-5 text-selisih-teks">
                     Selisih {formatPersen(persenSelisih)} dari catatan resmi.
                   </p>
                 )}
@@ -405,7 +402,7 @@ export function DossierProyek({
 
             {/* 3) Kecocokan per aspek */}
             <StaggerItem className="min-w-0">
-              <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <article className="h-full rounded-lg border border-border bg-card p-5 shadow-sm">
                 <h3 className="text-sm font-semibold">Kecocokan per aspek</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Bacalah perbandingan ini sebagai pertanyaan, bukan vonis.
@@ -423,7 +420,7 @@ export function DossierProyek({
 
             {/* 4) Laporan warga (donat) */}
             <StaggerItem className="min-w-0">
-              <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <article className="h-full rounded-lg border border-border bg-card p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold">Laporan warga</h3>
                   <LabelTiga label="hitungan" />
@@ -447,7 +444,7 @@ export function DossierProyek({
         {/* [3] Jejak sumber + dokumen */}
         <section aria-label="Jejak sumber dan dokumen" className="mt-12">
           <JudulSeksi>Jejak sumber &amp; dokumen</JudulSeksi>
-          <StaggerGroup className="mt-4 grid gap-4 lg:grid-cols-2">
+          <StaggerGroup className="mt-4 grid gap-4">
             <StaggerItem className="min-w-0">
               {/* Judul panel tidak ditampilkan di konteks ini agar tidak dobel
                   dengan judul seksi; panel tetap bertajuk lewat aria-label. */}
@@ -480,43 +477,6 @@ export function DossierProyek({
                 />
               </div>
             </StaggerItem>
-
-            <StaggerItem className="min-w-0">
-              {/* Dari mana data berasal: dokumen sumber. Proyek nyata → tautan
-                  portal publik; proyek demo → catatan jujur tanpa tautan luar. */}
-              <article
-                className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm"
-                aria-label="Dari mana data berasal"
-              >
-                <h3 className="font-heading text-base font-semibold tracking-tight">
-                  Dari mana data berasal
-                </h3>
-                {demo ? (
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                    Dokumen sumber: nomor kontrak {board?.contractNumber ?? "Belum diketahui"} —
-                    salinan tersimpan pada arsip pengelola.
-                  </p>
-                ) : (
-                  <>
-                    <ul className="mt-3 space-y-3">
-                      <BarisDokumen
-                        label="Opentender ICW — portal data pengadaan"
-                        url="https://opentender.net"
-                      />
-                      <BarisDokumen
-                        label="Dokumentasi standar OCDS"
-                        url="https://standard.open-contracting.org"
-                      />
-                    </ul>
-                    <p className="mt-4 border-t border-border pt-3 text-sm leading-6 text-muted-foreground">
-                      {tanggalData
-                        ? `Catatan resmi diambil dari snapshot data per ${tanggalData}.`
-                        : "Catatan resmi belum tersedia untuk proyek ini."}
-                    </p>
-                  </>
-                )}
-              </article>
-            </StaggerItem>
           </StaggerGroup>
 
           {/* Dokumen unggahan pengelola (F-16) — tetap bagian dari jejak sumber
@@ -526,73 +486,41 @@ export function DossierProyek({
           </Reveal>
         </section>
 
-        {/* [4] Laporan warga + Bagikan */}
-        <section aria-label="Laporan warga dan bagikan" className="mt-12">
-          <JudulSeksi>Laporan warga &amp; bagikan</JudulSeksi>
-          <StaggerGroup className="mt-4 grid gap-4 lg:grid-cols-2">
-            <StaggerItem className="min-w-0">
-              {statis ? (
-                <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
-                  <h3 className="font-heading text-base font-semibold tracking-tight">
-                    Laporan warga
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Mengirim laporan baru memerlukan koneksi ke situs.
-                  </p>
-                </article>
-              ) : (
-                <VisitReportForm dossierSlug={slug} />
-              )}
-            </StaggerItem>
-
-            <StaggerItem className="min-w-0">
-              <article className="h-full rounded-2xl border border-border bg-card p-5 shadow-sm">
-                <h3 className="font-heading text-base font-semibold tracking-tight">
-                  Bagikan laporan ini
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Ringkasan satu halaman untuk dibagikan.
-                </p>
-                {statis ? (
-                  <p className="mt-4 text-sm text-muted-foreground">
-                    Kartu bukti memerlukan koneksi ke situs.
-                  </p>
-                ) : (
-                  <>
-                    <Link
-                      href={`/evidence/${slug}`}
-                      className={`${kelasTombol()} mt-4`}
-                    >
-                      Buat Kartu Bukti
-                    </Link>
-                    <div className="mt-3">
-                      <TombolSalinBagikan
-                        packageName={packageName}
-                        statusLabel={TEKS_STATUS[status]}
-                        ringCaption={timeRing.caption}
-                        ringNote={timeRing.state === "unknown" ? null : RING_NOTE}
-                        demo={demo}
-                        snapshotDate={record?.snapshotDate ?? null}
-                        dossierPath={`/dossiers/${slug}`}
-                      />
-                    </div>
-                  </>
-                )}
-              </article>
-            </StaggerItem>
-          </StaggerGroup>
-        </section>
-
-        {/* [5] Batas informasi */}
+        {/* [4] Dari mana data berasal — menggantikan "Batas informasi" dan
+            memindahkan dokumen sumber keluar dari jejak sumber (permintaan PM
+            2026-10-27). */}
         <Reveal>
           <section
-            className="mt-12 rounded-2xl border border-border bg-muted/40 p-5"
-            aria-label="Batas informasi"
+            aria-label="Dari mana data berasal"
+            className="mt-12 rounded-lg border border-border bg-muted/40 p-5"
           >
-            <h2 className="font-heading text-lg font-semibold tracking-tight">Batas informasi</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {BATAS_DATA_NYATA.replace("{snapshot}", tanggalData ?? "snapshot yang tersedia")}
-            </p>
+            <h2 className="font-heading text-lg font-semibold tracking-tight">
+              Dari mana data berasal
+            </h2>
+            {demo ? (
+              <p className="mt-2 max-w-prose text-sm leading-6 text-muted-foreground">
+                Dokumen sumber: nomor kontrak {board?.contractNumber ?? "Belum diketahui"} —
+                salinan tersimpan pada arsip pengelola.
+              </p>
+            ) : (
+              <>
+                <ul className="mt-3 max-w-prose space-y-3">
+                  <BarisDokumen
+                    label="Opentender ICW — portal data pengadaan"
+                    url="https://opentender.net"
+                  />
+                  <BarisDokumen
+                    label="Dokumentasi standar OCDS"
+                    url="https://standard.open-contracting.org"
+                  />
+                </ul>
+                <p className="mt-4 max-w-prose border-t border-border pt-3 text-sm leading-6 text-muted-foreground">
+                  {tanggalData
+                    ? `Catatan resmi diambil dari snapshot data per ${tanggalData}.`
+                    : "Catatan resmi belum tersedia untuk proyek ini."}
+                </p>
+              </>
+            )}
           </section>
         </Reveal>
       </main>

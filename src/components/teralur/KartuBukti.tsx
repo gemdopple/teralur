@@ -8,7 +8,7 @@ import { Reveal } from "@/components/teralur/anim/Reveal";
 import { formatTanggal } from "@/lib/dates";
 import { RING_NOTE, type TimeRing } from "@/lib/cincin";
 
-// Kartu bukti (T-25, Lampiran H.4): kartu bersih rounded-3xl dengan pita kuning
+// Kartu bukti (T-25, Lampiran H.4): kartu bersih rounded-lg dengan pita kuning
 // di tepi atas (8.3 "pita kuning" — pemakaian kuning yang sah) dan bayangan
 // lembut. Isi: nama paket, ChipStatus, cincin ringkas (baris caption),
 // label, tanggal data atau tulisan simulasi, pernyataan batas 9.2, atribusi,
@@ -41,7 +41,7 @@ export function KartuBukti({
       {tanggalData ? <PitaData tanggal={tanggalData} /> : null}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
         <Reveal>
-          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
+          <div className="overflow-hidden rounded-lg border border-border bg-card shadow-xl">
             {/* Pita kuning di tepi atas kartu (8.3). */}
             <div aria-hidden className="h-1.5 bg-kuning-papan" />
             <div className="p-5 sm:p-8">
@@ -56,7 +56,7 @@ export function KartuBukti({
               </div>
 
               {/* Cincin ringkas: satu baris caption dengan labelnya. */}
-              <div className="mt-5 rounded-2xl border border-border bg-background p-4">
+              <div className="mt-5 rounded-lg border border-border bg-background p-4">
                 <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Cincin waktu</p>
                 <p className="mt-1">
                   <LabelTiga label={takTerhitung ? "belum_diketahui" : "hitungan"} />

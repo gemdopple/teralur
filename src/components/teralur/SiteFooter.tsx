@@ -41,10 +41,15 @@ export function SiteFooter() {
         {KOLOM.map((kolom) => (
           <nav key={kolom.judul} aria-label={kolom.judul}>
             <h2 className="text-sm font-semibold text-foreground">{kolom.judul}</h2>
-            <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+            {/* Fleksibel (bukan space-y): setiap tautan punya tinggi sentuh
+                44px sendiri tanpa merenggangkan daftar terlalu jauh. */}
+            <ul className="mt-2 flex flex-col text-sm text-muted-foreground">
               {kolom.tautan.map((tautan) => (
                 <li key={tautan.href}>
-                  <Link href={tautan.href} className="transition-colors hover:text-foreground">
+                  <Link
+                    href={tautan.href}
+                    className="flex min-h-11 items-center transition-colors hover:text-foreground"
+                  >
                     {tautan.label}
                   </Link>
                 </li>

@@ -11,7 +11,7 @@ const RESPONSE_SCHEMA = z.object({
   }),
 });
 
-// Form laporan warga — kartu lembut modern: kartu rounded-2xl dengan bayangan
+// Form laporan warga — kartu lembut modern: kartu rounded-lg dengan bayangan
 // tipis, masukan rounded-xl, tombol kirim pil tinta.
 
 export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
@@ -60,7 +60,7 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <form onSubmit={submit} className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <h2 className="font-heading text-lg font-semibold tracking-tight">Saya sudah lihat</h2>
       <p className="mt-1 text-sm text-muted-foreground">Laporan warga, belum diverifikasi.</p>
       <label className="mt-4 block text-sm font-semibold" htmlFor="activity-status">

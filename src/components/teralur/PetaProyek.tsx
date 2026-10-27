@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Component, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -15,11 +15,33 @@ import {
   CheckmarkCircle01Icon,
 } from "@hugeicons/core-free-icons";
 import type { ProyekDemo } from "@/data/proyek-demo";
+import { daftarProyekPublik } from "@/data/proyek-demo";
+import { jakartaToday } from "@/lib/dates";
+import { setKondisiPeta } from "@/components/teralur/DepotPeta";
 import { cn } from "@/lib/utils";
 
 // Panel peta warga (redesign v2): pencarian teks, filter status, tombol
 // "proyek terdekat" (geolokasi perangkat), daftar hasil, dan peta interaktif.
 // Peta diimpor dinamis ssr:false (Leaflet butuh window).
+
+// PetaProyekPublik: varian untuk halaman publik /jelajah. Dataset demo dihitung
+// di klien setelah mount (butuh tanggal hari ini WIB untuk menghitung status,
+// dan `new Date()` tidak boleh berjalan saat prerender), sehingga halaman bisa
+// diprarender penuh menjadi static shell — navigasi dari beranda menjadi
+// instan. Peta sendiri persisten di DepotPeta (di luar pohon rute — lihat
+// catatan di sana); komponen ini menyediakan slot dan mengirim hasil filter.
+export function PetaProyekPublik() {
+  const [items, setItems] = useState<ProyekDemo[]>([]);
+
+  useEffect(() => {
+    // Sengaja setState dalam efek: tanggal hari ini (WIB) dibutuhkan menghitung
+    // status, dan `new Date()` tidak boleh dipanggil saat render/prerender.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setItems(daftarProyekPublik(jakartaToday()));
+  }, []);
+
+  return <PetaProyek items={items} mode="depot" />;
+}
 
 const PetaDalam = dynamic(() => import("@/components/teralur/peta-dalam"), {
   ssr: false,
@@ -59,12 +81,96 @@ function termasukFilter(status: DossierStatus, filter: FilterStatus): boolean {
   return status !== "cocok" && status !== "selisih";
 }
 
-export function PetaProyek({ items }: { items: ProyekDemo[] }) {
+// Penghitung pemasangan peta: setiap instance PetaProyek memberi PetaDalam
+// key yang unik lintas pemasangan tetapi stabil sepanjang hidup instance.
+// Alasan: MapContainer (react-leaflet) menandai <div> kontainer dengan
+// _leaflet_id milik peta Leaflet dan melempar "Map container is being reused
+// by another instance" bila dua peta mengaku kontainer yang sama, lalu
+// Leaflet crash dengan "appendChild of undefined" saat ubin berjalan pada
+// peta yang sudah dibongkar. Key baru per pemasangan menjamin React menyediakan
+// elemen kontainer segar yang belum pernah disentuh Leaflet.
+let HITUNG_PETA = 0;
+
+// BatasPeta: pengaman untuk peta yang dirender di dalam pohon rute (mode
+// dasbor). Peta Leaflet bisa crash ketika router mengaktifkan kembali pohon
+// halaman yang di-cache; tanpa batas ini error tersebut menjatuhkan seluruh
+// halaman. Batas menangkap error fase mount lalu memasang ulang subtree peta
+// pada elemen kontainer segar (kunci naik) — pulih tanpa reload. Anggaran
+// pemulihan di-refresh bila crash terjadi jauh setelah sebelumnya (peta sempat
+// bekerja normal). Halaman /jelajah tidak memakai jalur ini sama sekali —
+// peta publik persisten di DepotPeta, di luar pohon rute.
+class BatasPeta extends Component<
+  { children: ReactNode; darurat: (cobaLagi: () => void) => ReactNode },
+  { galat: boolean; generasi: number }
+> {
+  state = { galat: false, generasi: 0 };
+  waktuPemulihan: ReturnType<typeof setTimeout> | null = null;
+  waktuGalatTerakhir = 0;
+  // Anggaran pemulihan dipisah dari state: hanya berubah di efek/timeout,
+  // bukan sinyal render.
+  anggaranRef = { sisa: 3 };
+
+  static getDerivedStateFromError() {
+    return { galat: true };
+  }
+
+  componentDidCatch() {
+    const kini = Date.now();
+    if (kini - this.waktuGalatTerakhir > 10_000) {
+      this.anggaranRef.sisa = 3;
+    }
+    this.waktuGalatTerakhir = kini;
+    if (this.anggaranRef.sisa > 0) {
+      this.anggaranRef.sisa -= 1;
+      if (this.waktuPemulihan) clearTimeout(this.waktuPemulihan);
+      this.waktuPemulihan = setTimeout(() => {
+        if (!this.state.galat) return;
+        this.setState((s) => ({ galat: false, generasi: s.generasi + 1 }));
+      }, 400);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.waktuPemulihan) clearTimeout(this.waktuPemulihan);
+  }
+
+  aturUlang = () => {
+    if (this.waktuPemulihan) clearTimeout(this.waktuPemulihan);
+    this.anggaranRef.sisa = 3;
+    this.setState({ galat: false, generasi: 0 });
+  };
+
+  render() {
+    if (this.state.galat) {
+      return this.props.darurat(this.aturUlang);
+    }
+    return <div key={this.state.generasi} className="h-full w-full">{this.props.children}</div>;
+  }
+}
+
+export function PetaProyek({
+  items,
+  mode = "lokal",
+}: {
+  items: ProyekDemo[];
+  /** "depot": peta persisten di DepotPeta (halaman publik /jelajah) — komponen
+   *  ini hanya menyediakan slot dan mengirim hasil filter lewat simpanan.
+   *  "lokal": peta dirender langsung di sini (dasbor). */
+  mode?: "depot" | "lokal";
+}) {
   const [kueri, setKueri] = useState("");
   const [filter, setFilter] = useState<FilterStatus>("semua");
   const [bukaFilter, setBukaFilter] = useState(false);
   const [posisiSaya, setPosisiSaya] = useState<{ lat: number; lng: number } | null>(null);
   const [terpilih, setTerpilih] = useState<string | null>(null);
+  // Kunci peta: naik saat peta terdeteksi mati (lihat CekHidup di
+  // peta-dalam.tsx) sehingga seluruh subtree MapContainer dipasang ulang pada
+  // elemen kontainer segar. Stabil antar-render biasa agar peta tidak pernah
+  // dipasang ulang tanpa alasan.
+  const [kunciPeta, setKunciPeta] = useState(() => `peta-${++HITUNG_PETA}`);
+  const hidupkanUlangPeta = useCallback(() => {
+    setKunciPeta(`peta-${++HITUNG_PETA}`);
+  }, []);
 
   const hasil = useMemo(() => {
     const kata = kueri.trim().toLowerCase();
@@ -93,6 +199,14 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
   useEffect(() => {
     cariTerdekat();
   }, [cariTerdekat]);
+
+  // Mode depot: kirim hasil filter dan kartu terpilih ke peta persisten
+  // (DepotPeta) lewat simpanan eksternal.
+  useEffect(() => {
+    if (mode === "depot") {
+      setKondisiPeta({ hasil, terpilih });
+    }
+  }, [mode, hasil, terpilih]);
 
   const labelJarak = (item: ProyekDemo) =>
     posisiSaya ? `${jarakKm(posisiSaya, item).toFixed(1).replace(".", ",")} km dari Anda` : null;
@@ -142,7 +256,7 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
             <div
               role="listbox"
               aria-label="Filter status"
-              className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-2xl border border-border bg-card shadow-xl shadow-hitam-aspal/15"
+              className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-lg border border-border bg-card shadow-xl shadow-hitam-aspal/15"
             >
               {FILTERS.map((pilihan) => (
                 <button
@@ -176,7 +290,9 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
         </div>
 
 
-        <ul className="grid gap-2 lg:max-h-[26rem] lg:overflow-y-auto lg:pr-1">
+        {/* Daftar mengalir bersama halaman di layar lebar: kartu hasil tidak
+            lagi tersembunyi di dalam kotak gulir 26rem di samping peta. */}
+        <ul className="grid gap-2 lg:pr-1">
           {hasil.map((item, index) => (
             <li key={item.kunci}>
               {/* Kartu satu ketukan (permintaan PM): tanpa chip status (cukup
@@ -188,10 +304,10 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
                 onFocus={() => setTerpilih(item.kunci)}
                 style={{ animationDelay: `${Math.min(index * 50, 250)}ms` }}
                 className={cn(
-                  "animate-fade-up group block rounded-2xl border bg-card p-4 shadow-sm transition-all active:bg-muted/40",
+                  "animate-fade-up group block rounded-lg border bg-card p-4 transition-colors active:bg-muted/40",
                   terpilih === item.kunci
                     ? "border-hitam-aspal"
-                    : "border-border hover:-translate-y-0.5 hover:shadow-md",
+                    : "border-border hover:border-foreground/30",
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -229,7 +345,7 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
             </li>
           ))}
           {hasil.length === 0 && (
-            <li className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            <li className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
               Belum ada proyek yang cocok dengan pencarian ini. Coba kata kunci lain atau ubah
               filter status.
             </li>
@@ -238,12 +354,44 @@ export function PetaProyek({ items }: { items: ProyekDemo[] }) {
       </div>
 
       {/* Peta — di ponsel tampil paling atas sebagai pratinjau (permintaan
-          PM: menggantikan seksi teks pemindai), di layar lebar tetap di kanan. */}
-      <div className="relative order-first h-[24rem] overflow-hidden rounded-2xl border border-border bg-muted/40 lg:order-none lg:h-[38rem]">
-        <PetaDalam items={hasil} selectedKey={terpilih} />
-        <p className="pointer-events-none absolute bottom-2 left-2 z-[500] rounded-full bg-card/90 px-2.5 py-1 text-[10px] text-muted-foreground">
+          PM: menggantikan seksi teks pemindai), di layar lebar tetap di kanan
+          dan menempel saat daftar hasil digulir.
+
+          Mode depot (halaman publik): hanya slot kosong — node peta persisten
+          dari DepotPeta dipindahkan ke dalamnya. Mode lokal (dasbor): peta
+          dirender di sini, dibungkus BatasPeta. */}
+      <div className="relative order-first h-[24rem] overflow-hidden rounded-lg border border-border bg-muted/40 lg:sticky lg:top-20 lg:order-none lg:h-[38rem]">
+        {mode === "depot" ? (
+          <div id="slot-peta" className="relative h-full w-full" />
+        ) : (
+          <BatasPeta darurat={KerangkaDaruratPeta}>
+            <PetaDalam key={kunciPeta} items={hasil} selectedKey={terpilih} onMati={hidupkanUlangPeta} />
+          </BatasPeta>
+        )}
+        <p className="pointer-events-none absolute bottom-2 left-2 z-[500] rounded-full bg-card/95 px-2.5 py-1 text-[10px] font-medium text-foreground">
           Peta © OpenStreetMap
         </p>
+      </div>
+    </div>
+  );
+}
+
+// Darurat bila peta gagal dipasang berulang kali: pesan + tombol coba lagi.
+function KerangkaDaruratPeta(cobaLagi: () => void) {
+  return (
+    <div className="grid h-full w-full place-items-center bg-muted/60 p-6 text-center">
+      <div>
+        <p className="text-sm font-medium text-foreground">Peta gagal dimuat.</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Peramban mungkin kehabisan memori atau koneksi ubin terganggu.
+        </p>
+        <button
+          type="button"
+          onClick={cobaLagi}
+          className="mt-3 inline-flex min-h-10 items-center rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+        >
+          Coba lagi
+        </button>
       </div>
     </div>
   );

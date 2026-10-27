@@ -11,8 +11,8 @@ export default function DossierNotFound() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-16">
       <Reveal>
-        <div className="rounded-3xl border border-border bg-card p-8 text-center shadow-sm sm:p-12">
-          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-kuning-papan/15">
+        <div className="rounded-lg border border-border bg-card p-8 text-center shadow-sm sm:p-12">
+          <span className="mx-auto grid size-14 place-items-center rounded-lg bg-kuning-papan/15">
             <HugeiconsIcon icon={SearchRemoveIcon} className="size-7 text-foreground" />
           </span>
           <p className="mt-6 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
