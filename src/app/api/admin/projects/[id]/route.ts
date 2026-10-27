@@ -30,7 +30,7 @@ import { normalisasiTeks } from "@/lib/match/normalisasi";
 
 const idSchema = z.string().uuid();
 
-const SUBMISSION_COLUMNS = "id, slug, jenis, papan, status, terbit, unggulan, dinonaktifkan, record_id, diperbarui";
+const SUBMISSION_COLUMNS = "id, slug, jenis, papan, status, unggulan, dinonaktifkan, record_id, contractor_id, diperbarui";
 
 async function fetchSubmission(id: string) {
   const { data, error } = await getSupabaseAdmin()
@@ -45,10 +45,10 @@ async function fetchSubmission(id: string) {
     jenis: string;
     papan: unknown;
     status: string | null;
-    terbit: boolean;
     unggulan: boolean;
     dinonaktifkan: boolean;
     record_id: string | null;
+    contractor_id: string | null;
     diperbarui: string;
   } | null;
 }
@@ -112,11 +112,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return jsonOk({
       id: submission.id,
       slug: submission.slug,
-      published: submission.terbit,
       featured: submission.unggulan,
       status: storedStatusToApi(submission.status),
       board,
       officialRecord,
+      contractorId: submission.contractor_id,
       resources: (resources ?? []).map((row) => ({
         id: row.id,
         kind: row.jenis,
@@ -201,6 +201,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const supabase = getSupabaseAdmin();
     const adaPerubahanData = parsed.data.board !== undefined || parsed.data.officialRecord !== undefined;
+    const contractorDikirim = parsed.data.contractorId !== undefined;
 
     if (adaPerubahanData) {
       const resmi = recordBaru ?? (currentRecord ? officialRecordFromRow(currentRecord) : boardBaru);
@@ -212,6 +213,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           status: statusToInternal(hasil.status),
           skor: hasil.score,
           ...(parsed.data.featured !== undefined ? { unggulan: parsed.data.featured } : {}),
+          // Penugasan kontraktor ikut tersimpan bila dikirim (null = lepas tugas).
+          ...(contractorDikirim ? { contractor_id: parsed.data.contractorId ?? null } : {}),
         })
         .eq("id", submission.id);
       if (updateError) throw new Error(`Project update failed: ${updateError.message}`);
@@ -239,10 +242,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return jsonOk({ id: submission.id, slug: submission.slug, status: hasil.status });
     }
 
-    if (parsed.data.featured !== undefined) {
+    if (parsed.data.featured !== undefined || contractorDikirim) {
+      const patch: Record<string, unknown> = {};
+      if (parsed.data.featured !== undefined) patch.unggulan = parsed.data.featured;
+      if (contractorDikirim) patch.contractor_id = parsed.data.contractorId ?? null;
       const { error: updateError } = await supabase
         .from("submissions")
-        .update({ unggulan: parsed.data.featured })
+        .update(patch)
         .eq("id", submission.id);
       if (updateError) throw new Error(`Project update failed: ${updateError.message}`);
     }
@@ -269,7 +275,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     // Hapus lunak (E.7): idempoten — memanggil ulang tetap sukses.
     const { error } = await getSupabaseAdmin()
       .from("submissions")
-      .update({ dinonaktifkan: true, terbit: false, unggulan: false })
+      .update({ dinonaktifkan: true, unggulan: false })
       .eq("id", submission.id);
     if (error) throw new Error(`Project disable failed: ${error.message}`);
 

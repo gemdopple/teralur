@@ -26,7 +26,6 @@ type ListRow = {
   slug: string;
   papan: unknown;
   status: string | null;
-  terbit: boolean;
   unggulan: boolean;
   diperbarui: string;
   records: { nama_paket: string } | null;
@@ -42,7 +41,7 @@ export async function GET() {
 
     const { data, error } = await getSupabaseAdmin()
       .from("submissions")
-      .select("id, slug, papan, status, terbit, unggulan, diperbarui, records(nama_paket), resources(count)")
+      .select("id, slug, papan, status, unggulan, diperbarui, records(nama_paket), resources(count)")
       .eq("jenis", "admin")
       .eq("dinonaktifkan", false)
       .order("diperbarui", { ascending: false });
@@ -57,7 +56,6 @@ export async function GET() {
           slug: row.slug,
           title: board?.packageName ?? row.records?.nama_paket ?? null,
           status: storedStatusToApi(row.status),
-          published: row.terbit,
           featured: row.unggulan,
           resourceCount: Number(row.resources?.[0]?.count ?? 0),
           updatedAt: row.diperbarui,
@@ -87,7 +85,7 @@ export async function POST(request: Request) {
       return jsonError("INTERNAL", 500, "Basis data belum dikonfigurasi.");
     }
 
-    const { board, officialRecord, featured } = parsed.data;
+    const { board, officialRecord, featured, contractorId } = parsed.data;
 
     // Batas 3 proyek unggulan aktif (C-01): hitung sebelum menulis apa pun.
     if (featured) {
@@ -112,9 +110,9 @@ export async function POST(request: Request) {
       // Kode yang sudah ada menang (Lampiran A) — lihat docs/agent-notes.md.
       kandidat: { requiresSelection: false, candidates: [] },
       demo: true,
-      terbit: false,
       dinonaktifkan: false,
       unggulan: featured,
+      contractor_id: contractorId ?? null,
     };
     const { data: submission, error: submissionError } = await supabase
       .from("submissions")

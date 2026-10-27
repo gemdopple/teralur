@@ -47,10 +47,10 @@ export async function POST(request: Request) {
   }
 
   // E.12: recordId milik proyek admin tidak pernah membuat dossier baru —
-  // proyek terbit mengembalikan slugnya, draf/nonaktif tetap 404.
+  // proyek aktif mengembalikan slugnya, yang dinonaktifkan tetap 404.
   const { data: adminProject, error: adminError } = await supabase
     .from("submissions")
-    .select("slug, status, terbit, dinonaktifkan")
+    .select("slug, status, dinonaktifkan")
     .eq("record_id", record.id)
     .eq("jenis", "admin")
     .maybeSingle();
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     );
   }
   if (adminProject) {
-    if (!adminProject.terbit || adminProject.dinonaktifkan) {
+    if (adminProject.dinonaktifkan) {
       return NextResponse.json(
         { error: "NOT_FOUND", message: "Catatan resmi tidak ditemukan." },
         { status: 404 },
