@@ -29,3 +29,14 @@ export async function qrPng(slug: string): Promise<Buffer> {
     color: { dark: "#14110F", light: "#FFFFFF" },
   });
 }
+
+// QR dari URL penuh — dipakai papan proyek dasbor yang menunjuk dossier atau
+// halaman example publik, bukan hanya /dossiers/<slug>.
+export async function qrSvgDari(url: string): Promise<string> {
+  return QRCode.toString(url, {
+    type: "svg",
+    errorCorrectionLevel: "Q",
+    margin: 2,
+    color: { dark: "#14110F", light: "#FFFFFF" },
+  });
+}

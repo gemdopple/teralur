@@ -30,3 +30,20 @@ export function formatTanggal(iso: string): string {
     timeZone: "UTC",
   }).format(new Date(`${iso}T00:00:00Z`));
 }
+
+// Stempel waktu dalam WIB, mis. "26 Okt 2026, 06.21". Formatter dibuat sekali
+// di tingkat modul: membentuk Intl.DateTimeFormat per baris tabel jauh lebih mahal.
+const FORMAT_WIB = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "Asia/Jakarta",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** Timestamp ISO -> "26 Okt 2026, 06.21" (WIB, tanpa sufiks zona). */
+export function formatWib(iso: string): string {
+  return FORMAT_WIB.format(new Date(iso));
+}
