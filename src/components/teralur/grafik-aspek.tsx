@@ -54,7 +54,7 @@ export function GrafikAspek({ baris }: { baris: BarisAspek[] }) {
             <div className="flex items-baseline justify-between gap-2">
               <p className="text-sm font-medium">{item.label}</p>
               {item.state === "selisih" ? (
-                <span className="font-mono text-xs font-semibold tabular-nums text-selisih">
+                <span className="font-mono text-xs font-semibold tabular-nums text-selisih-teks">
                   {new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(lebar)}%
                 </span>
               ) : item.state === "kosong" ? (

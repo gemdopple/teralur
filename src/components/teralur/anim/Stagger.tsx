@@ -1,7 +1,5 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
-import type { Variants } from "motion/react";
 import type { ReactNode } from "react";
 
 type StaggerGroupProps = {
@@ -14,45 +12,14 @@ type StaggerItemProps = {
   className?: string;
 };
 
-// Grup stagger: anak-anak StaggerItem muncul bergantian (0.07s per anak)
-// saat grup masuk viewport, sekali saja.
+// Grup stagger ringan: anak-anak StaggerItem muncul bergantian lewat jeda
+// animasi CSS. Tidak memakai observer motion — lihat catatan di Reveal.tsx.
 export function StaggerGroup({ children, className }: StaggerGroupProps) {
-  const kurangiGerak = useReducedMotion();
-
-  const varianGrup: Variants = {
-    tampak: { transition: { staggerChildren: kurangiGerak ? 0 : 0.07 } },
-  };
-
-  return (
-    <motion.div
-      className={className}
-      initial="tersembunyi"
-      whileInView="tampak"
-      viewport={{ once: true, margin: "-64px" }}
-      variants={varianGrup}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className={className}>{children}</div>;
 }
 
-// Anak stagger: fade-up yang mengikuti orkestrasi StaggerGroup.
-// Reduced motion: y dinolkan sehingga hanya opasitas yang beranimasi.
+// Anak stagger: fade-up dengan jeda bertingkat yang diturunkan dari indeks
+// anak lewat CSS nth-child (lihat .animate-reveal di globals.css).
 export function StaggerItem({ children, className }: StaggerItemProps) {
-  const kurangiGerak = useReducedMotion();
-
-  const varianItem: Variants = {
-    tersembunyi: { opacity: 0, y: kurangiGerak ? 0 : 20 },
-    tampak: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-    },
-  };
-
-  return (
-    <motion.div className={className} variants={varianItem}>
-      {children}
-    </motion.div>
-  );
+  return <div className={`animate-reveal ${className ?? ""}`}>{children}</div>;
 }

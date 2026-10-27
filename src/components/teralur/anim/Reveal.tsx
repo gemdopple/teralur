@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 type RevealProps = {
   children: ReactNode;
@@ -10,20 +9,27 @@ type RevealProps = {
   delay?: number;
 };
 
-// Pembungkus fade-up: elemen muncul saat masuk viewport, sekali saja.
-// Reduced motion: y dinolkan sehingga hanya opasitas yang beranimasi.
+// Pembungkus fade-up saat elemen pertama kali muncul.
+//
+// Sengaja tidak memakai `initial={{ opacity: 0 }}` + `whileInView` (motion).
+// Pendekatan itu menulis `opacity: 0` inline dan bergantung pada
+// IntersectionObserver untuk menghapusnya. Bila observer tidak sempat
+// melaporkan irisan — mis. pada navigasi klien Next.js saat komponen dipasang
+// ulang dengan node yang sama — elemen tetap transparan dan isi halaman
+// tampak kosong, tanpa jalan pulih selain memuat ulang paksa.
+//
+// Animasi CSS di bawah tidak punya keadaan "tersembunyi" yang ditulis inline:
+// animasinya berjalan sekali saat elemen dipasang dan berakhir pada keadaan
+// alami elemen (opacity 1). Tidak ada mekanisme yang bisa gagal terbuka.
+// `prefers-reduced-motion` dimatikan di globals.css.
 export function Reveal({ children, className, delay = 0 }: RevealProps) {
-  const kurangiGerak = useReducedMotion();
+  const style: CSSProperties | undefined = delay
+    ? { animationDelay: `${delay}s` }
+    : undefined;
 
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: kurangiGerak ? 0 : 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-64px" }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay }}
-    >
+    <div className={`animate-reveal ${className ?? ""}`} style={style}>
       {children}
-    </motion.div>
+    </div>
   );
 }

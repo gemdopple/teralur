@@ -7,11 +7,11 @@ type Varian = "default" | "outline";
 type Ukuran = "default" | "lg";
 
 const DASAR =
-  "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full text-sm font-medium transition-all outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/30 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4";
+  "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium transition-colors outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/30 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4";
 
 const VARIAN: Record<Varian, string> = {
   default: "bg-primary text-primary-foreground hover:bg-primary/85",
-  outline: "border border-border bg-card hover:bg-muted",
+  outline: "border border-border bg-card text-foreground hover:border-foreground/30",
 };
 
 const UKURAN: Record<Ukuran, string> = {

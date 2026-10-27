@@ -9,6 +9,13 @@
   --color-foreground: var(--foreground);
   --color-cocok: var(--cocok);
   --color-selisih: var(--selisih);
+  /* Varian teks token status: --selisih #D9480F (3,76:1) dan --cocok #1F8A5B
+     (3,83:1) gagal ambang WCAG AA 4,5:1 saat dipakai sebagai teks kecil di
+     atas tint /10 miliknya sendiri. Varian di bawah (4,91:1 dan 5,37:1)
+     dipakai khusus untuk teks; grafik, garis, dan penanda tetap memakai
+     token terang asli. */
+  --color-selisih-teks: var(--selisih-teks);
+  --color-cocok-teks: var(--cocok-teks);
   --color-netral: var(--netral);
   --color-kuning-papan: var(--kuning-papan);
   --color-hitam-aspal: var(--hitam-aspal);
@@ -88,6 +95,20 @@
   }
 }
 
+/* Masuk sekali-pakai untuk pembungkus Reveal/StaggerItem. Sengaja animasi CSS
+   murni, bukan IntersectionObserver: observer motion dapat macet pada navigasi
+   klien Next.js dan meninggalkan isi halaman pada opacity 0. */
+@keyframes reveal-masuk {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 :root {
   /* Fondasi bersih: kertas putih lembut, tinta pekat, aksen kuning papan */
   --background: #FCFCFA;
@@ -114,7 +135,7 @@
   --chart-3: #FFC400;
   --chart-4: #2563EB;
   --chart-5: #6B6F76;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #1B1917;
   --sidebar-primary: #1B1917;
@@ -125,7 +146,9 @@
   --sidebar-ring: #FFC400;
   /* Teralur brand tokens (light theme only — no dark mode by design) */
   --cocok: #1F8A5B;
+  --cocok-teks: #167049;
   --selisih: #D9480F;
+  --selisih-teks: #BE370A;
   --netral: #6B6F76;
   --kuning-papan: #FFC400;
   --hitam-aspal: #14110F;
@@ -143,52 +166,54 @@
     @apply font-sans;
     scroll-behavior: smooth;
   }
+  /* Header lengket (h-16) menutupi target tautan jangkar — beri ruang. */
+  [id] {
+    scroll-margin-top: 5rem;
+  }
 }
 
 @layer utilities {
-  /* Titik-titik halus (dot grid) untuk latar hero — 9% foreground, 22px */
-  .bg-dots {
-    background-image: radial-gradient(
-      color-mix(in oklab, var(--foreground) 9%, transparent) 1px,
-      transparent 1px
-    );
-    background-size: 22px 22px;
+  /* Fade-up sekali pakai. `backwards` (bukan `both`) penting: elemen mulai
+     transparan selama jeda, lalu berakhir pada keadaan alaminya — sehingga
+     tidak ada keadaan akhir yang menahan elemen tetap tersembunyi. */
+  .animate-reveal {
+    animation: reveal-masuk 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   }
-  /* Pijar hangat (kuning papan + hijau) untuk bilasan hero yang lembut */
-  .bg-glow {
-    background-image:
-      radial-gradient(
-        42rem 22rem at 12% -4rem,
-        color-mix(in oklab, var(--kuning-papan) 24%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        46rem 24rem at 88% 0rem,
-        color-mix(in oklab, var(--cocok) 16%, transparent),
-        transparent 72%
-      );
+  /* Jeda bertingkat untuk anak-anak grid (pengganti stagger JS). */
+  .animate-reveal:nth-child(2) {
+    animation-delay: 0.07s;
   }
-  /* Kaca lembut: nada kertas 78% + blur sedang */
-  .glass {
-    background: color-mix(in oklab, var(--kertas) 78%, transparent);
-    backdrop-filter: blur(12px);
+  .animate-reveal:nth-child(3) {
+    animation-delay: 0.14s;
+  }
+  .animate-reveal:nth-child(4) {
+    animation-delay: 0.21s;
+  }
+  .animate-reveal:nth-child(n + 5) {
+    animation-delay: 0.28s;
   }
   .text-balance {
     text-wrap: balance;
   }
-  .garis-teks {
-    background-image: linear-gradient(120deg, var(--hitam-aspal) 30%, var(--kuning-papan));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
+}
+
+/* Atribusi Leaflet: warna bawaan (#0078A8 di atas putih) hanya 3,6:1 —
+   di bawah ambang WCAG AA 4,5:1. Pakai tinta pekat agar tetap terbaca
+   tanpa menutupi peta. */
+.leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--foreground);
+}
+.leaflet-container .leaflet-control-attribution {
+  background: color-mix(in oklab, var(--card) 88%, transparent);
 }
 
 /* Pita marquee berhenti saat pengguna memilih animasi berkurang */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
   .animate-fade-up,
-  .animate-fade-in {
+  .animate-fade-in,
+  .animate-reveal {
     animation: none;
   }
   html {
