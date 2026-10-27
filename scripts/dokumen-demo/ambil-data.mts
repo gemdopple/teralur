@@ -1,4 +1,4 @@
-// Pipeline dokumen demo (1/3 — ambil data): dump proyek admin terbit ke
+// Pipeline dokumen demo (1/3 — ambil data): dump proyek admin aktif ke
 // scripts/dokumen-demo/proyek.json untuk digenerator PDF.
 // Jalankan: npx tsx --env-file=.env scripts/dokumen-demo/ambil-data.mts
 // Urutan lengkap: ambil-data.mts -> buat-pdf.py -> unggah.mts
@@ -12,7 +12,6 @@ const { data, error } = await sb
   .from("submissions")
   .select("id, slug, papan, records(nama_paket, penyedia, nilai_kontrak, tanggal_kontrak, snapshot_tanggal)")
   .eq("jenis", "admin")
-  .eq("terbit", true)
   .eq("dinonaktifkan", false);
 if (error) throw error;
 const rapi = (data ?? []).map((s) => {

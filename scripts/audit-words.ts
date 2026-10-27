@@ -28,7 +28,7 @@ function buangTag(html: string): string {
     .replace(/\s+/gu, " ");
 }
 
-async function ambilSlugTerbit(): Promise<string[]> {
+async function ambilSlugPublik(): Promise<string[]> {
   const { createClient } = await import("@supabase/supabase-js");
   const klien = createClient(
     process.env.SUPABASE_URL ?? "",
@@ -38,7 +38,6 @@ async function ambilSlugTerbit(): Promise<string[]> {
   const { data, error } = await klien
     .from("submissions")
     .select("slug")
-    .eq("terbit", true)
     .eq("dinonaktifkan", false);
   if (error) throw new Error(`Gagal membaca daftar dossier: ${error.message}`);
   return (data ?? []).map((b) => b.slug as string);
@@ -71,9 +70,9 @@ async function periksa(jalur: string): Promise<Array<{ jalur: string; kata: stri
 
 async function utama(): Promise<void> {
   const jalurStatis = ["/", "/search", "/examples", "/methodology", "/about"];
-  const slug = await ambilSlugTerbit();
+  const slug = await ambilSlugPublik();
   const jalurDossier = slug.flatMap((s) => [`/dossiers/${s}`, `/evidence/${s}`]);
-  console.log(`Mengaudit ${jalurStatis.length} halaman statis + ${slug.length} dossier terbit...`);
+  console.log(`Mengaudit ${jalurStatis.length} halaman statis + ${slug.length} dossier publik...`);
   const semua = await Promise.all([...jalurStatis, ...jalurDossier].map(periksa));
   const temuan = semua.flat();
   if (temuan.length === 0) {

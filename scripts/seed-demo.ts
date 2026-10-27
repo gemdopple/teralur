@@ -45,7 +45,6 @@ type SeedSpec = {
   // Offset hari mulai kontrak dari hari seed; null = tanpa tanggal (demo-003).
   offsetHari: number | null;
   lokasi: string;
-  terbit: boolean;
   unggulan: boolean;
 };
 
@@ -59,7 +58,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Rehabilitasi Jalan Lingkungan Melati Raya Kecamatan Sukamaju", supplier: "PT KARYA BANGUN NUSANTARA JAYA", contractValue: 1_485_000_000, durationDays: 90 },
     offsetHari: -74,
     lokasi: "Kecamatan Sukamaju",
-    terbit: true,
     unggulan: true,
   },
   {
@@ -68,7 +66,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Pembangunan Drainase Primer Jalan Kenanga Desa Tirtamulya", supplier: "CV Sinar Tirta Konstruksi", contractValue: 912_500_000, durationDays: 120 },
     offsetHari: -45,
     lokasi: "Desa Tirtamulya",
-    terbit: true,
     unggulan: true,
   },
   {
@@ -77,7 +74,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Pembangunan Gedung Puskesmas Pembantu Desa Sumberlaras", supplier: "PT Nagasari Cipta Graha", contractValue: 2_640_000_000, durationDays: 180 },
     offsetHari: null,
     lokasi: "Desa Sumberlaras",
-    terbit: true,
     unggulan: false,
   },
   {
@@ -86,7 +82,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Peningkatan Jalan Poros Desa Cibening Lembah", supplier: "PT Lintas Bumi Karya", contractValue: 3_120_000_000, durationDays: 90 },
     offsetHari: -150,
     lokasi: "Desa Cibening Lembah",
-    terbit: true,
     unggulan: true,
   },
   {
@@ -95,7 +90,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Pembangunan Talud Sungai Cikarang Hulu Kecamatan Sukamaju", supplier: "PT Sagara Karya Teknik", contractValue: 640_000_000, durationDays: 75 },
     offsetHari: -30,
     lokasi: "Kecamatan Sukamaju",
-    terbit: true,
     unggulan: false,
   },
   {
@@ -104,7 +98,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Rehabilitasi Saluran Irigasi Sengon Desa Tirtamulya", supplier: "PT Adhi Pratama Sejahtera", contractValue: 1_980_000_000, durationDays: 100 },
     offsetHari: -60,
     lokasi: "Desa Tirtamulya",
-    terbit: true,
     unggulan: false,
   },
   {
@@ -113,7 +106,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Rehabilitasi Gedung Sekolah Dasar Negeri 3 Sumberlaras", supplier: "PT Cahaya Utama Teknik", contractValue: 1_730_000_000, durationDays: 120 },
     offsetHari: -20,
     lokasi: "Sumberlaras",
-    terbit: true,
     unggulan: false,
   },
   {
@@ -122,7 +114,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Peningkatan Jalan Lingkungan Mawar Kecamatan Sukamaju", supplier: "PT Rajawali Karya Abadi", contractValue: 780_000_000, durationDays: 60 },
     offsetHari: -15,
     lokasi: "Kecamatan Sukamaju",
-    terbit: true,
     unggulan: false,
   },
   {
@@ -131,7 +122,6 @@ const SEEDS: SeedSpec[] = [
     official: { packageName: "Pembangunan Pagar dan Drainase Pasar Rakyat Sumberlaras", supplier: "PT Nusa Indah Konstruksi", contractValue: 2_305_000_000, durationDays: 60 },
     offsetHari: -20,
     lokasi: "Sumberlaras",
-    terbit: true,
     unggulan: false,
   },
   {
@@ -139,8 +129,7 @@ const SEEDS: SeedSpec[] = [
     board: { packageName: "Pemeliharaan Rutin Jalan Kabupaten Ruas Tirtamulya Lembah", supplier: "CV Tani Makmur Sendaya", contractValue: 450_000_000, durationDays: null },
     official: { packageName: "Pemeliharaan Rutin Jalan Kabupaten Ruas Tirtamulya Lembah", supplier: "CV Tani Makmur Sendaya", contractValue: 450_000_000, durationDays: 150 },
     offsetHari: -10,
-    lokasi: "Ruas Tirtamulya Lembah",
-    terbit: false, // draf sengaja untuk menguji "tidak muncul di publik" (M.2)
+    lokasi: "Ruas Tirtamulya Lembah", // draf sengaja untuk menguji "tidak muncul di publik" (M.2)
     unggulan: false,
   },
 ];
@@ -231,7 +220,6 @@ async function prosesSatu(supabase: SupabaseClient, spec: SeedSpec, hariIni: str
     papan: boardToInternal(boardApi),
     status: statusInternal,
     skor: hasil.score,
-    terbit: spec.terbit,
     unggulan: spec.unggulan,
     demo: true,
     dinonaktifkan: false,
@@ -245,7 +233,7 @@ async function prosesSatu(supabase: SupabaseClient, spec: SeedSpec, hariIni: str
     if (updateError) {
       throw new Error(`${spec.kunci}: update submissions gagal: ${updateError.message}`);
     }
-    return { kunci: spec.kunci, id: submission.id, slug: submission.slug, status: hasil.status, terbit: spec.terbit, dibuat: false };
+    return { kunci: spec.kunci, id: submission.id, slug: submission.slug, status: hasil.status, dibuat: false };
   }
 
   // 3) Belum ada: buat proyek admin baru dengan slug baru (sama dengan
@@ -268,7 +256,7 @@ async function prosesSatu(supabase: SupabaseClient, spec: SeedSpec, hariIni: str
   if (insertError || !created) {
     throw new Error(`${spec.kunci}: insert submissions gagal: ${insertError?.message ?? "tanpa data"}`);
   }
-  return { kunci: spec.kunci, id: created.id, slug: created.slug, status: hasil.status, terbit: spec.terbit, dibuat: true };
+  return { kunci: spec.kunci, id: created.id, slug: created.slug, status: hasil.status, dibuat: true };
 }
 
 async function main(): Promise<void> {
@@ -287,14 +275,14 @@ async function main(): Promise<void> {
     hasil.push(await prosesSatu(supabase, spec, hariIni));
   }
 
-  // Tabel konsol (M.3 no. 5): kunci, slug, status, terbit — slug tidak pernah
-  // ditulis ke berkas yang dikomit.
+  // Tabel konsol (M.3 no. 5): kunci, slug, status — slug tidak pernah ditulis
+  // ke berkas yang dikomit.
   const lebar = (nilai: string, n: number) => (nilai.length > n ? nilai.slice(0, n) : nilai.padEnd(n));
-  console.log(`${lebar("kunci", 9)}  ${lebar("slug", 14)}  ${lebar("status", 12)}  terbit  dibuat`);
+  console.log(`${lebar("kunci", 9)}  ${lebar("slug", 14)}  ${lebar("status", 12)}  dibuat`);
   for (const baris of hasil) {
     console.log(
       `${lebar(baris.kunci, 9)}  ${lebar(baris.slug, 14)}  ` +
-        `${lebar(baris.status, 12)}  ${lebar(baris.terbit ? "ya" : "tidak", 6)}  ${baris.dibuat ? "baru" : "update"}`,
+        `${lebar(baris.status, 12)}  ${baris.dibuat ? "baru" : "update"}`,
     );
   }
   console.log(`Selesai: ${hasil.length} proyek demo pada hari seed ${hariIni}.`);
