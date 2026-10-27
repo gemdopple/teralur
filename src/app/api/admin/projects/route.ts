@@ -5,19 +5,19 @@ import {
   countUnggulanAktif,
   firstMessage,
   isJsonRequest,
+  officialRecordFromRow,
   parseStoredBoard,
   storedStatusToApi,
   zodDetails,
+  type ProjectRecordRow,
 } from "@/lib/admin-projects";
-import { boardToInternal, statusToInternal } from "@/lib/api-contract";
+import { boardToInternal, statusToInternal, type ApiBoard } from "@/lib/api-contract";
 import { compare } from "@/lib/compare";
-import { jakartaToday } from "@/lib/dates";
 import { databaseConfigured, createPublicSlug, readJsonBody } from "@/lib/server-api";
 import { getSupabaseAdmin } from "@/lib/db";
-import { normalisasiTeks } from "@/lib/match/normalisasi";
 
 // Proyek admin (Lampiran E.2–E.3): daftar proyek dan buat proyek baru.
-// Proyek menulis DUA baris (submissions + records) sesuai urutan C.3:
+// Catatan resmi ditautkan dari registry (recordId), bukan ditulis di sini:
 // insert submissions (tanpa record_id) -> insert records -> update record_id.
 // Gagal di tengah: batalkan baris yang sudah ditulis, kembalikan 500 INTERNAL.
 
@@ -85,7 +85,27 @@ export async function POST(request: Request) {
       return jsonError("INTERNAL", 500, "Basis data belum dikonfigurasi.");
     }
 
-    const { board, officialRecord, featured, contractorId } = parsed.data;
+    const { board, recordId, featured, contractorId } = parsed.data;
+
+    // Anti-korupsi: catatan resmi tidak lagi ditulis pembuat proyek. Proyek
+    // menautkan satu baris registry (records, diimpor dari data pengadaan
+    // independen). Tanpa tautan, status jujur: tidak_ditemukan.
+    let officialRecord: ApiBoard | null = null;
+    if (recordId) {
+      const { data: row, error: recordLookupError } = await getSupabaseAdmin()
+        .from("records")
+        .select("id, nama_paket, penyedia, nilai_kontrak, tanggal_kontrak, masa_hari, tahun, satuan_kerja, wilayah, mentah, snapshot_tanggal")
+        .eq("id", recordId)
+        .maybeSingle();
+      if (recordLookupError) {
+        console.error("Unable to look up registry record:", recordLookupError.message);
+        return jsonError("INTERNAL", 500, "Terjadi kesalahan internal.");
+      }
+      if (!row) {
+        return jsonError("VALIDATION_ERROR", 422, "Catatan resmi tidak ditemukan di registry.");
+      }
+      officialRecord = officialRecordFromRow(row as ProjectRecordRow);
+    }
 
     // Batas 3 proyek unggulan aktif (C-01): hitung sebelum menulis apa pun.
     if (featured) {
@@ -95,7 +115,9 @@ export async function POST(request: Request) {
       }
     }
 
-    const hasil = compare(board, officialRecord);
+    const hasil = officialRecord
+      ? compare(board, officialRecord)
+      : { status: "not_found" as const, score: 0 };
     const statusInternal = statusToInternal(hasil.status);
     const supabase = getSupabaseAdmin();
 
@@ -113,6 +135,7 @@ export async function POST(request: Request) {
       dinonaktifkan: false,
       unggulan: featured,
       contractor_id: contractorId ?? null,
+      record_id: recordId ?? null,
     };
     const { data: submission, error: submissionError } = await supabase
       .from("submissions")
@@ -121,54 +144,6 @@ export async function POST(request: Request) {
       .single();
     if (submissionError || !submission) {
       console.error("Unable to save admin project submission:", submissionError?.message);
-      return jsonError("INTERNAL", 500, "Terjadi kesalahan internal.");
-    }
-
-    const tahunCadangan = officialRecord.fiscalYear
-      ?? (officialRecord.contractDate ? Number(officialRecord.contractDate.slice(0, 4)) : null)
-      ?? Number(jakartaToday().slice(0, 4));
-
-    const recordInsert = {
-      sumber: "simulasi",
-      id_sumber: `admin-${submission.id}`,
-      demo: true,
-      nama_paket: officialRecord.packageName,
-      nama_norm: normalisasiTeks(officialRecord.packageName),
-      penyedia: officialRecord.supplier,
-      penyedia_norm: normalisasiTeks(officialRecord.supplier),
-      nilai_kontrak: officialRecord.contractValue,
-      satuan_kerja: officialRecord.agencyUnit ?? "",
-      tanggal_kontrak: officialRecord.contractDate,
-      masa_hari: officialRecord.durationDays,
-      tahun: tahunCadangan,
-      wilayah: officialRecord.locationText ?? "Wilayah simulasi",
-      metode: null,
-      mentah: {
-        fundingSource: officialRecord.fundingSource,
-        contractNumber: officialRecord.contractNumber,
-        locationText: officialRecord.locationText,
-      },
-      snapshot_tanggal: jakartaToday(),
-    };
-    const { data: record, error: recordError } = await supabase
-      .from("records")
-      .insert(recordInsert)
-      .select("id")
-      .single();
-    if (recordError || !record) {
-      await supabase.from("submissions").delete().eq("id", submission.id);
-      console.error("Unable to save admin project record:", recordError?.message);
-      return jsonError("INTERNAL", 500, "Terjadi kesalahan internal.");
-    }
-
-    const { error: linkError } = await supabase
-      .from("submissions")
-      .update({ record_id: record.id })
-      .eq("id", submission.id);
-    if (linkError) {
-      await supabase.from("records").delete().eq("id", record.id);
-      await supabase.from("submissions").delete().eq("id", submission.id);
-      console.error("Unable to link admin project record:", linkError.message);
       return jsonError("INTERNAL", 500, "Terjadi kesalahan internal.");
     }
 

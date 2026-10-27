@@ -40,9 +40,12 @@ export function PratinjauStatus({
   record,
 }: {
   board: BoardLike;
-  record: BoardLike;
+  /** null = belum menautkan catatan resmi registry — status jujur not_found. */
+  record: BoardLike | null;
 }) {
-  const hasil = compare(board, record);
+  const hasil = record
+    ? compare(board, record)
+    : { status: "not_found" as const, score: 0, components: [], discrepancies: [] };
 
   return (
     <section className="rounded-md border border-border bg-card p-4" aria-label="Pratinjau status">

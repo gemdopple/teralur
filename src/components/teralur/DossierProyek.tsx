@@ -15,6 +15,8 @@ import {
   type SelisihProyek,
 } from "@/components/teralur/TabelPapanCatatan";
 import { formatTanggal } from "@/lib/dates";
+import { formatRupiahRingkas } from "@/lib/format-rupiah";
+import { RING_NOTE, ringkasanWarga } from "@/lib/cincin";
 import { formatRupiah } from "@/lib/format-rupiah";
 import { type TimeRing } from "@/lib/cincin";
 import type { ApiBoard } from "@/lib/api-contract";
@@ -179,6 +181,19 @@ export function DossierProyek({
   statis?: boolean;
 }) {
   const tanggalData = record ? formatTanggal(record.snapshotDate) : null;
+  // Ringkasan ramah warga: persen masa berjalan + perkiraan selesai.
+  const ringkasan = ringkasanWarga(timeRing);
+  // Fakta kunci untuk warga: utamakan catatan resmi, jatuh ke papan bila
+  // catatan tidak mengisi field itu (presedensi sama dengan tabel perbandingan).
+  const faktaWarga: Array<{ label: string; nilai: string | null }> = [
+    { label: "Nilai kontrak", nilai: formatRupiahRingkas(record?.contractValue ?? board?.contractValue ?? null) },
+    { label: "Penyedia", nilai: record?.supplier ?? board?.supplier ?? null },
+    { label: "Satuan kerja", nilai: record?.agencyUnit ?? board?.agencyUnit ?? null },
+    { label: "Lokasi", nilai: board?.locationText ?? null },
+    { label: "Tahun anggaran", nilai: (record?.fiscalYear ?? board?.fiscalYear)?.toString() ?? null },
+    { label: "Sumber dana", nilai: board?.fundingSource ?? null },
+    { label: "Nomor kontrak", nilai: board?.contractNumber ?? null },
+  ];
 
   // Baris H.3: tiga field kunci selalu; tujuh lain hanya bila terisi di salah
   // satu sisi. Sel null menampilkan "—" dengan keadaan belum diketahui.
@@ -330,6 +345,58 @@ export function DossierProyek({
             </p>
           )}
         </header>
+
+        {/* [0] Info untuk warga — jawaban "kapan proyek ini selesai?" bagi
+            warga yang baru melihat papan di jalan, plus fakta kunci proyek. */}
+        <Reveal>
+          <section aria-label="Info untuk warga" className="mt-10 rounded-lg border border-border bg-card p-5 shadow-sm">
+            <h2 className="font-heading text-lg font-semibold tracking-tight">Kapan proyek ini selesai?</h2>
+            {ringkasan.tersedia ? (
+              <>
+                <div
+                  className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-valuenow={ringkasan.persen ?? 0}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Waktu pelaksanaan yang telah berjalan"
+                >
+                  <div className="h-full rounded-full bg-kuning-papan" style={{ width: `${ringkasan.persen}%` }} />
+                </div>
+                <p className="mt-3 text-sm leading-6">
+                  Hari ke-{ringkasan.hariBerjalan} dari {ringkasan.totalHari} hari kalender (
+                  <span className="font-semibold">{ringkasan.persen}%</span>
+                  {ringkasan.sisaHari !== null && ringkasan.sisaHari >= 0
+                    ? ` — tersisa ${ringkasan.sisaHari} hari`
+                    : ` — terlewat ${ringkasan.sisaHari !== null ? -ringkasan.sisaHari : 0} hari dari perkiraan`}
+                  ).
+                </p>
+                <p className="mt-1 text-sm">
+                  Perkiraan selesai:{" "}
+                  <span className="font-semibold">
+                    {ringkasan.perkiraanSelesai ? formatTanggal(ringkasan.perkiraanSelesai) : "—"}
+                  </span>.
+                </p>
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Perkiraan selesai belum dapat dihitung — masa pelaksanaan atau tanggal mulai belum
+                tercatat pada data proyek ini.
+              </p>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground">{RING_NOTE}</p>
+            <dl className="mt-4 grid gap-x-6 gap-y-2 border-t border-border pt-4 text-sm sm:grid-cols-2">
+              {faktaWarga
+                .filter((fakta) => fakta.nilai !== null && fakta.nilai !== "")
+                .map((fakta) => (
+                  <div key={fakta.label} className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">{fakta.label}</dt>
+                    <dd className="text-right font-medium">{fakta.nilai}</dd>
+                  </div>
+                ))}
+            </dl>
+          </section>
+        </Reveal>
 
         {/* [1] Rincian data — tabel papan vs catatan resmi yang ringkas. */}
         <section aria-label="Rincian data" className="mt-10">

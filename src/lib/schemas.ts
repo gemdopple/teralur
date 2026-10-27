@@ -40,16 +40,13 @@ export const AdminBoardSchema = BoardSchema.extend({
   packageName: z.string().trim().min(1, "Nama paket wajib diisi").max(300),
 });
 
-// Data resmi simulasi: tiga field wajib (C-05)
-export const AdminRecordSchema = BoardSchema.extend({
-  packageName: z.string().trim().min(1, "Nama paket wajib diisi").max(300),
-  supplier: z.string().trim().min(1, "Penyedia wajib diisi").max(200),
-  contractValue: z.number().int().min(1, "Nilai kontrak wajib diisi").max(1_000_000_000_000_000),
-});
-
+// Catatan resmi TIDAK lagi diketik manual: proyek menautkan satu baris
+// registry (`records`, diimpor dari data pengadaan independen) lewat
+// recordId. Tanpa tautan, status jujur menjadi "tidak ditemukan" sampai
+// datanya diimpor — mencegah pembuat proyek mengisi kedua sisi sendiri.
 export const AdminProjectCreateSchema = z.object({
   board: AdminBoardSchema,
-  officialRecord: AdminRecordSchema,
+  recordId: z.string().uuid().nullish(),
   featured: z.boolean().optional().default(false),
   // Penugasan ke satu kontraktor (opsional; null = belum ditugaskan).
   contractorId: z.string().uuid().nullish(),
@@ -58,7 +55,8 @@ export const AdminProjectCreateSchema = z.object({
 export const AdminProjectPatchSchema = z
   .object({
     board: BoardSchema.partial().optional(),
-    officialRecord: BoardSchema.partial().optional(),
+    // null = lepas tautan registry; undefined = biarkan; uuid = tautkan ulang.
+    recordId: z.string().uuid().nullable().optional(),
     featured: z.boolean().optional(),
     contractorId: z.string().uuid().nullish(),
   })

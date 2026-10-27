@@ -3,7 +3,6 @@ import {
   AdminBoardSchema,
   AdminProjectPatchSchema,
   AdminProjectCreateSchema,
-  AdminRecordSchema,
   mergePatch,
 } from "./schemas";
 
@@ -26,43 +25,18 @@ const RESMI_COCOK = {
 };
 
 describe("AdminProjectCreateSchema", () => {
-  it("menolak create tanpa officialRecord.supplier", () => {
-    const tanpaSupplier: Record<string, unknown> = { ...RESMI_COCOK };
-    delete tanpaSupplier.supplier;
-    const hasil = AdminProjectCreateSchema.safeParse({
+  it("menerima board + recordId registry, featured default false", () => {
+    const hasil = AdminProjectCreateSchema.parse({
       board: PAPAN_COCOK,
-      officialRecord: tanpaSupplier,
+      recordId: "0b9e6c35-1c2d-4e5f-8a9b-0c1d2e3f4a5b",
     });
-    expect(hasil.success).toBe(false);
-    if (!hasil.success) {
-      const jalur = hasil.error.issues.map((i) => i.path.join("."));
-      expect(jalur).toContain("officialRecord.supplier");
-    }
-  });
-
-  it("menolak contractDate 2026-02-30 (tanggal tidak ada di kalender)", () => {
-    const hasil = AdminProjectCreateSchema.safeParse({
-      board: { ...PAPAN_COCOK, contractDate: "2026-02-30" },
-      officialRecord: { ...RESMI_COCOK, contractDate: "2026-02-30" },
-    });
-    expect(hasil.success).toBe(false);
-    if (!hasil.success) {
-      const jalur = hasil.error.issues.map((i) => i.path.join("."));
-      expect(jalur).toContain("board.contractDate");
-      expect(jalur).toContain("officialRecord.contractDate");
-    }
+    expect(hasil.featured).toBe(false);
   });
 
   it("field opsional yang tidak dikirim menjadi null setelah parse", () => {
     const hasil = AdminProjectCreateSchema.parse({
       board: { packageName: "Pembangunan Drainase Desa" },
-      officialRecord: {
-        packageName: "Pembangunan Drainase Desa",
-        supplier: "CV Sinar Tirta Konstruksi",
-        contractValue: 875_000_000,
-      },
     });
-    expect(hasil.featured).toBe(false);
     for (const kunci of [
       "durationDays",
       "fiscalYear",
@@ -73,16 +47,34 @@ describe("AdminProjectCreateSchema", () => {
       "locationText",
     ]) {
       expect(hasil.board[kunci as keyof typeof hasil.board]).toBeNull();
-      expect(hasil.officialRecord[kunci as keyof typeof hasil.officialRecord]).toBeNull();
     }
   });
 
-  it("menolak nilai kontrak nol atau negatif di sisi resmi", () => {
-    const hasil = AdminRecordSchema.safeParse({
-      ...RESMI_COCOK,
-      contractValue: 0,
+  it("menerima tanpa recordId (papan saja — status jujur: tidak ditemukan)", () => {
+    const hasil = AdminProjectCreateSchema.parse({
+      board: { packageName: "Pembangunan Drainase Desa" },
+    });
+    expect(hasil.recordId ?? null).toBeNull();
+  });
+
+  it("menolak recordId yang bukan UUID", () => {
+    const hasil = AdminProjectCreateSchema.safeParse({
+      board: PAPAN_COCOK,
+      recordId: "bukan-uuid",
     });
     expect(hasil.success).toBe(false);
+  });
+
+  it("menolak contractDate 2026-02-30 (tanggal tidak ada di kalender)", () => {
+    const hasil = AdminProjectCreateSchema.safeParse({
+      board: { ...PAPAN_COCOK, contractDate: "2026-02-30" },
+      recordId: null,
+    });
+    expect(hasil.success).toBe(false);
+    if (!hasil.success) {
+      const jalur = hasil.error.issues.map((i) => i.path.join("."));
+      expect(jalur).toContain("board.contractDate");
+    }
   });
 });
 

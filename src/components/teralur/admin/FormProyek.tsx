@@ -18,11 +18,14 @@ import { RING_NOTE, computeTimeRing } from "@/lib/cincin";
 import { parseNilaiUang } from "@/lib/nilai-uang";
 import type { ApiBoard } from "@/lib/api-contract";
 
-// Formulir proyek admin (Lampiran L.3, T-42): dua blok (Data papan dan Data
-// resmi simulasi) dengan pratinjau status langsung (compare() yang sama) dan
-// pratinjau cincin waktu (computeTimeRing). Dipakai di /dashboard/proyek/buat,
-// /dashboard/proyek/[kunci]/kelola, dan halaman alur pemerintah
-// (/dashboard/proyek/baru, /dashboard/proyek/[kunci]/ubah).
+// Formulir proyek admin (Lampiran L.3, T-42): blok Data papan diedit bebas,
+// sedangkan Data resmi DIPILIH dari registry pengadaan independen (tabel
+// records, diimpor via npm run import:records) — bukan diketik manual — agar
+// perbandingan papan-vs-resmi tidak bisa diisi sendiri oleh satu pihak
+// (anti-korupsi). Tanpa tautan, status jujur: Tidak ditemukan. Pratinjau
+// status memakai compare() yang sama dan pratinjau cincin computeTimeRing.
+// Dipakai di /dashboard/proyek/buat, /dashboard/proyek/[kunci]/kelola, dan
+// halaman alur pemerintah (/dashboard/proyek/baru, /[kunci]/ubah).
 
 type FieldKey =
   | "packageName"
@@ -37,7 +40,6 @@ type FieldKey =
   | "locationText";
 
 type Blok = Record<FieldKey, string>;
-type Sisi = "board" | "record";
 
 type InitialData = {
   id: string;
@@ -45,14 +47,28 @@ type InitialData = {
   featured: boolean;
   board: ApiBoard;
   officialRecord: ApiBoard | null;
+  /** id baris registry yang tertaut (null = belum tertaut). */
+  recordId?: string | null;
   /** Kontraktor yang ditugaskan (null/kosong = belum ditugaskan). */
   contractorId?: string | null;
+};
+
+/** Baris registry catatan resmi (hasil pencarian / terpilih). */
+export type RekamanRegistry = {
+  id: string;
+  packageName: string;
+  supplier: string | null;
+  contractValue: number | null;
+  contractDate: string | null;
+  durationDays: number | null;
+  fiscalYear: number | null;
+  agencyUnit: string | null;
 };
 
 /** Pilihan kontraktor untuk penugasan satu proyek ke satu kontraktor. */
 export type OpsiKontraktor = { id: string; nama: string };
 
-type FieldErrors = Partial<Record<Sisi, Partial<Record<FieldKey, string>>>>;
+type FieldErrors = { board?: Partial<Record<FieldKey, string>> };
 
 // Batas panjang dan aturan per field (Lampiran L.3 / D.1).
 const BATAS_PANJANG: Partial<Record<FieldKey, number>> = {
@@ -91,10 +107,7 @@ const URUTAN_FIELD: FieldKey[] = [
   "locationText",
 ];
 
-const NAMA_SISI: Record<Sisi, string> = {
-  board: "Data papan",
-  record: "Data resmi",
-};
+const NAMA_SISI = { board: "Data papan" };
 
 const BLOK_KOSONG: Blok = {
   packageName: "",
@@ -160,6 +173,31 @@ type ApiBlok = {
   locationText: string | null;
 };
 
+function rekamanDariApi(id: string, api: ApiBoard): RekamanRegistry {
+  return {
+    id,
+    packageName: api.packageName ?? "(tanpa nama)",
+    supplier: api.supplier,
+    contractValue: api.contractValue,
+    contractDate: api.contractDate,
+    durationDays: api.durationDays,
+    fiscalYear: api.fiscalYear,
+    agencyUnit: api.agencyUnit,
+  };
+}
+
+function rekamanKePerbandingan(item: RekamanRegistry): {
+  packageName: string | null;
+  supplier: string | null;
+  contractValue: number | null;
+} {
+  return {
+    packageName: item.packageName,
+    supplier: item.supplier,
+    contractValue: item.contractValue,
+  };
+}
+
 // Ubah isi blok menjadi payload API (Lampiran D.1): teks kosong → null,
 // nilai kontrak diparse dengan parser D.2, angka divalidasi rentang.
 function blokKeApi(blok: Blok): ApiBlok {
@@ -194,9 +232,10 @@ function tanggalValid(iso: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === iso;
 }
 
-// Validasi klien per field (L.3): wajib papan hanya nama paket; wajib resmi
-// nama paket + penyedia + nilai kontrak; rentang angka; tanggal TTTT-BB-HH.
-function validasiBlok(blok: Blok, sisi: Sisi): Partial<Record<FieldKey, string>> {
+// Validasi klien per field (L.3): wajib papan hanya nama paket; sisi resmi
+// tidak divalidasi lagi (isinya read-only dari registry). Rentang angka;
+// tanggal TTTT-BB-HH.
+function validasiBlok(blok: Blok): Partial<Record<FieldKey, string>> {
   const galat: Partial<Record<FieldKey, string>> = {};
 
   const nama = blok.packageName.trim();
@@ -205,14 +244,11 @@ function validasiBlok(blok: Blok, sisi: Sisi): Partial<Record<FieldKey, string>>
     galat.packageName = "Nama paket maksimal 300 karakter.";
 
   const penyedia = blok.supplier.trim();
-  if (sisi === "record" && penyedia === "") galat.supplier = "Penyedia wajib diisi.";
-  else if (penyedia.length > BATAS_PANJANG.supplier!)
+  if (penyedia.length > BATAS_PANJANG.supplier!)
     galat.supplier = "Penyedia maksimal 200 karakter.";
 
   const nilaiTeks = blok.contractValue.trim();
-  if (sisi === "record" && nilaiTeks === "") {
-    galat.contractValue = "Nilai kontrak wajib diisi.";
-  } else if (nilaiTeks !== "") {
+  if (nilaiTeks !== "") {
     const nilai = parseNilaiUang(nilaiTeks);
     if (nilai === null) galat.contractValue = GALAT_NILAI;
     else if (nilai > NILAI_MAKSIMAL) galat.contractValue = "Nilai kontrak melebihi batas maksimal.";
@@ -302,41 +338,117 @@ function Kolom({
   );
 }
 
+function PemilihRegistry({
+  terpilih,
+  kueri,
+  hasil,
+  mencari,
+  onKueri,
+  onPilih,
+  onLepas,
+}: {
+  terpilih: RekamanRegistry | null;
+  kueri: string;
+  hasil: RekamanRegistry[];
+  mencari: boolean;
+  onKueri: (nilai: string) => void;
+  onPilih: (item: RekamanRegistry) => void;
+  onLepas: () => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex-row items-center justify-between gap-2">
+        <CardTitle>Data resmi — dari registry</CardTitle>
+        {terpilih ? (
+          <Button type="button" variant="outline" size="sm" onClick={onLepas}>
+            Lepas tautan
+          </Button>
+        ) : null}
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {terpilih ? (
+          <dl className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+            <div className="font-semibold leading-snug">{terpilih.packageName}</div>
+            <div className="mt-1 text-muted-foreground">{terpilih.supplier ?? "Penyedia tidak tercatat"}</div>
+            <div className="mt-1 font-mono text-xs">
+              {terpilih.contractValue !== null
+                ? formatRupiah(terpilih.contractValue)
+                : "Nilai tidak tercatat"}
+              {terpilih.contractDate ? ` · ${terpilih.contractDate}` : ""}
+              {terpilih.durationDays ? ` · ${terpilih.durationDays} hari` : ""}
+            </div>
+          </dl>
+        ) : null}
+        <div className="space-y-1.5">
+          <Label htmlFor="cari-registry">
+            {terpilih ? "Cari catatan lain di registry" : "Cari catatan resmi (nama paket / penyedia)"}
+          </Label>
+          <Input
+            id="cari-registry"
+            value={kueri}
+            placeholder="Minimal 3 karakter, mis. nama paket…"
+            onChange={(e) => onKueri(e.target.value)}
+          />
+        </div>
+        {mencari ? <p className="text-xs text-muted-foreground">Mencari…</p> : null}
+        {!mencari && kueri.trim().length >= 3 && hasil.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Tidak ada di registry. Proyek tetap bisa disimpan tanpa tautan — statusnya jujur:
+            &quot;Tidak ditemukan&quot; sampai data resminya diimpor.
+          </p>
+        ) : null}
+        {hasil.length > 0 ? (
+          <ul className="max-h-56 space-y-1 overflow-y-auto" aria-label="Hasil pencarian registry">
+            {hasil.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => onPilih(item)}
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left text-sm transition-colors hover:bg-accent/60"
+                >
+                  <span className="line-clamp-1 font-medium">{item.packageName}</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    {item.supplier ?? "Penyedia tidak tercatat"}
+                    {item.contractValue !== null ? ` · ${formatRupiah(item.contractValue)}` : ""}
+                    {item.contractDate ? ` · ${item.contractDate}` : ""}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <p className="text-xs leading-5 text-muted-foreground">
+          Catatan resmi berasal dari database pengadaan yang diimpor terpisah — pembuat proyek
+          tidak bisa menulisnya sendiri, sehingga perbandingan papan-vs-resmi independen.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function BlokFormulir({
-  sisi,
   blok,
   galat,
   tampilkanGalat,
   onChange,
-  salinDariPapan,
 }: {
-  sisi: Sisi;
   blok: Blok;
   galat: Partial<Record<FieldKey, string>>;
   tampilkanGalat: boolean;
   onChange: (key: FieldKey, value: string) => void;
-  salinDariPapan?: () => void;
 }) {
   const nilaiTerbaca = parseNilaiUang(blok.contractValue);
 
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-2">
-        <CardTitle>{NAMA_SISI[sisi]}</CardTitle>
-        {salinDariPapan ? (
-          <Button type="button" variant="outline" size="sm" onClick={salinDariPapan}>
-            Salin dari papan
-          </Button>
-        ) : null}
+        <CardTitle>{NAMA_SISI.board}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {URUTAN_FIELD.map((key) => {
-          const id = `${sisi}-${key}`;
+          const id = `board-${key}`;
           const err = tampilkanGalat ? galat[key] : undefined;
-          const wajib =
-            (sisi === "board" && key === "packageName") ||
-            (sisi === "record" &&
-              (key === "packageName" || key === "supplier" || key === "contractValue"));
+          const wajib = key === "packageName";
           const tipe =
             key === "contractValue" ? "text" : key === "contractDate" ? "date" : "text";
           const inputMode =
@@ -397,9 +509,15 @@ export function FormProyek({
   const [board, setBoard] = useState<Blok>(() =>
     initial ? blokDariApi(initial.board) : { ...BLOK_KOSONG },
   );
-  const [record, setRecord] = useState<Blok>(() =>
-    initial?.officialRecord ? blokDariApi(initial.officialRecord) : { ...BLOK_KOSONG },
+  // Catatan resmi: hasil pilihan registry (read-only), bukan isian bebas.
+  const [recordTerpilih, setRecordTerpilih] = useState<RekamanRegistry | null>(() =>
+    initial?.officialRecord && initial.recordId
+      ? rekamanDariApi(initial.recordId, initial.officialRecord)
+      : null,
   );
+  const [kueriCari, setKueriCari] = useState("");
+  const [hasilCari, setHasilCari] = useState<RekamanRegistry[]>([]);
+  const [mencariCari, setMencariCari] = useState(false);
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [contractorId, setContractorId] = useState(initial?.contractorId ?? "");
   const [kotor, setKotor] = useState(false);
@@ -413,8 +531,8 @@ export function FormProyek({
   const [galatServer, setGalatFieldServer] = useState<FieldErrors | null>(null);
 
   const galatField: FieldErrors = useMemo(
-    () => ({ board: validasiBlok(board, "board"), record: validasiBlok(record, "record") }),
-    [board, record],
+    () => ({ board: validasiBlok(board) }),
+    [board],
   );
 
   // Peringatan sebelum meninggalkan halaman bila ada perubahan belum tersimpan.
@@ -429,16 +547,45 @@ export function FormProyek({
     return () => window.removeEventListener("beforeunload", handler);
   }, [kotor]);
 
-  function ubahBlok(sisi: Sisi, key: FieldKey, value: string) {
-    const setter = sisi === "board" ? setBoard : setRecord;
-    setter((sebelumnya) => ({ ...sebelumnya, [key]: value }));
+  function ubahBlok(key: FieldKey, value: string) {
+    setBoard((sebelumnya) => ({ ...sebelumnya, [key]: value }));
     setKotor(true);
     setPesanSukses(null);
     setGalatFieldServer(null);
   }
 
-  function salinDariPapan() {
-    setRecord({ ...board });
+  // Pencarian registry dengan jeda ketik 300 ms (endpoint admin khusus).
+  useEffect(() => {
+    const q = kueriCari.trim();
+    const timer = setTimeout(() => {
+      if (q.length < 3) {
+        setHasilCari([]);
+        return;
+      }
+      setMencariCari(true);
+      fetch(`/api/admin/records/search?q=${encodeURIComponent(q)}`)
+        .then(async (res) => {
+          if (!res.ok) throw new Error(String(res.status));
+          const body = (await res.json()) as { results?: RekamanRegistry[] };
+          setHasilCari(Array.isArray(body.results) ? body.results : []);
+        })
+        .catch(() => setHasilCari([]))
+        .finally(() => setMencariCari(false));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [kueriCari]);
+
+  function pilihRecord(item: RekamanRegistry) {
+    setRecordTerpilih(item);
+    setKueriCari("");
+    setHasilCari([]);
+    setKotor(true);
+    setPesanSukses(null);
+    setGalatFieldServer(null);
+  }
+
+  function lepasRecord() {
+    setRecordTerpilih(null);
     setKotor(true);
     setPesanSukses(null);
     setGalatFieldServer(null);
@@ -449,7 +596,8 @@ export function FormProyek({
   async function simpanData(): Promise<{ id: string; slug: string } | null> {
     const payload = {
       board: blokKeApi(board),
-      officialRecord: blokKeApi(record),
+      // null = lepas tautan (status jujur: tidak ditemukan).
+      recordId: recordTerpilih?.id ?? null,
       featured,
       ...(kontraktor ? { contractorId: contractorId || null } : {}),
     };
@@ -485,7 +633,7 @@ export function FormProyek({
       for (const detail of galat.details) {
         const sisi = detail.path[0];
         const kunci = detail.path[1];
-        if ((sisi === "board" || sisi === "record") && typeof kunci === "string") {
+        if (sisi === "board" && typeof kunci === "string") {
           dariServer[sisi] = { ...(dariServer[sisi] ?? {}), [kunci]: detail.message };
         }
       }
@@ -505,12 +653,9 @@ export function FormProyek({
     if (!galatServer) return galatField;
     return {
       board: { ...(galatServer.board ?? {}), ...(galatField.board ?? {}) },
-      record: { ...(galatServer.record ?? {}), ...(galatField.record ?? {}) },
     };
   }, [galatServer, galatField]);
-  const adaGalatGabungan =
-    Object.keys(galatGabungan.board ?? {}).length > 0 ||
-    Object.keys(galatGabungan.record ?? {}).length > 0;
+  const adaGalatGabungan = Object.keys(galatGabungan.board ?? {}).length > 0;
 
   // Simpan proyek (POST baru / PATCH ubah). Tidak ada langkah terbit terpisah:
   // proyek yang tersimpan langsung tampil publik.
@@ -553,18 +698,16 @@ export function FormProyek({
 
   // Ringkasan galat untuk role="alert" di atas form.
   const ringkasanGalat: string[] = [];
-  for (const sisi of ["board", "record"] as const) {
-    for (const [kunci, pesan] of Object.entries(galatGabungan[sisi] ?? {})) {
-      ringkasanGalat.push(`${NAMA_SISI[sisi]} — ${LABEL_FIELD[kunci as FieldKey]}: ${pesan}`);
-    }
+  for (const [kunci, pesan] of Object.entries(galatGabungan.board ?? {})) {
+    ringkasanGalat.push(`${NAMA_SISI.board} — ${LABEL_FIELD[kunci as FieldKey]}: ${pesan}`);
   }
 
   // Pratinjau cincin waktu (Lampiran G.1) dari nilai form saat ini.
   const ring = computeTimeRing({
     boardDurationDays: angkaAtauKosong(board.durationDays),
-    recordDurationDays: angkaAtauKosong(record.durationDays),
+    recordDurationDays: recordTerpilih?.durationDays ?? null,
     boardContractDate: board.contractDate.trim() || null,
-    recordContractDate: record.contractDate.trim() || null,
+    recordContractDate: recordTerpilih?.contractDate ?? null,
     today,
   });
 
@@ -611,26 +754,26 @@ export function FormProyek({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <BlokFormulir
-          sisi="board"
           blok={board}
           galat={galatGabungan.board ?? {}}
           tampilkanGalat={tampilkanGalat}
-          onChange={(key, value) => ubahBlok("board", key, value)}
+          onChange={(key, value) => ubahBlok(key, value)}
         />
-        <BlokFormulir
-          sisi="record"
-          blok={record}
-          galat={galatGabungan.record ?? {}}
-          tampilkanGalat={tampilkanGalat}
-          onChange={(key, value) => ubahBlok("record", key, value)}
-          salinDariPapan={salinDariPapan}
+        <PemilihRegistry
+          terpilih={recordTerpilih}
+          kueri={kueriCari}
+          hasil={hasilCari}
+          mencari={mencariCari}
+          onKueri={setKueriCari}
+          onPilih={pilihRecord}
+          onLepas={lepasRecord}
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <PratinjauStatus
           board={blokKePerbandingan(board)}
-          record={blokKePerbandingan(record)}
+          record={recordTerpilih ? rekamanKePerbandingan(recordTerpilih) : null}
         />
         <section
           className="rounded-md border border-border bg-card p-4"

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeTimeRing, hitungCincin, inputCincin, RING_NOTE } from "./cincin";
+import { computeTimeRing, hitungCincin, inputCincin, RING_NOTE, ringkasanWarga } from "./cincin";
 import type { RingInput } from "./cincin";
 
 const HARI_INI = "2026-10-19";
@@ -227,5 +227,49 @@ describe("computeTimeRing (vektor G.2, hari ini = 2026-10-24)", () => {
     const salinan = structuredClone(input);
     computeTimeRing(input);
     expect(input).toEqual(salinan);
+  });
+});
+
+describe("ringkasanWarga", () => {
+  const dasar = {
+    boardDurationDays: 100,
+    recordDurationDays: null,
+    boardContractDate: "2026-01-01",
+    recordContractDate: null,
+  };
+
+  it("menghitung persen, perkiraan selesai, dan hari tersisa", () => {
+    const ring = computeTimeRing({ ...dasar, today: "2026-01-31" }); // hari ke-30
+    const ringkasan = ringkasanWarga(ring);
+    expect(ringkasan.tersedia).toBe(true);
+    expect(ringkasan.persen).toBe(30);
+    expect(ringkasan.perkiraanSelesai).toBe("2026-04-11"); // 1 Jan + 100 hari
+    expect(ringkasan.sisaHari).toBe(70);
+  });
+
+  it("memuaatkan 100 dan menandai terlewat setelah lewat perkiraan", () => {
+    const ring = computeTimeRing({ ...dasar, today: "2026-05-01" }); // hari ke-120
+    const ringkasan = ringkasanWarga(ring);
+    expect(ringkasan.persen).toBe(100);
+    expect(ringkasan.lewat).toBe(true);
+    expect(ringkasan.sisaHari).toBe(-20);
+  });
+
+  it("belum dimulai: persen 0 tanpa hari tersisa negatif", () => {
+    const ring = computeTimeRing({ ...dasar, boardContractDate: "2030-01-01", today: "2026-01-01" });
+    const ringkasan = ringkasanWarga(ring);
+    expect(ringkasan.tersedia).toBe(false);
+    expect(ringkasan.persen).toBeNull();
+  });
+
+  it("tanpa tanggal mulai: tidak tersedia", () => {
+    const ring = computeTimeRing({
+      boardDurationDays: 100,
+      recordDurationDays: null,
+      boardContractDate: null,
+      recordContractDate: null,
+      today: "2026-01-01",
+    });
+    expect(ringkasanWarga(ring).tersedia).toBe(false);
   });
 });

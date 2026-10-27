@@ -207,3 +207,52 @@ export function computeTimeRing(input: RingInput): TimeRing {
     caption: `Melewati masa kontrak tercatat ${overDays} hari. Addendum atau perpanjangan mungkin ada.`,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Ringkasan ramah warga: persen masa berjalan + perkiraan tanggal selesai,
+// dalam bahasa yang bisa dibaca warga yang melihat papan di jalan.
+
+export interface RingkasanWarga {
+  /** false bila masa pelaksanaan atau tanggal mulai belum tercatat. */
+  tersedia: boolean;
+  /** Persen hari berjalan 0–100 (dibulatkan ke bawah). */
+  persen: number | null;
+  hariBerjalan: number | null;
+  totalHari: number | null;
+  /** Perkiraan tanggal selesai = tanggal mulai + masa pelaksanaan (TTTT-BB-HH). */
+  perkiraanSelesai: string | null;
+  /** Positif = hari tersisa; negatif = hari terlewat dari perkiraan. */
+  sisaHari: number | null;
+  /** true bila masa pelaksanaan sudah melewati perkiraan selesai. */
+  lewat: boolean;
+}
+
+export function ringkasanWarga(ring: TimeRing): RingkasanWarga {
+  if (
+    (ring.state !== "running" && ring.state !== "over") ||
+    ring.totalDays === null ||
+    ring.startDate === null ||
+    ring.elapsedDays === null
+  ) {
+    return {
+      tersedia: false,
+      persen: null,
+      hariBerjalan: ring.elapsedDays,
+      totalHari: ring.totalDays,
+      perkiraanSelesai: null,
+      sisaHari: null,
+      lewat: false,
+    };
+  }
+  const persen = Math.min(100, Math.floor((ring.elapsedDays / ring.totalDays) * 100));
+  const selesaiUtc = keUtcTengahMalam(ring.startDate) + ring.totalDays * SATU_HARI_MS;
+  return {
+    tersedia: true,
+    persen,
+    hariBerjalan: ring.elapsedDays,
+    totalHari: ring.totalDays,
+    perkiraanSelesai: new Date(selesaiUtc).toISOString().slice(0, 10),
+    sisaHari: ring.totalDays - ring.elapsedDays,
+    lewat: ring.state === "over",
+  };
+}

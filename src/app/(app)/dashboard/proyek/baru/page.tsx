@@ -57,7 +57,7 @@ export default async function HalamanTugaskanProyek() {
     <>
       <KepalaDasbor
         judul="Tugaskan proyek"
-        deskripsi="Masukkan data papan lapangan dan catatan resmi, tetapkan kontraktor pelaksana, lalu simpan."
+        deskripsi="Masukkan data papan lapangan, pilih catatan resmi dari registry pengadaan, tetapkan kontraktor pelaksana, lalu simpan."
       />
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <FormProyek

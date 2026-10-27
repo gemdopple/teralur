@@ -106,7 +106,7 @@ export default async function HalamanUbahProyek({
     <>
       <KepalaDasbor
         judul="Ubah proyek"
-        deskripsi="Perbarui data papan lapangan atau catatan resmi, ubah kontraktor pelaksana, lalu simpan. Perubahan langsung memperbarui status pencocokan."
+        deskripsi="Perbarui data papan lapangan, ganti tautan catatan resmi dari registry, ubah kontraktor pelaksana, lalu simpan. Perubahan langsung memperbarui status pencocokan."
       />
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <FormProyek
@@ -121,6 +121,7 @@ export default async function HalamanUbahProyek({
             contractorId: submission.contractor_id,
             board,
             officialRecord,
+            recordId: submission.record_id ?? null,
           }}
         />
       </div>

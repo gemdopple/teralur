@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   AdminBoardSchema,
-  AdminRecordSchema,
   AdminProjectPatchSchema,
   mergePatch,
 } from "@/lib/schemas";
@@ -13,17 +12,14 @@ import {
   isJsonRequest,
   officialRecordFromRow,
   parseStoredBoard,
-  recordMentah,
   storedStatusToApi,
   zodDetails,
   type ProjectRecordRow,
 } from "@/lib/admin-projects";
-import { boardToInternal, statusToInternal } from "@/lib/api-contract";
+import { boardToInternal, statusToInternal, type ApiBoard } from "@/lib/api-contract";
 import { compare } from "@/lib/compare";
-import { jakartaToday } from "@/lib/dates";
 import { readJsonBody } from "@/lib/server-api";
 import { getSupabaseAdmin } from "@/lib/db";
-import { normalisasiTeks } from "@/lib/match/normalisasi";
 
 // Satu proyek admin (Lampiran E.4–E.7): baca, ubah sebagian (aturan PATCH D.1),
 // dan nonaktifkan (hapus lunak). Slug TIDAK PERNAH berubah (C-07).
@@ -63,16 +59,6 @@ async function fetchRecord(id: string): Promise<ProjectRecordRow | null> {
   return (data as ProjectRecordRow | null);
 }
 
-function tahunDari(record: {
-  fiscalYear: number | null;
-  contractDate: string | null;
-}): number {
-  return (
-    record.fiscalYear
-    ?? (record.contractDate ? Number(record.contractDate.slice(0, 4)) : null)
-    ?? Number(jakartaToday().slice(0, 4))
-  );
-}
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -164,7 +150,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const raw = (body.value ?? {}) as Record<string, unknown>;
     const rawBoard = (typeof raw.board === "object" && raw.board !== null ? raw.board : {}) as Record<string, unknown>;
-    const rawRecord = (typeof raw.officialRecord === "object" && raw.officialRecord !== null ? raw.officialRecord : {}) as Record<string, unknown>;
 
     // Aturan PATCH (D.1): kunci dari body mentah menentukan apa yang digabung;
     // kunci null berarti kosongkan; kunci yang tidak dikirim tetap.
@@ -178,17 +163,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       boardBaru = validasi.data;
     }
 
-    let recordBaru: z.infer<typeof AdminRecordSchema> | null = null;
-    if (parsed.data.officialRecord !== undefined) {
-      if (!currentRecord) {
-        return jsonError("INTERNAL", 500, "Terjadi kesalahan internal.");
+    // Catatan resmi kini ditautkan dari registry (anti-korupsi): null = lepas
+    // tautan; uuid = tautkan ulang; undefined (tidak dikirim) = biarkan.
+    let recordLinkBaru: string | null | undefined;
+    let resmiBaru: ApiBoard | null = currentRecord
+      ? officialRecordFromRow(currentRecord)
+      : null;
+    if (parsed.data.recordId !== undefined) {
+      if (parsed.data.recordId === null) {
+        recordLinkBaru = null;
+        resmiBaru = null;
+      } else {
+        const row = await fetchRecord(parsed.data.recordId);
+        if (!row) {
+          return jsonError("VALIDATION_ERROR", 422, "Catatan resmi tidak ditemukan di registry.");
+        }
+        recordLinkBaru = row.id;
+        resmiBaru = officialRecordFromRow(row);
       }
-      const gabungan = mergePatch(officialRecordFromRow(currentRecord), rawRecord, parsed.data.officialRecord);
-      const validasi = AdminRecordSchema.safeParse(gabungan);
-      if (!validasi.success) {
-        return jsonError("VALIDATION_ERROR", 422, firstMessage(validasi.error), zodDetails(validasi.error));
-      }
-      recordBaru = validasi.data;
     }
 
     // Batas 3 unggulan aktif: proyek lain yang sudah unggulan dihitung dulu.
@@ -200,12 +192,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const supabase = getSupabaseAdmin();
-    const adaPerubahanData = parsed.data.board !== undefined || parsed.data.officialRecord !== undefined;
+    const adaPerubahanData =
+      parsed.data.board !== undefined || parsed.data.recordId !== undefined;
     const contractorDikirim = parsed.data.contractorId !== undefined;
 
     if (adaPerubahanData) {
-      const resmi = recordBaru ?? (currentRecord ? officialRecordFromRow(currentRecord) : boardBaru);
-      const hasil = compare(boardBaru, resmi);
+      // Tanpa catatan resmi tertaut, status jujur: tidak_ditemukan.
+      const hasil = resmiBaru
+        ? compare(boardBaru, resmiBaru)
+        : { status: "not_found" as const, score: 0 };
       const { error: updateError } = await supabase
         .from("submissions")
         .update({
@@ -215,29 +210,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           ...(parsed.data.featured !== undefined ? { unggulan: parsed.data.featured } : {}),
           // Penugasan kontraktor ikut tersimpan bila dikirim (null = lepas tugas).
           ...(contractorDikirim ? { contractor_id: parsed.data.contractorId ?? null } : {}),
+          ...(recordLinkBaru !== undefined ? { record_id: recordLinkBaru } : {}),
         })
         .eq("id", submission.id);
       if (updateError) throw new Error(`Project update failed: ${updateError.message}`);
-
-      if (recordBaru && submission.record_id) {
-        const { error: recordError } = await supabase
-          .from("records")
-          .update({
-            nama_paket: recordBaru.packageName,
-            nama_norm: normalisasiTeks(recordBaru.packageName),
-            penyedia: recordBaru.supplier,
-            penyedia_norm: normalisasiTeks(recordBaru.supplier ?? ""),
-            nilai_kontrak: recordBaru.contractValue,
-            satuan_kerja: recordBaru.agencyUnit ?? "",
-            tanggal_kontrak: recordBaru.contractDate,
-            masa_hari: recordBaru.durationDays,
-            tahun: tahunDari(recordBaru),
-            wilayah: recordBaru.locationText ?? "Wilayah simulasi",
-            mentah: recordMentah(recordBaru),
-          })
-          .eq("id", submission.record_id);
-        if (recordError) throw new Error(`Official record update failed: ${recordError.message}`);
-      }
 
       return jsonOk({ id: submission.id, slug: submission.slug, status: hasil.status });
     }
