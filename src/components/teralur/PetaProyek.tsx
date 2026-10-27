@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, Component, type ReactNode } 
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import type { DossierStatus } from "@/components/teralur/ChipStatus";
 import { formatRupiahRingkas } from "@/lib/format-rupiah";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -231,7 +232,9 @@ export function PetaProyek({
             />
           </div>
 
-          {/* Satu tombol Filter (permintaan PM) — pilihan status dalam dropdown. */}
+          {/* Satu tombol Filter (permintaan PM) — pilihan status dalam dropdown.
+              Sama tinggi dengan Input (h-9, rounded-xl). Kuning saat saringan
+              aktif agar pengguna melihat daftar sedang tersaring. */}
           <div className="relative shrink-0">
           {bukaFilter && (
             <button
@@ -242,16 +245,21 @@ export function PetaProyek({
               className="fixed inset-0 z-20 cursor-default"
             />
           )}
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setBukaFilter((v) => !v)}
             aria-expanded={bukaFilter}
             aria-haspopup="listbox"
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+            className={cn(
+              "rounded-xl px-3",
+              filter !== "semua" &&
+                "border-transparent! bg-kuning-papan! text-hitam-aspal! hover:bg-kuning-papan/90! hover:text-hitam-aspal! aria-expanded:bg-kuning-papan! aria-expanded:text-hitam-aspal!",
+            )}
           >
             <HugeiconsIcon icon={FilterIcon} className="size-4" strokeWidth={2} />
             Filter
-          </button>
+          </Button>
           {bukaFilter && (
             <div
               role="listbox"
