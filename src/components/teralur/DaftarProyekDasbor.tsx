@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -300,7 +300,16 @@ function Kartu({
   );
 }
 
-export function DaftarProyekDasbor({ baris, peran }: { baris: BarisProyek[]; peran: AppRole }) {
+export function DaftarProyekDasbor({
+  baris,
+  peran,
+  aksi,
+}: {
+  baris: BarisProyek[];
+  peran: AppRole;
+  /** Aksi utama (mis. Buat proyek) — tampil di ujung bilah saring. */
+  aksi?: ReactNode;
+}) {
   const [kueri, setKueri] = useState("");
   const [status, setStatus] = useState<PilihanStatus>("semua");
   const [urutan, setUrutan] = useState<Urutan>("terbaru");
@@ -373,6 +382,7 @@ export function DaftarProyekDasbor({ baris, peran }: { baris: BarisProyek[]; per
             ))}
           </SelectContent>
         </Select>
+        {aksi && <div className="ms-auto">{aksi}</div>}
       </div>
 
       {tersembunyi.size > 0 && (

@@ -135,18 +135,7 @@ export default async function HalamanProyekDasbor() {
 
   return (
     <>
-      <KepalaDasbor
-        judul="Proyek"
-        deskripsi={DESKRIPSI_PERAN[peran]}
-        aksi={
-          bisaBuat ? (
-            <Link href={hrefBuat} className={kelasTombol()}>
-              <HugeiconsIcon icon={Add01Icon} data-icon="inline-start" />
-              {peran === "admin" ? "Buat proyek" : "Tugaskan proyek"}
-            </Link>
-          ) : undefined
-        }
-      />
+      <KepalaDasbor judul="Proyek" deskripsi={DESKRIPSI_PERAN[peran]} />
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         {!databaseConfigured() ? (
           <Reveal>
@@ -156,9 +145,15 @@ export default async function HalamanProyekDasbor() {
           </Reveal>
         ) : rows.length === 0 ? (
           <Reveal>
-            <p className="rounded-lg border border-border bg-card px-4 py-6 text-sm text-muted-foreground shadow-sm">
-              {pesanKosong}
-            </p>
+            <div className="rounded-lg border border-border bg-card px-4 py-6 text-sm text-muted-foreground shadow-sm">
+              <p>{pesanKosong}</p>
+              {bisaBuat && (
+                <Link href={hrefBuat} className={`${kelasTombol()} mt-4`}>
+                  <HugeiconsIcon icon={Add01Icon} data-icon="inline-start" />
+                  {peran === "admin" ? "Buat proyek" : "Tugaskan proyek"}
+                </Link>
+              )}
+            </div>
           </Reveal>
         ) : (
           <Reveal>
@@ -169,7 +164,18 @@ export default async function HalamanProyekDasbor() {
                 digulir menyamping.
               </p>
             )}
-            <DaftarProyekDasbor baris={rows} peran={peran} />
+            <DaftarProyekDasbor
+              baris={rows}
+              peran={peran}
+              aksi={
+                bisaBuat ? (
+                  <Link href={hrefBuat} className={kelasTombol()}>
+                    <HugeiconsIcon icon={Add01Icon} data-icon="inline-start" />
+                    {peran === "admin" ? "Buat proyek" : "Tugaskan proyek"}
+                  </Link>
+                ) : undefined
+              }
+            />
           </Reveal>
         )}
       </div>
