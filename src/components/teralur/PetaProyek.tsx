@@ -4,7 +4,13 @@ import { useCallback, useEffect, useMemo, useState, Component, type ReactNode } 
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { DossierStatus } from "@/components/teralur/ChipStatus";
 import { formatRupiahRingkas } from "@/lib/format-rupiah";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -13,7 +19,6 @@ import {
   Location01Icon,
   ArrowRight01Icon,
   FilterIcon,
-  CheckmarkCircle01Icon,
 } from "@hugeicons/core-free-icons";
 import type { ProyekDemo } from "@/data/proyek-demo";
 import { daftarProyekPublik } from "@/data/proyek-demo";
@@ -161,7 +166,6 @@ export function PetaProyek({
 }) {
   const [kueri, setKueri] = useState("");
   const [filter, setFilter] = useState<FilterStatus>("semua");
-  const [bukaFilter, setBukaFilter] = useState(false);
   const [posisiSaya, setPosisiSaya] = useState<{ lat: number; lng: number } | null>(null);
   const [terpilih, setTerpilih] = useState<string | null>(null);
   // Kunci peta: naik saat peta terdeteksi mati (lihat CekHidup di
@@ -232,69 +236,32 @@ export function PetaProyek({
             />
           </div>
 
-          {/* Satu tombol Filter (permintaan PM) — pilihan status dalam dropdown.
-              Default ui/button: sama tinggi (h-9) dan radius (lg) dengan Input.
-              Kuning saat saringan aktif agar pengguna melihat daftar tersaring. */}
-          <div className="relative shrink-0">
-          {bukaFilter && (
-            <button
-              type="button"
-              aria-label="Tutup filter"
-              tabIndex={-1}
-              onClick={() => setBukaFilter(false)}
-              className="fixed inset-0 z-20 cursor-default"
-            />
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setBukaFilter((v) => !v)}
-            aria-expanded={bukaFilter}
-            aria-haspopup="listbox"
-            className={cn(
-              "px-3",
-              filter !== "semua" &&
-                "border-transparent! bg-kuning-papan! text-hitam-aspal! hover:bg-kuning-papan/90! hover:text-hitam-aspal! aria-expanded:bg-kuning-papan! aria-expanded:text-hitam-aspal!",
-            )}
+          {/* Satu tombol Filter (permintaan PM) — primitif ui/select, sama
+              dengan bilah saring dasbor. Kuning saat saringan aktif agar
+              pengguna melihat daftar tersaring. */}
+          <Select
+            selectedKey={filter}
+            onSelectionChange={(kunci) => setFilter(kunci as FilterStatus)}
           >
-            <HugeiconsIcon icon={FilterIcon} className="size-4" strokeWidth={2} />
-            Filter
-          </Button>
-          {bukaFilter && (
-            <div
-              role="listbox"
-              aria-label="Filter status"
-              className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-lg border border-border bg-card shadow-xl shadow-hitam-aspal/15"
+            <SelectTrigger
+              aria-label="Saring status"
+              className={cn(
+                "w-36 px-3",
+                filter !== "semua" &&
+                  "border-transparent! bg-kuning-papan! text-hitam-aspal! hover:bg-kuning-papan/90! hover:text-hitam-aspal! aria-expanded:bg-kuning-papan! aria-expanded:text-hitam-aspal!",
+              )}
             >
+              <HugeiconsIcon icon={FilterIcon} className="size-4" strokeWidth={2} />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
               {FILTERS.map((pilihan) => (
-                <button
-                  key={pilihan.nilai}
-                  type="button"
-                  role="option"
-                  aria-selected={filter === pilihan.nilai}
-                  onClick={() => {
-                    setFilter(pilihan.nilai);
-                    setBukaFilter(false);
-                  }}
-                  className={cn(
-                    "flex w-full items-center justify-between px-4 py-2.5 text-left text-xs font-medium transition-colors",
-                    filter === pilihan.nilai
-                      ? "bg-accent text-foreground"
-                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-                  )}
-                >
+                <SelectItem key={pilihan.nilai} id={pilihan.nilai}>
                   {pilihan.label}
-                  {filter === pilihan.nilai && (
-                    <HugeiconsIcon
-                      icon={CheckmarkCircle01Icon}
-                      className="size-4 text-foreground"
-                    />
-                  )}
-                </button>
+                </SelectItem>
               ))}
-            </div>
-          )}
-          </div>
+            </SelectContent>
+          </Select>
         </div>
 
 
