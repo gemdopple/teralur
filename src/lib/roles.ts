@@ -1,18 +1,12 @@
-// Model peran untuk dasbor (redesign v2). Autentikasi tetap Supabase dengan
-// allowlist admin (src/lib/admin-auth.ts); peran menentukan sudut pandang
-// dasbor dan disimpan pada cookie `teralur_role` yang diatur di halaman masuk.
-// Data aplikasi adalah simulasi, jadi peran berfungsi sebagai mode sudut
-// pandang demo — satu akun dapat meninjau dasbor tiap peran.
+// Model peran untuk dasbor (redesign v2). Autentikasi tetap Supabase, tetapi
+// peran kini berasal dari data akun server-side (tabel `profiles`, lihat
+// src/lib/identitas.ts) — BUKAN lagi dari cookie yang bisa diubah pengguna.
+// Dengan begitu "kontraktor hanya melihat proyeknya sendiri" dapat ditegakkan.
+// Modul ini hanya menyimpan definisi peran, label, dan navigasi (murni/klien).
 
 export type AppRole = "pemerintah" | "kontraktor" | "admin";
 
-export const ROLE_COOKIE = "teralur_role";
-
 export const DAFTAR_ROLE: AppRole[] = ["pemerintah", "kontraktor", "admin"];
-
-export function peranDariNilai(nilai: string | undefined | null): AppRole {
-  return DAFTAR_ROLE.find((peran) => peran === nilai) ?? "pemerintah";
-}
 
 export type MetaRole = {
   peran: AppRole;
@@ -41,21 +35,41 @@ export const META_ROLE: Record<AppRole, MetaRole> = {
     label: "Admin",
     ringkas: "Kelola isi situs",
     deskripsi:
-      "Buat proyek, unggah resource, terbitkan dossier, unduh QR, dan moderasi laporan warga lewat konsol admin.",
+      "Buat dan ubah proyek, tetapkan kontraktor, unggah resource, terbitkan dossier, unduh QR, dan moderasi laporan warga — semuanya dari dasbor.",
   },
 };
 
+export type AnakNav = {
+  href: string;
+  label: string;
+};
+
 export type ItemNav = {
+  /** Untuk pencocokan pathname aktif. Induk beranak tidak menavigasi ke sini. */
   href: string;
   label: string;
   peran: AppRole[];
+  /** Sub-menu (dropdown satu tingkat). Induk beranak adalah pengalih, bukan tautan. */
+  anak?: AnakNav[];
 };
 
 export const NAV_DASBOR: ItemNav[] = [
   { href: "/dashboard", label: "Ringkasan", peran: ["pemerintah", "kontraktor", "admin"] },
   { href: "/dashboard/proyek", label: "Proyek", peran: ["pemerintah", "kontraktor", "admin"] },
   { href: "/dashboard/peta", label: "Peta proyek", peran: ["pemerintah", "kontraktor", "admin"] },
-  { href: "/dashboard/laporan", label: "Laporan warga", peran: ["pemerintah"] },
+  // Admin dimoderasi laporan warga per proyek (halaman kelola) dan melihat
+  // seluruhnya di sini — kemampuan admin mencakup peran pemerintah.
+  { href: "/dashboard/laporan", label: "Laporan warga", peran: ["pemerintah", "admin"] },
+  // Pengelolaan akun login per peran. Hanya admin yang membuat akun.
+  {
+    href: "/dashboard/akun",
+    label: "Akun",
+    peran: ["admin"],
+    anak: [
+      { href: "/dashboard/akun/pemerintah", label: "Pemerintah" },
+      { href: "/dashboard/akun/kontraktor", label: "Kontraktor" },
+    ],
+  },
   { href: "/dashboard/pengaturan", label: "Pengaturan", peran: ["pemerintah", "kontraktor", "admin"] },
 ];
 
@@ -63,7 +77,9 @@ export function navUntukRole(peran: AppRole): ItemNav[] {
   return NAV_DASBOR.filter((item) => item.peran.includes(peran));
 }
 
-/** Simpan peran pada cookie (sisi klien, dipanggil dari penangan aksi). */
-export function simpanCookiePeran(peran: AppRole): void {
-  document.cookie = `${ROLE_COOKIE}=${peran}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+/** Apakah item (atau salah satu anaknya) cocok dengan pathname aktif. */
+export function navAktif(item: ItemNav, pathname: string): boolean {
+  const cocok = (href: string) =>
+    href === "/dashboard" ? pathname === "/dashboard" : pathname === href || pathname.startsWith(`${href}/`);
+  return cocok(item.href) || (item.anak ?? []).some((anak) => cocok(anak.href));
 }

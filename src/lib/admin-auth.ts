@@ -22,9 +22,19 @@ function adminEmails(): string[] {
     .filter(Boolean);
 }
 
-export async function getAdminUser() {
+/**
+ * Klien Supabase yang membaca sesi dari cookie permintaan.
+ *
+ * Penting dengan cacheComponents: `auth.getUser()` memanggil `Date.now()` untuk
+ * memeriksa kedaluwarsa token. Bila dipanggil sebelum permintaan ditandai
+ * dinamis, Next melempar blocking-prerender-current-time untuk route tersebut.
+ * Pemanggil layout/halaman yang belum menyentuh data dinamis wajib
+ * `await connection()` lebih dulu; route handler dan halaman yang sudah
+ * membaca cookies/data otomatis dinamis.
+ */
+export async function pengaturSesi() {
   const cookieStore = await cookies();
-  const supabase = createServerClient(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -36,6 +46,10 @@ export async function getAdminUser() {
       },
     },
   );
+}
+
+export async function getAdminUser() {
+  const supabase = await pengaturSesi();
   // getUser memverifikasi token ke server Auth; jangan mengandalkan getSession saja
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) throw new AuthError(401, "UNAUTHENTICATED");

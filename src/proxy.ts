@@ -9,7 +9,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // di server sebagai lapis kedua.
 //
 // Matcher sengaja satu segmen: /evidence/{slug}/opengraph-image tidak lewat
-// sini agar gambar generik (H.4) tetap terbit untuk slug yang tidak tersedia.
+// sini agar gambar generik (H.4) tetap tersedia untuk slug yang tidak ada.
 
 export const config = {
   matcher: ["/dossiers/:slug", "/evidence/:slug"],
@@ -73,7 +73,6 @@ export async function proxy(request: NextRequest): Promise<Response> {
       .from("submissions")
       .select("slug")
       .eq("slug", slug)
-      .eq("terbit", true)
       .eq("dinonaktifkan", false)
       .limit(1);
     // Galat basis data: lewatkan ke halaman (fallback soft-404 netral di sana).

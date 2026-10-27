@@ -51,6 +51,8 @@ export const AdminProjectCreateSchema = z.object({
   board: AdminBoardSchema,
   officialRecord: AdminRecordSchema,
   featured: z.boolean().optional().default(false),
+  // Penugasan ke satu kontraktor (opsional; null = belum ditugaskan).
+  contractorId: z.string().uuid().nullish(),
 });
 
 export const AdminProjectPatchSchema = z
@@ -58,10 +60,70 @@ export const AdminProjectPatchSchema = z
     board: BoardSchema.partial().optional(),
     officialRecord: BoardSchema.partial().optional(),
     featured: z.boolean().optional(),
+    contractorId: z.string().uuid().nullish(),
   })
   .refine((v) => Object.keys(v).length > 0, "Tidak ada perubahan");
 
-export const PublishSchema = z.object({ published: z.boolean() });
+// Kata sandi akun. Opsional pada PATCH: kosong berarti "jangan ubah".
+const KataSandiBaru = z
+  .string()
+  .min(8, "Kata sandi minimal 8 karakter")
+  .max(200, "Kata sandi maksimal 200 karakter");
+
+// Pembuatan akun kontraktor oleh admin (nama perusahaan + kredensial login).
+export const ContractorCreateSchema = z.object({
+  nama: z.string().trim().min(1, "Nama kontraktor wajib diisi").max(200),
+  kontak: z.string().trim().max(200).nullish().transform((v) => (v ? v : null)),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid").max(200),
+  password: KataSandiBaru,
+});
+
+// Ubah akun kontraktor. Semua opsional; `password` kosong/tidak dikirim berarti
+// kata sandi lama dipertahankan. Minimal satu perubahan.
+export const ContractorUpdateSchema = z
+  .object({
+    nama: z.string().trim().min(1, "Nama kontraktor wajib diisi").max(200).optional(),
+    kontak: z.string().trim().max(200).nullish().transform((v) => (v ? v : null)),
+    email: z.string().trim().toLowerCase().email("Format email tidak valid").max(200).optional(),
+    password: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v ? v : undefined))
+      .refine((v) => v === undefined || (v.length >= 8 && v.length <= 200), {
+        message: "Kata sandi minimal 8 karakter",
+      }),
+  })
+  .refine(
+    (v) => v.nama !== undefined || v.kontak !== null || v.email !== undefined || v.password !== undefined,
+    "Tidak ada perubahan",
+  );
+
+// Akun pemerintah: tidak punya entitas tersendiri seperti `contractors`, jadi
+// yang disimpan adalah label (`profiles.nama`) + kredensial login.
+export const PemerintahCreateSchema = z.object({
+  nama: z.string().trim().min(1, "Nama akun wajib diisi").max(200),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid").max(200),
+  password: KataSandiBaru,
+});
+
+export const PemerintahUpdateSchema = z
+  .object({
+    nama: z.string().trim().min(1, "Nama akun wajib diisi").max(200).optional(),
+    email: z.string().trim().toLowerCase().email("Format email tidak valid").max(200).optional(),
+    password: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v ? v : undefined))
+      .refine((v) => v === undefined || (v.length >= 8 && v.length <= 200), {
+        message: "Kata sandi minimal 8 karakter",
+      }),
+  })
+  .refine(
+    (v) => v.nama !== undefined || v.email !== undefined || v.password !== undefined,
+    "Tidak ada perubahan",
+  );
 
 export const ResourceMetaSchema = z.object({
   title: z.string().trim().min(1, "Judul wajib diisi").max(120),

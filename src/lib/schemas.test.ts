@@ -140,3 +140,32 @@ describe("mergePatch (aturan PATCH D.1)", () => {
     expect(parsed).toEqual(salinanParsed);
   });
 });
+
+describe("penugasan kontraktor (contractorId)", () => {
+  const UUID = "3f2504e0-4f89-41d3-9a0c-0305e82c3301";
+
+  it("create menerima contractorId uuid dan null (belum ditugaskan)", () => {
+    const dasar = { board: PAPAN_COCOK, officialRecord: RESMI_COCOK };
+    expect(AdminProjectCreateSchema.safeParse({ ...dasar, contractorId: UUID }).success).toBe(true);
+    expect(AdminProjectCreateSchema.safeParse({ ...dasar, contractorId: null }).success).toBe(true);
+    expect(AdminProjectCreateSchema.safeParse(dasar).success).toBe(true);
+  });
+
+  it("create menolak contractorId bukan uuid", () => {
+    const hasil = AdminProjectCreateSchema.safeParse({
+      board: PAPAN_COCOK,
+      officialRecord: RESMI_COCOK,
+      contractorId: "bukan-uuid",
+    });
+    expect(hasil.success).toBe(false);
+    if (!hasil.success) {
+      expect(hasil.error.issues.map((i) => i.path.join("."))).toContain("contractorId");
+    }
+  });
+
+  it("patch menerima perubahan tunggal contractorId (tanpa board/record)", () => {
+    expect(AdminProjectPatchSchema.safeParse({ contractorId: UUID }).success).toBe(true);
+    // null = lepas penugasan; tetap dianggap perubahan yang sah.
+    expect(AdminProjectPatchSchema.safeParse({ contractorId: null }).success).toBe(true);
+  });
+});

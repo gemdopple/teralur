@@ -34,8 +34,7 @@ export type SubmissionRow = {
   kandidat: unknown;
   dibuat: string;
   demo: boolean;
-  // E.11: visibilitas proyek admin (draf/nonaktif = 404 di jalur publik).
-  terbit: boolean;
+  // E.11: visibilitas proyek admin (nonaktif = 404 di jalur publik).
   dinonaktifkan: boolean;
   unggulan: boolean;
   diperbarui: string;
@@ -164,8 +163,8 @@ export async function getDossier(slug: string): Promise<DossierData | null> {
     .maybeSingle();
   if (error) throw new Error(`Dossier lookup failed: ${error.message}`);
   if (!submission) return null;
-  // E.11: draf (terbit=false) dan nonaktif tidak pernah terlihat publik.
-  if (!submission.terbit || submission.dinonaktifkan) return null;
+  // E.11: proyek yang dinonaktifkan (hapus lunak) tidak pernah terlihat publik.
+  if (submission.dinonaktifkan) return null;
   const resourceRows = (Array.isArray(submission.resources) ? submission.resources : []) as ResourceRow[];
   delete (submission as Record<string, unknown>).resources;
 
