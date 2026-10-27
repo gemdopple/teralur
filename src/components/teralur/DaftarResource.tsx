@@ -9,7 +9,7 @@ import { formatTanggal } from "@/lib/dates";
 // SIMULASI bila proyek demo. Foto memakai next/image dengan ukuran terbatas;
 // PDF berupa tautan ikon. Resource terbuka di tab baru. Bila objek sudah
 // tidak tersimpan di Storage (N.3), foto ditampilkan tanpa gambar — judul tetap
-// terbaca (ditangani lewat onError gambar). Gaya modern: kartu rounded-2xl
+// terbaca (ditangani lewat onError gambar). Gaya modern: kartu rounded-lg
 // dengan bayangan lembut dan angkat kecil saat hover.
 
 export type ResourcePublik = {
@@ -28,7 +28,7 @@ function ItemResource({ resource }: { resource: ResourcePublik }) {
   const gambarTampil = resource.kind === "photo" && !gambarGagal;
 
   return (
-    <li className="rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <li className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-foreground/30">
       {resource.kind === "photo" ? (
         gambarTampil ? (
           <a

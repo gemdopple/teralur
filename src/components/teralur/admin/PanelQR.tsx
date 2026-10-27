@@ -4,19 +4,17 @@ import Link from "next/link";
 import { useState } from "react";
 
 // PanelQR (T-45 UI, Lampiran L.5): pratinjau QR dari endpoint QR admin, URL
-// dossier dengan tombol Salin, Unduh SVG/PNG, Buka lembar cetak. Bila proyek
-// belum terbit, tampilkan peringatan baku. Nilai NEXT_PUBLIC_SITE_URL yang
-// dipakai ditampilkan agar tim dapat melihat bila masih alamat sementara.
+// dossier dengan tombol Salin, Unduh SVG/PNG, Buka lembar cetak. Nilai
+// NEXT_PUBLIC_SITE_URL yang dipakai ditampilkan agar tim dapat melihat bila
+// masih alamat sementara.
 
 export function PanelQR({
   projectId,
   slug,
-  published,
   siteUrl,
 }: {
   projectId: string;
   slug: string;
-  published: boolean;
   /** Nilai NEXT_PUBLIC_SITE_URL dari server; string kosong bila belum diatur. */
   siteUrl: string;
 }) {
@@ -34,17 +32,9 @@ export function PanelQR({
   }
 
   return (
-    <section aria-label="QR dossier">
+    // id + scroll-mt: aksi "Lembar QR" di daftar proyek menautkan ke sini.
+    <section id="qr" aria-label="QR dossier" className="scroll-mt-24">
       <h2 className="font-heading text-lg font-bold">QR</h2>
-
-      {!published ? (
-        <p
-          role="status"
-          className="mt-3 rounded-md border border-hitam-aspal/30 bg-kuning-papan/40 px-4 py-3 text-sm font-medium"
-        >
-          Proyek belum terbit. QR akan menampilkan pesan &quot;sedang ditinjau&quot; sampai proyek dipublikasikan.
-        </p>
-      ) : null}
 
       <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-start">
         {/* Pratinjau QR (L.5): img dari endpoint svg — next/image tidak dapat
@@ -90,7 +80,7 @@ export function PanelQR({
               Unduh PNG
             </a>
             <Link
-              href={`/admin/projects/${projectId}/qr`}
+              href={`/dashboard/proyek/${projectId}/qr`}
               className="inline-flex min-h-11 items-center rounded-md border-2 border-black bg-kuning-papan px-4 py-2 text-sm font-semibold"
             >
               Buka lembar cetak

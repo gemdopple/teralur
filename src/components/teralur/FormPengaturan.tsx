@@ -130,7 +130,7 @@ export function FormPengaturan({
   if (peran === "admin" && informasiAdmin) {
     return (
       <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <article className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <h2 className="font-heading text-lg font-semibold tracking-tight">Keadaan lingkungan</h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div className="flex items-center justify-between gap-3">
@@ -157,14 +157,14 @@ export function FormPengaturan({
             Domain wajib diisi sebelum kode QR dicetak agar papan memuat tautan yang benar.
           </p>
         </article>
-        <article className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="font-heading text-lg font-semibold tracking-tight">Konsol admin</h2>
+        <article className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <h2 className="font-heading text-lg font-semibold tracking-tight">Akun pengguna</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Perubahan isi situs (proyek, resource, penerbitan, QR, moderasi laporan) dilakukan di
-            konsol admin.
+            Akun pemerintah dan kontraktor dibuat serta dikelola di seksi Akun pada sidebar. Setiap
+            kontraktor hanya melihat proyek yang ditugaskan kepadanya.
           </p>
-          <a href="/admin" className={cn(buttonVariants(), "mt-4 w-fit")}>
-            Buka konsol admin
+          <a href="/dashboard/akun/kontraktor" className={cn(buttonVariants(), "mt-4 w-fit")}>
+            Kelola akun
           </a>
         </article>
       </div>
@@ -172,7 +172,7 @@ export function FormPengaturan({
   }
 
   return (
-    <form onSubmit={simpan} className="max-w-2xl rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <form onSubmit={simpan} className="max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
       <fieldset disabled={!dimuat} className="space-y-5">
         {BIDANG_PER_ROLE[peran].map((bidang) => (
           <div key={bidang.nama} className="space-y-2">

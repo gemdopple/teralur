@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";
-import { Badge } from "@/components/ui/badge";
+import { ChipStatusRingkas, type DossierStatus } from "@/components/teralur/ChipStatus";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, PrinterIcon } from "@hugeicons/core-free-icons";
 import type { ProyekDemo } from "@/data/proyek-demo";
 import { formatRupiahRingkas } from "@/lib/format-rupiah";
 
@@ -10,9 +9,16 @@ import { formatRupiahRingkas } from "@/lib/format-rupiah";
 // terbaca di ponsel). Dipakai menggantikan tabel di bawah breakpoint md pada
 // halaman ringkasan dan daftar proyek; tabel penuh tetap di layar lebar.
 
-export function KartuProyekDasbor({ proyek }: { proyek: ProyekDemo }) {
+export function KartuProyekDasbor({
+  proyek,
+  tautanPapan,
+}: {
+  proyek: ProyekDemo;
+  /** Bila diisi (peran kontraktor), tampilkan tautan ke lembar papan proyek. */
+  tautanPapan?: string;
+}) {
   return (
-    <li className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <li className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="line-clamp-2 font-heading text-sm font-semibold leading-snug tracking-tight">
@@ -30,9 +36,8 @@ export function KartuProyekDasbor({ proyek }: { proyek: ProyekDemo }) {
           <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
         </Link>
       </div>
-      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-        <ChipStatus status={proyek.status as DossierStatus} />
-        {!proyek.terbit && <Badge variant="secondary">Draf</Badge>}
+      <div className="mt-2.5">
+        <ChipStatusRingkas status={proyek.status as DossierStatus} />
       </div>
       <dl className="mt-3 space-y-1.5 border-t border-border pt-2.5 text-xs">
         <div className="flex items-baseline justify-between gap-3">
@@ -52,6 +57,15 @@ export function KartuProyekDasbor({ proyek }: { proyek: ProyekDemo }) {
           </div>
         )}
       </dl>
+      {tautanPapan && (
+        <Link
+          href={tautanPapan}
+          className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/60 px-3 py-2 text-xs font-semibold transition-colors hover:bg-muted"
+        >
+          <HugeiconsIcon icon={PrinterIcon} className="size-3.5" />
+          Buat papan proyek
+        </Link>
+      )}
     </li>
   );
 }

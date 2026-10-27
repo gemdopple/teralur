@@ -20,8 +20,9 @@ import type { ApiBoard } from "@/lib/api-contract";
 
 // Formulir proyek admin (Lampiran L.3, T-42): dua blok (Data papan dan Data
 // resmi simulasi) dengan pratinjau status langsung (compare() yang sama) dan
-// pratinjau cincin waktu (computeTimeRing). Dipakai di /admin/projects/new dan
-// /admin/projects/[id].
+// pratinjau cincin waktu (computeTimeRing). Dipakai di /dashboard/proyek/buat,
+// /dashboard/proyek/[kunci]/kelola, dan halaman alur pemerintah
+// (/dashboard/proyek/baru, /dashboard/proyek/[kunci]/ubah).
 
 type FieldKey =
   | "packageName"
@@ -41,11 +42,15 @@ type Sisi = "board" | "record";
 type InitialData = {
   id: string;
   slug: string;
-  published: boolean;
   featured: boolean;
   board: ApiBoard;
   officialRecord: ApiBoard | null;
+  /** Kontraktor yang ditugaskan (null/kosong = belum ditugaskan). */
+  contractorId?: string | null;
 };
+
+/** Pilihan kontraktor untuk penugasan satu proyek ke satu kontraktor. */
+export type OpsiKontraktor = { id: string; nama: string };
 
 type FieldErrors = Partial<Record<Sisi, Partial<Record<FieldKey, string>>>>;
 
@@ -371,12 +376,22 @@ export function FormProyek({
   mode,
   initial,
   today,
+  kembaliKe,
+  kontraktor,
 }: {
   mode: "create" | "edit";
   initial?: InitialData;
   // Tanggal hari ini WIB (dari jakartaToday()) yang dihitung di server halaman
   // — bukan saat render komponen, agar prerender tidak menyentuh Date.now().
   today: string;
+  /** Tujuan setelah proyek baru dibuat atau dihapus; bawaan: daftar proyek. */
+  kembaliKe?: string;
+  /**
+   * Bila diisi, tampilkan pemilihan kontraktor pelaksana (penugasan satu
+   * kontraktor per proyek). Diberikan pada halaman admin dan pemerintah yang
+   * ikut menetapkan pelaksana.
+   */
+  kontraktor?: OpsiKontraktor[];
 }) {
   const router = useRouter();
   const [board, setBoard] = useState<Blok>(() =>
@@ -386,7 +401,7 @@ export function FormProyek({
     initial?.officialRecord ? blokDariApi(initial.officialRecord) : { ...BLOK_KOSONG },
   );
   const [featured, setFeatured] = useState(initial?.featured ?? false);
-  const [published, setPublished] = useState(initial?.published ?? false);
+  const [contractorId, setContractorId] = useState(initial?.contractorId ?? "");
   const [kotor, setKotor] = useState(false);
   const [sedangProses, setSedangProses] = useState(false);
   const [tampilkanGalat, setTampilkanGalat] = useState(false);
@@ -436,6 +451,7 @@ export function FormProyek({
       board: blokKeApi(board),
       officialRecord: blokKeApi(record),
       featured,
+      ...(kontraktor ? { contractorId: contractorId || null } : {}),
     };
     const res =
       mode === "create"
@@ -496,24 +512,9 @@ export function FormProyek({
     Object.keys(galatGabungan.board ?? {}).length > 0 ||
     Object.keys(galatGabungan.record ?? {}).length > 0;
 
-  async function simpanDraf() {
-    setSedangProses(true);
-    setPesanAtas(null);
-    setPesanSukses(null);
-    setGalatFeatured(null);
-    setTampilkanGalat(true);
-    const hasil = await simpanData();
-    if (hasil) {
-      setKotor(false);
-      setPesanSukses("Draf tersimpan.");
-      if (mode === "create") {
-        router.push(`/admin/projects/${hasil.id}`);
-      }
-    }
-    setSedangProses(false);
-  }
-
-  async function publikasikan() {
+  // Simpan proyek (POST baru / PATCH ubah). Tidak ada langkah terbit terpisah:
+  // proyek yang tersimpan langsung tampil publik.
+  async function simpan() {
     setSedangProses(true);
     setPesanAtas(null);
     setPesanSukses(null);
@@ -524,42 +525,12 @@ export function FormProyek({
       setSedangProses(false);
       return;
     }
-    const res = await fetch(`/api/admin/projects/${hasil.id}/publish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ published: true }),
-    });
-    if (res.ok) {
-      setKotor(false);
-      setPublished(true);
-      setPesanSukses("Proyek diterbitkan.");
-      if (mode === "create") {
-        router.push(`/admin/projects/${hasil.id}`);
-      }
-    } else {
-      const galat = await bacaGalat(res);
-      if (res.status === 401) setPesanAtas(PESAN_SESI_HABIS);
-      else setPesanAtas(galat.message ?? "Terjadi kesalahan internal.");
-    }
-    setSedangProses(false);
-  }
-
-  async function tarikDariPublik() {
-    setSedangProses(true);
-    setPesanAtas(null);
-    setPesanSukses(null);
-    const res = await fetch(`/api/admin/projects/${initial?.id}/publish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ published: false }),
-    });
-    if (res.ok) {
-      setPublished(false);
-      setPesanSukses("Proyek ditarik dari publik.");
-    } else {
-      const galat = await bacaGalat(res);
-      if (res.status === 401) setPesanAtas(PESAN_SESI_HABIS);
-      else setPesanAtas(galat.message ?? "Terjadi kesalahan internal.");
+    setKotor(false);
+    setPesanSukses(mode === "edit" ? "Perubahan tersimpan." : "Proyek tersimpan.");
+    if (mode === "create") {
+      // Proyek baru langsung ke halaman kelola admin (resource + QR), atau
+      // kembali ke daftar bila pemanggil memberi tujuan sendiri.
+      router.push(kembaliKe ?? `/dashboard/proyek/${hasil.id}/kelola`);
     }
     setSedangProses(false);
   }
@@ -571,7 +542,7 @@ export function FormProyek({
     setDialogNonaktif(false);
     if (res.ok) {
       setKotor(false);
-      router.push("/admin");
+      router.push(kembaliKe ?? "/dashboard/proyek");
       return;
     }
     const galat = await bacaGalat(res);
@@ -602,7 +573,7 @@ export function FormProyek({
       className="space-y-6"
       onSubmit={(e) => {
         e.preventDefault();
-        void simpanDraf();
+        void simpan();
       }}
       noValidate
     >
@@ -625,7 +596,7 @@ export function FormProyek({
       {pesanSukses ? (
         <p
           role="status"
-          className="rounded-md border border-cocok/40 bg-cocok/10 px-4 py-3 text-sm font-medium text-cocok"
+          className="rounded-md border border-cocok/40 bg-cocok/10 px-4 py-3 text-sm font-medium text-cocok-teks"
         >
           {pesanSukses}
         </p>
@@ -672,6 +643,32 @@ export function FormProyek({
       </div>
 
       <div className="space-y-3">
+        {kontraktor ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="kontraktor-pelaksana">Kontraktor pelaksana</Label>
+            <select
+              id="kontraktor-pelaksana"
+              value={contractorId}
+              onChange={(e) => {
+                setContractorId(e.target.value);
+                setKotor(true);
+                setPesanSukses(null);
+              }}
+              className="h-9 w-full max-w-md rounded-lg border border-border bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+            >
+              <option value="">— Belum ditugaskan —</option>
+              {kontraktor.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nama}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs leading-5 text-muted-foreground">
+              Satu proyek ditugaskan ke satu kontraktor. Kontraktor hanya melihat proyek miliknya.
+            </p>
+          </div>
+        ) : null}
+
         <div className="flex items-start gap-2">
           <input
             id="featured"
@@ -698,26 +695,9 @@ export function FormProyek({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" variant="outline" isDisabled={sedangProses}>
-            Simpan draf
+          <Button type="submit" isDisabled={sedangProses || adaGalatGabungan}>
+            Simpan
           </Button>
-          <Button
-            type="button"
-            onClick={() => void publikasikan()}
-            isDisabled={sedangProses || adaGalatGabungan}
-          >
-            Publikasikan
-          </Button>
-          {mode === "edit" && published ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void tarikDariPublik()}
-              isDisabled={sedangProses}
-            >
-              Tarik dari publik
-            </Button>
-          ) : null}
           {mode === "edit" ? (
             <Button
               type="button"

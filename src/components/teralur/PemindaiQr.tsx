@@ -234,7 +234,7 @@ export function PemindaiQr({ mulaiOtomatis = false }: { mulaiOtomatis?: boolean 
   const pesanGalat = pesanUntuk(status);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
       <div className="flex items-start gap-3.5">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-kuning-papan text-hitam-aspal">
           <HugeiconsIcon icon={QrCodeScanIcon} className="size-5" />
@@ -299,7 +299,7 @@ export function PemindaiQr({ mulaiOtomatis = false }: { mulaiOtomatis?: boolean 
             </p>
           )}
           {pesanGalat && (
-            <p className="rounded-xl border border-selisih/30 bg-selisih/10 px-3 py-2 text-selisih">
+            <p className="rounded-xl border border-selisih/30 bg-selisih/10 px-3 py-2 text-selisih-teks">
               {pesanGalat}
             </p>
           )}

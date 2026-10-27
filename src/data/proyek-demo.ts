@@ -29,7 +29,6 @@ export type ProyekDemo = {
   lat: number;
   lng: number;
   featured: boolean;
-  terbit: boolean;
   tahun: number;
   instansi: string;
   sumberDana: string;
@@ -119,11 +118,6 @@ export const SPECS_TAMBAHAN: HeroSpec[] = [
   },
 ];
 
-// demo-010 adalah draf sengaja (M.2): tidak tampil di peta/publik, tetap ada
-// untuk dasbor (menguji keadaan draf).
-const TERBIT: Record<string, boolean> = {
-  "demo-010": false,
-};
 const UNGGULAN = new Set(["demo-001", "demo-002", "demo-004"]);
 
 export type DossierDemo = HeroDossier & { spec: HeroSpec };
@@ -161,7 +155,6 @@ export function daftarProyekDemo(today: string): ProyekDemo[] {
       lat: dasar.lat + jitter(spec.exampleId, indeks),
       lng: dasar.lng + jitter(spec.exampleId, indeks + 3),
       featured: UNGGULAN.has(spec.exampleId),
-      terbit: TERBIT[spec.exampleId] ?? true,
       tahun: dossier.record.fiscalYear ?? 2026,
       instansi: dossier.record.agencyUnit ?? "Dinas Pekerjaan Umum Kota Tirtamulya",
       sumberDana: dossier.board.fundingSource ?? "APBD 2026",
@@ -170,12 +163,13 @@ export function daftarProyekDemo(today: string): ProyekDemo[] {
   });
 }
 
-/** Baris publik: hanya proyek terbit (peta warga dan galeri). */
+/**
+ * Baris publik (peta warga dan galeri). Tanpa konsep draf, seluruh dataset
+ * simulasi tampil; nama lama dipertahankan agar pemanggil tidak berubah.
+ */
 export function daftarProyekPublik(today: string): ProyekDemo[] {
-  return daftarProyekDemo(today).filter((proyek) => proyek.terbit);
+  return daftarProyekDemo(today);
 }
 
-/** Kunci seed terbit yang punya salinan statis lengkap (contoh kasus). */
-export const KUNCI_STATIS_TERBIT: string[] = SEMUA_SPECS.map((spec) => spec.exampleId).filter(
-  (kunci) => TERBIT[kunci] ?? true,
-);
+/** Kunci seed yang punya salinan statis lengkap (contoh kasus). */
+export const KUNCI_STATIS: string[] = SEMUA_SPECS.map((spec) => spec.exampleId);

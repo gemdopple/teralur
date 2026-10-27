@@ -9,12 +9,12 @@ export type PanelJejakProps = {
   className?: string;
 };
 
-// Panel jejak — kartu lembut modern: rounded-2xl dengan bayangan tipis,
+// Panel jejak — kartu lembut modern: rounded-lg dengan bayangan tipis,
 // label kecil abu dan nilai teks isi. Judul panel tetap heading tinta.
 export function PanelJejak({ judul, baris, className }: PanelJejakProps) {
   return (
     <section
-      className={`rounded-2xl border border-border bg-card p-5 shadow-sm ${className ?? ""}`}
+      className={`rounded-lg border border-border bg-card p-5 shadow-sm ${className ?? ""}`}
       aria-label={judul}
     >
       <h3 className="font-heading text-base font-semibold tracking-tight">{judul}</h3>

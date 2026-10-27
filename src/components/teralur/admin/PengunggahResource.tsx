@@ -216,7 +216,8 @@ export function PengunggahResource({
   }
 
   return (
-    <section aria-label="Resource proyek">
+    // id + scroll-mt: aksi "Resource" di daftar proyek menautkan ke sini.
+    <section id="resource" aria-label="Resource proyek" className="scroll-mt-24">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-heading text-lg font-bold">Resource</h2>
         <p className="text-sm text-neutral-700">{resources.length} dari 10 berkas</p>
@@ -296,7 +297,7 @@ export function PengunggahResource({
         </p>
       ) : null}
       {pesanSukses && !galat ? (
-        <p role="status" className="mt-3 rounded-md border border-cocok/40 bg-cocok/10 px-4 py-3 text-sm font-medium text-cocok">
+        <p role="status" className="mt-3 rounded-md border border-cocok/40 bg-cocok/10 px-4 py-3 text-sm font-medium text-cocok-teks">
           {pesanSukses}
         </p>
       ) : null}
