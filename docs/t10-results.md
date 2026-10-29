@@ -4,7 +4,7 @@
 
 > Status: **Interim.** Foto gold set (12 papan, PRD §11.1) adalah pekerjaan lapangan
 > yang ditunda tim (lihat catatan di atas `scripts/eval-match-smoke.ts`).
-> `npm run eval:gold` sudah siap: begitu `data/gold.csv` terisi, perintah yang sama
+> a`npm run eval:gold` sudah siap: begitu `data/gold.csv` terisi, perintah yang sama
 > menghasilkan tabel final. Sementara itu hasil di bawah berasal dari
 > `npm run eval:match-smoke` — 100 catatan resmi nyata (records) dari Supabase,
 > dengan papan sintetis yang dibangun dari catatan itu sendiri.
