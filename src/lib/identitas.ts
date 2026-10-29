@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { connection } from "next/server";
 import { AuthError, pengaturSesi } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/db";
@@ -37,8 +38,14 @@ export function adminEmails(): string[] {
 /**
  * Identitas pemanggil saat ini. Lempar AuthError 401 bila belum masuk.
  * Membaca `profiles` lewat klien service-role (RLS tanpa policy).
+ *
+ * Dibungkus React cache(): layout (app) dan halaman sama-sama membaca
+ * identitas dalam satu permintaan; tanpa ini setiap pemanggilan mengulang
+ * auth.getUser() + kueri profiles — dua round-trip Supabase ekstra per muat
+ * halaman. Ruang lingkup cache() adalah satu permintaan, jadi tidak ada
+ * kebocoran lintas-pengunjung.
  */
-export async function identitasSaatIni(): Promise<Identitas> {
+export const identitasSaatIni = cache(async function identitasSaatIni(): Promise<Identitas> {
   // getUser() memanggil Date.now() untuk cek kedaluwarsa token. connection()
   // menandai permintaan ini dinamis sebelum itu, sehingga aman dipanggil dari
   // layout/page yang belum menyentuh data dinamis; tanpa ini route seperti
@@ -85,7 +92,7 @@ export async function identitasSaatIni(): Promise<Identitas> {
     role: peranEfektif(profil, email, adminEmails()),
     contractorId: contractorIdEfektif(profil),
   };
-}
+});
 
 /**
  * Wajib peran tertentu; 403 bila tidak sesuai. Dipakai halaman dasbor dan

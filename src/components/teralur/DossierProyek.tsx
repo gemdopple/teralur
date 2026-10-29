@@ -1,4 +1,5 @@
-import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";import { CincinWaktuAnim } from "@/components/teralur/cincin-anim";
+import { ChipStatus, type DossierStatus } from "@/components/teralur/ChipStatus";
+import { CincinWaktuAnim } from "@/components/teralur/cincin-anim";
 import { DaftarResource, type ResourcePublik } from "@/components/teralur/DaftarResource";
 import { GrafikAspek, type BarisAspek } from "@/components/teralur/grafik-aspek";
 import { GrafikLaporan } from "@/components/teralur/grafik-laporan";
@@ -22,7 +23,12 @@ import { type TimeRing } from "@/lib/cincin";
 import type { ApiBoard } from "@/lib/api-contract";
 import type { RecordProyek } from "@/components/teralur/proyek-view-data";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Link04Icon, Location01Icon, Building02Icon, Calendar03Icon } from "@hugeicons/core-free-icons";
+import {
+  Link04Icon,
+  Location01Icon,
+  Building02Icon,
+  Calendar03Icon,
+} from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
 // Dossier proyek admin (T-45, Lampiran H.1) — gaya kartu modern (bukan lembar
@@ -186,11 +192,27 @@ export function DossierProyek({
   // Fakta kunci untuk warga: utamakan catatan resmi, jatuh ke papan bila
   // catatan tidak mengisi field itu (presedensi sama dengan tabel perbandingan).
   const faktaWarga: Array<{ label: string; nilai: string | null }> = [
-    { label: "Nilai kontrak", nilai: formatRupiahRingkas(record?.contractValue ?? board?.contractValue ?? null) },
+    {
+      label: "Nilai kontrak",
+      nilai: formatRupiahRingkas(record?.contractValue ?? board?.contractValue ?? null),
+    },
     { label: "Penyedia", nilai: record?.supplier ?? board?.supplier ?? null },
     { label: "Satuan kerja", nilai: record?.agencyUnit ?? board?.agencyUnit ?? null },
-    { label: "Lokasi", nilai: board?.locationText ?? null },
-    { label: "Tahun anggaran", nilai: (record?.fiscalYear ?? board?.fiscalYear)?.toString() ?? null },
+    {
+      label: "Lokasi",
+      nilai:
+        board?.locationText ??
+        (board?.locationLatitude !== null &&
+        board?.locationLatitude !== undefined &&
+        board.locationLongitude !== null &&
+        board.locationLongitude !== undefined
+          ? "Titik lokasi proyek"
+          : null),
+    },
+    {
+      label: "Tahun anggaran",
+      nilai: (record?.fiscalYear ?? board?.fiscalYear)?.toString() ?? null,
+    },
     { label: "Sumber dana", nilai: board?.fundingSource ?? null },
     { label: "Nomor kontrak", nilai: board?.contractNumber ?? null },
   ];
@@ -228,14 +250,25 @@ export function DossierProyek({
     {
       key: "durationDays",
       label: "Masa pelaksanaan",
-      board: board?.durationDays ? `${board.durationDays} hari` : null,
+      board:
+        board?.executionStartDate && board.executionEndDate
+          ? `${formatTanggal(board.executionStartDate)} – ${formatTanggal(board.executionEndDate)}${board.durationDays ? ` (${board.durationDays} hari)` : ""}`
+          : board?.durationDays
+            ? `${board.durationDays} hari`
+            : null,
       record: record?.durationDays ? `${record.durationDays} hari` : null,
     },
     {
       key: "fiscalYear",
       label: "Tahun anggaran",
-      board: board?.fiscalYear === null || board?.fiscalYear === undefined ? null : String(board.fiscalYear),
-      record: record?.fiscalYear === null || record?.fiscalYear === undefined ? null : String(record.fiscalYear),
+      board:
+        board?.fiscalYear === null || board?.fiscalYear === undefined
+          ? null
+          : String(board.fiscalYear),
+      record:
+        record?.fiscalYear === null || record?.fiscalYear === undefined
+          ? null
+          : String(record.fiscalYear),
     },
     {
       key: "fundingSource",
@@ -303,7 +336,11 @@ export function DossierProyek({
       label: "Nilai kontrak",
       state: keadaanNilai,
       persen:
-        keadaanNilai === "selisih" ? (persenSelisih !== null ? Math.round(persenSelisih * 10) / 10 : 60) : undefined,
+        keadaanNilai === "selisih"
+          ? persenSelisih !== null
+            ? Math.round(persenSelisih * 10) / 10
+            : 60
+          : undefined,
       kalimat: kalimatField("contractValue", keadaanNilai),
     },
   ];
@@ -349,8 +386,13 @@ export function DossierProyek({
         {/* [0] Info untuk warga — jawaban "kapan proyek ini selesai?" bagi
             warga yang baru melihat papan di jalan, plus fakta kunci proyek. */}
         <Reveal>
-          <section aria-label="Info untuk warga" className="mt-10 rounded-lg border border-border bg-card p-5 shadow-sm">
-            <h2 className="font-heading text-lg font-semibold tracking-tight">Kapan proyek ini selesai?</h2>
+          <section
+            aria-label="Info untuk warga"
+            className="mt-10 rounded-lg border border-border bg-card p-5 shadow-sm"
+          >
+            <h2 className="font-heading text-lg font-semibold tracking-tight">
+              Kapan proyek ini selesai?
+            </h2>
             {ringkasan.tersedia ? (
               <>
                 <div
@@ -361,7 +403,10 @@ export function DossierProyek({
                   aria-valuemax={100}
                   aria-label="Waktu pelaksanaan yang telah berjalan"
                 >
-                  <div className="h-full rounded-full bg-kuning-papan" style={{ width: `${ringkasan.persen}%` }} />
+                  <div
+                    className="h-full rounded-full bg-kuning-papan"
+                    style={{ width: `${ringkasan.persen}%` }}
+                  />
                 </div>
                 <p className="mt-3 text-sm leading-6">
                   Hari ke-{ringkasan.hariBerjalan} dari {ringkasan.totalHari} hari kalender (
@@ -375,7 +420,8 @@ export function DossierProyek({
                   Perkiraan selesai:{" "}
                   <span className="font-semibold">
                     {ringkasan.perkiraanSelesai ? formatTanggal(ringkasan.perkiraanSelesai) : "—"}
-                  </span>.
+                  </span>
+                  .
                 </p>
               </>
             ) : (
@@ -391,7 +437,23 @@ export function DossierProyek({
                 .map((fakta) => (
                   <div key={fakta.label} className="flex justify-between gap-3">
                     <dt className="text-muted-foreground">{fakta.label}</dt>
-                    <dd className="text-right font-medium">{fakta.nilai}</dd>
+                    <dd className="text-right font-medium">
+                      {fakta.nilai}
+                      {fakta.label === "Lokasi" &&
+                      board?.locationLatitude !== null &&
+                      board?.locationLatitude !== undefined &&
+                      board.locationLongitude !== null &&
+                      board.locationLongitude !== undefined ? (
+                        <a
+                          className="ms-2 inline-flex items-center gap-1 font-normal underline underline-offset-2"
+                          href={`https://www.openstreetmap.org/?mlat=${board.locationLatitude}&mlon=${board.locationLongitude}#map=17/${board.locationLatitude}/${board.locationLongitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Lihat peta
+                        </a>
+                      ) : null}
+                    </dd>
                   </div>
                 ))}
             </dl>
@@ -427,9 +489,7 @@ export function DossierProyek({
                 <div className="mt-3 flex justify-center">
                   <CincinWaktuAnim ring={timeRing} />
                 </div>
-                {!(
-                  timeRing.state === "unknown"
-                ) && (
+                {!(timeRing.state === "unknown") && (
                   <div className="mt-4">
                     <div className="flex items-baseline justify-between text-xs text-muted-foreground">
                       <span>Progres waktu</span>
@@ -457,7 +517,10 @@ export function DossierProyek({
                   Papan dibandingkan dengan catatan resmi.
                 </p>
                 <div className="mt-3">
-                  <GrafikNilai papan={board?.contractValue ?? null} resmi={record?.contractValue ?? null} />
+                  <GrafikNilai
+                    papan={board?.contractValue ?? null}
+                    resmi={record?.contractValue ?? null}
+                  />
                 </div>
                 {persenSelisih !== null && persenSelisih > 0 && (
                   <p className="mt-2 rounded-md bg-selisih/10 px-3.5 py-2.5 text-xs leading-5 text-selisih-teks">
@@ -525,9 +588,7 @@ export function DossierProyek({
                     },
                     {
                       label: "Sumber catatan resmi",
-                      nilai: record
-                        ? "Opentender ICW (OCDS)"
-                        : "Catatan resmi belum tersedia",
+                      nilai: record ? "Opentender ICW (OCDS)" : "Catatan resmi belum tersedia",
                     },
                     {
                       label: "ID catatan resmi",
@@ -566,8 +627,8 @@ export function DossierProyek({
             </h2>
             {demo ? (
               <p className="mt-2 max-w-prose text-sm leading-6 text-muted-foreground">
-                Dokumen sumber: nomor kontrak {board?.contractNumber ?? "Belum diketahui"} —
-                salinan tersimpan pada arsip pengelola.
+                Dokumen sumber: nomor kontrak {board?.contractNumber ?? "Belum diketahui"} — salinan
+                tersimpan pada arsip pengelola.
               </p>
             ) : (
               <>

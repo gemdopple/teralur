@@ -4,9 +4,9 @@ import { redirect } from "next/navigation";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { FormProyek } from "@/components/teralur/admin/FormProyek";
 import { jakartaToday } from "@/lib/dates";
-import { getSupabaseAdmin } from "@/lib/db";
 import { databaseConfigured } from "@/lib/server-api";
 import { identitasSaatIni } from "@/lib/identitas";
+import { daftarKontraktorAktif, daftarSatuanKerjaPemerintah } from "@/lib/opsi-form-proyek";
 
 // Buat proyek untuk admin. Sebelumnya ada di konsol admin (/admin/projects/new);
 // kini satu tempat dengan alur pemerintah di /dashboard/proyek/baru, agar
@@ -24,13 +24,12 @@ export default async function AdminBuatProyekPage() {
   if (peran !== "admin") redirect("/dashboard/proyek");
 
   let kontraktor: { id: string; nama: string }[] = [];
+  let satuanKerja: string[] = [];
   if (databaseConfigured()) {
-    const { data } = await getSupabaseAdmin()
-      .from("contractors")
-      .select("id, nama")
-      .eq("nonaktif", false)
-      .order("nama", { ascending: true });
-    kontraktor = (data ?? []) as { id: string; nama: string }[];
+    [kontraktor, satuanKerja] = await Promise.all([
+      daftarKontraktorAktif(),
+      daftarSatuanKerjaPemerintah(),
+    ]);
   }
 
   return (
@@ -45,6 +44,7 @@ export default async function AdminBuatProyekPage() {
           today={jakartaToday()}
           kembaliKe="/dashboard/proyek"
           kontraktor={kontraktor}
+          satuanKerja={satuanKerja}
         />
       </div>
     </>

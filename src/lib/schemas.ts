@@ -16,10 +16,21 @@ const isoDate = z
 // Catatan: transform di bawah mengubah undefined menjadi null.
 // Untuk PATCH jangan memakai hasil parse pada kunci yang tidak dikirim.
 const nullableText = (max: number) =>
-  z.string().trim().max(max).nullish().transform((v) => (v ? v : null));
+  z
+    .string()
+    .trim()
+    .max(max)
+    .nullish()
+    .transform((v) => (v ? v : null));
 
 const nullableInt = (min: number, max: number) =>
-  z.number().int().min(min).max(max).nullish().transform((v) => v ?? null);
+  z
+    .number()
+    .int()
+    .min(min)
+    .max(max)
+    .nullish()
+    .transform((v) => v ?? null);
 
 export const BoardSchema = z.object({
   packageName: nullableText(300),
@@ -32,12 +43,62 @@ export const BoardSchema = z.object({
   contractNumber: nullableText(100),
   contractDate: isoDate.nullish().transform((v) => v ?? null),
   locationText: nullableText(300),
+  executionStartDate: isoDate.nullish().transform((v) => v ?? null),
+  executionEndDate: isoDate.nullish().transform((v) => v ?? null),
+  locationLatitude: z
+    .number()
+    .finite()
+    .min(-90)
+    .max(90)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  locationLongitude: z
+    .number()
+    .finite()
+    .min(-180)
+    .max(180)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
 });
 export type Board = z.infer<typeof BoardSchema>;
 
 // Papan: hanya nama paket yang wajib (menjadi judul dossier)
 export const AdminBoardSchema = BoardSchema.extend({
   packageName: z.string().trim().min(1, "Nama paket wajib diisi").max(300),
+}).superRefine((board, ctx) => {
+  const mulai = board.executionStartDate;
+  const selesai = board.executionEndDate;
+  if (Boolean(mulai) !== Boolean(selesai)) {
+    ctx.addIssue({
+      code: "custom",
+      path: [mulai ? "executionEndDate" : "executionStartDate"],
+      message: "Tanggal mulai dan selesai harus diisi bersama.",
+    });
+  } else if (mulai && selesai) {
+    const hari =
+      Math.floor(
+        (Date.parse(`${selesai}T00:00:00Z`) - Date.parse(`${mulai}T00:00:00Z`)) / 86_400_000,
+      ) + 1;
+    if (hari < 1 || hari > 3650) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["executionEndDate"],
+        message: "Masa pelaksanaan harus antara 1 dan 3650 hari.",
+      });
+    }
+  }
+
+  const adaLatitude = board.locationLatitude !== null && board.locationLatitude !== undefined;
+  const adaLongitude = board.locationLongitude !== null && board.locationLongitude !== undefined;
+  if (adaLatitude !== adaLongitude) {
+    ctx.addIssue({
+      code: "custom",
+      path: [adaLatitude ? "locationLongitude" : "locationLatitude"],
+      message: "Latitude dan longitude harus diisi bersama.",
+    });
+  }
 });
 
 // Catatan resmi TIDAK lagi diketik manual: proyek menautkan satu baris
@@ -54,7 +115,42 @@ export const AdminProjectCreateSchema = z.object({
 
 export const AdminProjectPatchSchema = z
   .object({
-    board: BoardSchema.partial().optional(),
+    board: BoardSchema.partial()
+      .superRefine((board, ctx) => {
+        if (Boolean(board.executionStartDate) !== Boolean(board.executionEndDate)) {
+          ctx.addIssue({
+            code: "custom",
+            path: [board.executionStartDate ? "executionEndDate" : "executionStartDate"],
+            message: "Tanggal mulai dan selesai harus diisi bersama.",
+          });
+        } else if (board.executionStartDate && board.executionEndDate) {
+          const hari =
+            Math.floor(
+              (Date.parse(`${board.executionEndDate}T00:00:00Z`) -
+                Date.parse(`${board.executionStartDate}T00:00:00Z`)) /
+                86_400_000,
+            ) + 1;
+          if (hari < 1 || hari > 3650) {
+            ctx.addIssue({
+              code: "custom",
+              path: ["executionEndDate"],
+              message: "Masa pelaksanaan harus antara 1 dan 3650 hari.",
+            });
+          }
+        }
+
+        const adaLatitude = board.locationLatitude !== null && board.locationLatitude !== undefined;
+        const adaLongitude =
+          board.locationLongitude !== null && board.locationLongitude !== undefined;
+        if (adaLatitude !== adaLongitude) {
+          ctx.addIssue({
+            code: "custom",
+            path: [adaLatitude ? "locationLongitude" : "locationLatitude"],
+            message: "Latitude dan longitude harus diisi bersama.",
+          });
+        }
+      })
+      .optional(),
     // null = lepas tautan registry; undefined = biarkan; uuid = tautkan ulang.
     recordId: z.string().uuid().nullable().optional(),
     featured: z.boolean().optional(),
@@ -71,7 +167,12 @@ const KataSandiBaru = z
 // Pembuatan akun kontraktor oleh admin (nama perusahaan + kredensial login).
 export const ContractorCreateSchema = z.object({
   nama: z.string().trim().min(1, "Nama kontraktor wajib diisi").max(200),
-  kontak: z.string().trim().max(200).nullish().transform((v) => (v ? v : null)),
+  kontak: z
+    .string()
+    .trim()
+    .max(200)
+    .nullish()
+    .transform((v) => (v ? v : null)),
   email: z.string().trim().toLowerCase().email("Format email tidak valid").max(200),
   password: KataSandiBaru,
 });
@@ -81,7 +182,12 @@ export const ContractorCreateSchema = z.object({
 export const ContractorUpdateSchema = z
   .object({
     nama: z.string().trim().min(1, "Nama kontraktor wajib diisi").max(200).optional(),
-    kontak: z.string().trim().max(200).nullish().transform((v) => (v ? v : null)),
+    kontak: z
+      .string()
+      .trim()
+      .max(200)
+      .nullish()
+      .transform((v) => (v ? v : null)),
     email: z.string().trim().toLowerCase().email("Format email tidak valid").max(200).optional(),
     password: z
       .string()
@@ -93,7 +199,11 @@ export const ContractorUpdateSchema = z
       }),
   })
   .refine(
-    (v) => v.nama !== undefined || v.kontak !== null || v.email !== undefined || v.password !== undefined,
+    (v) =>
+      v.nama !== undefined ||
+      v.kontak !== null ||
+      v.email !== undefined ||
+      v.password !== undefined,
     "Tidak ada perubahan",
   );
 

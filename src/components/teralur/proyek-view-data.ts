@@ -78,7 +78,7 @@ export async function getProyekViewData(slug: string): Promise<ProyekViewData | 
   const timeRing = computeTimeRing({
     boardDurationDays: board?.durationDays ?? null,
     recordDurationDays: record?.masa_hari ?? null,
-    boardContractDate: board?.contractDate ?? null,
+    boardContractDate: board?.executionStartDate ?? board?.contractDate ?? null,
     recordContractDate: record?.tanggal_kontrak ?? null,
     today: jakartaToday(),
   });

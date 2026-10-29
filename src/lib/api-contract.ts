@@ -18,6 +18,10 @@ export const boardSchema = z.object({
   contractNumber: z.string().nullable(),
   contractDate: z.string().date().nullable(),
   locationText: z.string().nullable(),
+  executionStartDate: z.string().date().nullable().optional(),
+  executionEndDate: z.string().date().nullable().optional(),
+  locationLatitude: z.number().finite().min(-90).max(90).nullable().optional(),
+  locationLongitude: z.number().finite().min(-180).max(180).nullable().optional(),
 });
 
 export type ApiBoard = z.infer<typeof boardSchema>;
@@ -33,6 +37,10 @@ export const storedBoardSchema = z.object({
   nomor_kontrak: z.string().nullable(),
   tanggal_kontrak: z.string().date().nullable(),
   lokasi_teks: z.string().nullable(),
+  masa_mulai: z.string().date().nullable().optional(),
+  masa_selesai: z.string().date().nullable().optional(),
+  lokasi_lat: z.number().finite().min(-90).max(90).nullable().optional(),
+  lokasi_lng: z.number().finite().min(-180).max(180).nullable().optional(),
 });
 
 export const matchRequestSchema = z.object({ board: boardSchema });
@@ -79,6 +87,10 @@ export function boardToInternal(board: ApiBoard): Papan {
     nomor_kontrak: board.contractNumber,
     tanggal_kontrak: board.contractDate,
     lokasi_teks: board.locationText,
+    masa_mulai: board.executionStartDate ?? null,
+    masa_selesai: board.executionEndDate ?? null,
+    lokasi_lat: board.locationLatitude ?? null,
+    lokasi_lng: board.locationLongitude ?? null,
   };
 }
 
@@ -94,6 +106,10 @@ export function boardToApi(board: Papan): ApiBoard {
     contractNumber: board.nomor_kontrak,
     contractDate: board.tanggal_kontrak,
     locationText: board.lokasi_teks,
+    executionStartDate: board.masa_mulai ?? null,
+    executionEndDate: board.masa_selesai ?? null,
+    locationLatitude: board.lokasi_lat ?? null,
+    locationLongitude: board.lokasi_lng ?? null,
   };
 }
 

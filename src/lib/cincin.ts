@@ -14,6 +14,7 @@ export type Cincin = {
 export type PapanCincin = {
   durationDays?: number | null;
   contractDate?: string | null;
+  executionStartDate?: string | null;
 };
 
 // Input catatan resmi (kolom internal bahasa Indonesia).
@@ -24,13 +25,14 @@ export type CatatanCincin = {
 
 // Presedensi fallback §6.5:
 // total = durationDays papan, bila null masa_hari catatan, bila keduanya null tidak terhitung;
-// mulai = tanggal_kontrak catatan, bila null contractDate papan, bila keduanya null tidak terhitung.
+// mulai = tanggal kontrak catatan, lalu tanggal mulai pelaksanaan papan, lalu tanggal kontrak papan.
 export function inputCincin(
   papan: PapanCincin | null,
   catatan: CatatanCincin | null,
 ): { masaHari: number | null; tanggalMulai: string | null } {
   const masaHari = papan?.durationDays ?? catatan?.masa_hari ?? null;
-  const tanggalMulai = catatan?.tanggal_kontrak ?? papan?.contractDate ?? null;
+  const tanggalMulai =
+    catatan?.tanggal_kontrak ?? papan?.executionStartDate ?? papan?.contractDate ?? null;
   return { masaHari, tanggalMulai };
 }
 
@@ -102,13 +104,8 @@ const CAPTION_TANPA_MASA = "Masa pelaksanaan tidak tersedia";
 // Presedensi G.1: total = masa papan → masa catatan resmi;
 // mulai = tanggal kontrak catatan resmi → tanggal kontrak papan.
 export function computeTimeRing(input: RingInput): TimeRing {
-  const {
-    boardDurationDays,
-    recordDurationDays,
-    boardContractDate,
-    recordContractDate,
-    today,
-  } = input;
+  const { boardDurationDays, recordDurationDays, boardContractDate, recordContractDate, today } =
+    input;
 
   // Rule 1: total dari papan bila ada, jika tidak dari catatan resmi.
   // Masa ≤ 0 diperlakukan tidak tersedia (mencegah pembagian nol, seperti v1.0).
@@ -119,7 +116,11 @@ export function computeTimeRing(input: RingInput): TimeRing {
         ? recordDurationDays
         : null;
   const totalSource: "board" | "record" | null =
-    total === null ? null : boardDurationDays !== null && boardDurationDays > 0 ? "board" : "record";
+    total === null
+      ? null
+      : boardDurationDays !== null && boardDurationDays > 0
+        ? "board"
+        : "record";
 
   // Rule 2: mulai dari catatan resmi bila ada, jika tidak dari papan.
   const start: string | null = recordContractDate ?? boardContractDate;

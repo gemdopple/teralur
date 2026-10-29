@@ -7,8 +7,8 @@ import { kelasTombol } from "@/lib/kelas-tombol";
 import { jakartaToday } from "@/lib/dates";
 import { META_ROLE } from "@/lib/roles";
 import { identitasSaatIni } from "@/lib/identitas";
-import { getSupabaseAdmin } from "@/lib/db";
 import { databaseConfigured } from "@/lib/server-api";
+import { daftarKontraktorAktif, daftarSatuanKerjaPemerintah } from "@/lib/opsi-form-proyek";
 
 // Penugasan proyek (alur pemerintah): hanya peran Pemerintah yang bisa
 // memasukkan/menugaskan proyek lewat dasbor. Peran berasal dari akun
@@ -44,13 +44,12 @@ export default async function HalamanTugaskanProyek() {
 
   // Daftar kontraktor untuk pemilihan penugasan (satu kontraktor per proyek).
   let kontraktor: { id: string; nama: string }[] = [];
+  let satuanKerja: string[] = [];
   if (databaseConfigured()) {
-    const { data } = await getSupabaseAdmin()
-      .from("contractors")
-      .select("id, nama")
-      .eq("nonaktif", false)
-      .order("nama", { ascending: true });
-    kontraktor = (data ?? []) as { id: string; nama: string }[];
+    [kontraktor, satuanKerja] = await Promise.all([
+      daftarKontraktorAktif(),
+      daftarSatuanKerjaPemerintah(),
+    ]);
   }
 
   return (
@@ -65,6 +64,7 @@ export default async function HalamanTugaskanProyek() {
           today={jakartaToday()}
           kembaliKe="/dashboard/proyek"
           kontraktor={kontraktor}
+          satuanKerja={satuanKerja}
         />
       </div>
     </>

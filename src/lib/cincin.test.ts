@@ -67,6 +67,12 @@ describe("inputCincin (presedensi fallback §6.5)", () => {
     expect(inputCincin(PAPAN, {})).toEqual({ masaHari: 120, tanggalMulai: "2026-01-01" });
   });
 
+  it("mengutamakan tanggal mulai pelaksanaan papan dari tanggal kontrak papan", () => {
+    expect(
+      inputCincin({ ...PAPAN, executionStartDate: "2026-03-01" }, { tanggal_kontrak: null }),
+    ).toEqual({ masaHari: 120, tanggalMulai: "2026-03-01" });
+  });
+
   it("hanya catatan: total dan mulai dari catatan", () => {
     expect(inputCincin(null, CATATAN)).toEqual({ masaHari: 200, tanggalMulai: "2026-02-01" });
     expect(inputCincin({}, CATATAN)).toEqual({ masaHari: 200, tanggalMulai: "2026-02-01" });
@@ -166,9 +172,7 @@ describe("computeTimeRing (vektor G.2, hari ini = 2026-10-24)", () => {
   });
 
   it("6. mulai dari papan 2026-10-19: running 5/90", () => {
-    const ring = computeTimeRing(
-      masuk({ boardDurationDays: 90, boardContractDate: "2026-10-19" }),
-    );
+    const ring = computeTimeRing(masuk({ boardDurationDays: 90, boardContractDate: "2026-10-19" }));
     expect(ring.state).toBe("running");
     expect(ring.centerText).toBe("5/90");
     expect(ring.startSource).toBe("board");
@@ -256,7 +260,11 @@ describe("ringkasanWarga", () => {
   });
 
   it("belum dimulai: persen 0 tanpa hari tersisa negatif", () => {
-    const ring = computeTimeRing({ ...dasar, boardContractDate: "2030-01-01", today: "2026-01-01" });
+    const ring = computeTimeRing({
+      ...dasar,
+      boardContractDate: "2030-01-01",
+      today: "2026-01-01",
+    });
     const ringkasan = ringkasanWarga(ring);
     expect(ringkasan.tersedia).toBe(false);
     expect(ringkasan.persen).toBeNull();

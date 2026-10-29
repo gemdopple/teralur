@@ -40,8 +40,7 @@ export async function pengaturSesi() {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        // Route handler tidak perlu menulis cookie sesi di sini; refresh token
-        // ditangani middleware/client. setAll no-op aman di konteks ini.
+        // Proxy menyegarkan sesi dan menulis cookie sebelum halaman/API berjalan.
         setAll: () => {},
       },
     },

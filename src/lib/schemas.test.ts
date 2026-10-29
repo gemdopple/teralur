@@ -17,6 +17,10 @@ const PAPAN_COCOK = {
   contractNumber: "SIM/001/2026",
   contractDate: "2026-08-11",
   locationText: "Kecamatan Sukamaju",
+  executionStartDate: "2026-08-11",
+  executionEndDate: "2026-11-09",
+  locationLatitude: -6.2,
+  locationLongitude: 106.6,
 };
 
 const RESMI_COCOK = {
@@ -45,6 +49,10 @@ describe("AdminProjectCreateSchema", () => {
       "contractNumber",
       "contractDate",
       "locationText",
+      "executionStartDate",
+      "executionEndDate",
+      "locationLatitude",
+      "locationLongitude",
     ]) {
       expect(hasil.board[kunci as keyof typeof hasil.board]).toBeNull();
     }
@@ -76,14 +84,44 @@ describe("AdminProjectCreateSchema", () => {
       expect(jalur).toContain("board.contractDate");
     }
   });
+
+  it("mewajibkan rentang masa pelaksanaan yang lengkap dan berurutan", () => {
+    expect(
+      AdminProjectCreateSchema.safeParse({
+        board: { packageName: "Paket", executionStartDate: "2026-08-11" },
+      }).success,
+    ).toBe(false);
+    expect(
+      AdminProjectCreateSchema.safeParse({
+        board: {
+          packageName: "Paket",
+          executionStartDate: "2026-11-09",
+          executionEndDate: "2026-08-11",
+        },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("mewajibkan koordinat peta berpasangan dan menerima koordinat nol", () => {
+    expect(
+      AdminProjectCreateSchema.safeParse({
+        board: { packageName: "Paket", locationLatitude: 0 },
+      }).success,
+    ).toBe(false);
+    expect(
+      AdminProjectCreateSchema.safeParse({
+        board: { packageName: "Paket", locationLatitude: 0, locationLongitude: 0 },
+      }).success,
+    ).toBe(true);
+  });
 });
 
 describe("AdminBoardSchema", () => {
   it("mewajibkan packageName dan memotong spasi", () => {
     expect(AdminBoardSchema.safeParse({ ...PAPAN_COCOK, packageName: "   " }).success).toBe(false);
-    expect(AdminBoardSchema.parse({ ...PAPAN_COCOK, packageName: "  Rehabilitasi Jalan  " }).packageName).toBe(
-      "Rehabilitasi Jalan",
-    );
+    expect(
+      AdminBoardSchema.parse({ ...PAPAN_COCOK, packageName: "  Rehabilitasi Jalan  " }).packageName,
+    ).toBe("Rehabilitasi Jalan");
   });
 });
 

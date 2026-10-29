@@ -18,11 +18,7 @@ import { ChipStatusRingkas, type DossierStatus } from "@/components/teralur/Chip
 import { DialogHapusProyek } from "@/components/teralur/TombolHapusProyek";
 import { KotakInfo } from "@/components/teralur/KotakInfo";
 import { Button } from "@/components/ui/button";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -113,7 +109,9 @@ function AksiBaris({
   const bisaUbah = peran !== "kontraktor";
   const judul = baris.judul;
   const hrefUbah =
-    peran === "admin" ? `/dashboard/proyek/${baris.id}/kelola` : `/dashboard/proyek/${baris.id}/ubah`;
+    peran === "admin"
+      ? `/dashboard/proyek/${baris.id}/kelola`
+      : `/dashboard/proyek/${baris.id}/ubah`;
   return (
     <div className="flex items-center justify-end gap-1">
       <Link
@@ -158,13 +156,19 @@ function AksiBaris({
               </MenuItem>
             )}
             {peran === "admin" && (
-              <MenuItem href={`/dashboard/proyek/${baris.id}/kelola#resource`} className={KELAS_MENU_ITEM}>
+              <MenuItem
+                href={`/dashboard/proyek/${baris.id}/kelola#resource`}
+                className={KELAS_MENU_ITEM}
+              >
                 <HugeiconsIcon icon={SourceCodeIcon} className="size-4 text-muted-foreground" />
                 Resource
               </MenuItem>
             )}
             {peran === "admin" && (
-              <MenuItem href={`/dashboard/proyek/${baris.id}/kelola#qr`} className={KELAS_MENU_ITEM}>
+              <MenuItem
+                href={`/dashboard/proyek/${baris.id}/kelola#qr`}
+                className={KELAS_MENU_ITEM}
+              >
                 <HugeiconsIcon icon={QrCodeIcon} className="size-4 text-muted-foreground" />
                 Lembar QR
               </MenuItem>
@@ -225,9 +229,7 @@ function Baris({
           <span className="text-sm text-muted-foreground">—</span>
         )}
       </td>
-      <td className="hidden px-3 py-4 text-sm text-muted-foreground lg:table-cell">
-        {baris.kontraktor ?? "—"}
-      </td>
+      <td className="px-3 py-4 text-sm text-muted-foreground">{baris.kontraktor ?? "—"}</td>
       <td className="hidden px-3 py-4 text-sm text-muted-foreground xl:table-cell">
         {baris.penyedia ?? "—"}
       </td>
@@ -241,7 +243,12 @@ function Baris({
         {formatWib(baris.diperbarui)}
       </td>
       <td className={`py-4 pl-3 ${KOLOM_AKSI_STICKY}`}>
-        <AksiBaris baris={baris} peran={peran} saatSembunyikan={saatSembunyikan} saatHapus={saatHapus} />
+        <AksiBaris
+          baris={baris}
+          peran={peran}
+          saatSembunyikan={saatSembunyikan}
+          saatHapus={saatHapus}
+        />
       </td>
     </tr>
   );
@@ -292,10 +299,13 @@ function Kartu({
         )}
       </dl>
       <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-2.5">
-        <p className="text-xs text-muted-foreground">
-          Diperbarui {formatWib(baris.diperbarui)}
-        </p>
-        <AksiBaris baris={baris} peran={peran} saatSembunyikan={saatSembunyikan} saatHapus={saatHapus} />
+        <p className="text-xs text-muted-foreground">Diperbarui {formatWib(baris.diperbarui)}</p>
+        <AksiBaris
+          baris={baris}
+          peran={peran}
+          saatSembunyikan={saatSembunyikan}
+          saatHapus={saatHapus}
+        />
       </div>
     </li>
   );
@@ -368,10 +378,7 @@ export function DaftarProyekDasbor({
             <SelectItem id="catatan_resmi">Catatan resmi</SelectItem>
           </SelectContent>
         </Select>
-        <Select
-          selectedKey={urutan}
-          onSelectionChange={(kunci) => setUrutan(kunci as Urutan)}
-        >
+        <Select selectedKey={urutan} onSelectionChange={(kunci) => setUrutan(kunci as Urutan)}>
           <SelectTrigger aria-label="Urutkan" className="w-44">
             <SelectValue />
           </SelectTrigger>
@@ -441,7 +448,7 @@ export function DaftarProyekDasbor({
                 <tr className="border-b border-border text-left">
                   <th className="py-3 pr-3 text-xs font-medium text-muted-foreground">Proyek</th>
                   <th className="px-3 py-3 text-xs font-medium text-muted-foreground">Status</th>
-                  <th className="hidden px-3 py-3 text-xs font-medium text-muted-foreground lg:table-cell">
+                  <th className="px-3 py-3 text-xs font-medium text-muted-foreground">
                     Kontraktor
                   </th>
                   <th className="hidden px-3 py-3 text-xs font-medium text-muted-foreground xl:table-cell">
@@ -456,7 +463,9 @@ export function DaftarProyekDasbor({
                   <th className="px-3 py-3 text-xs font-medium text-muted-foreground">
                     Diperbarui
                   </th>
-                  <th className={`py-3 pl-3 text-right text-xs font-medium text-muted-foreground ${KOLOM_AKSI_STICKY}`}>
+                  <th
+                    className={`py-3 pl-3 text-right text-xs font-medium text-muted-foreground ${KOLOM_AKSI_STICKY}`}
+                  >
                     Aksi
                   </th>
                 </tr>

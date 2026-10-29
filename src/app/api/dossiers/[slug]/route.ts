@@ -33,14 +33,20 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const { slug } = await params;
   if (!databaseConfigured()) {
     return NextResponse.json(
-      { error: "DATABASE_NOT_CONFIGURED", message: "Dossier belum tersedia karena basis data belum dikonfigurasi." },
+      {
+        error: "DATABASE_NOT_CONFIGURED",
+        message: "Dossier belum tersedia karena basis data belum dikonfigurasi.",
+      },
       { status: 503 },
     );
   }
 
   const dossier = await getDossier(slug);
   if (!dossier) {
-    return NextResponse.json({ error: "NOT_FOUND", message: "Dossier tidak ditemukan." }, { status: 404 });
+    return NextResponse.json(
+      { error: "NOT_FOUND", message: "Dossier tidak ditemukan." },
+      { status: 404 },
+    );
   }
 
   const { submission, record, visitCounts, candidates, requiresSelection, resources } = dossier;
@@ -53,7 +59,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   if ((boardResult !== null && !boardResult.success) || !internalStatus) {
     console.error("Stored dossier has an invalid board or status:", slug);
     return NextResponse.json(
-      { error: "INVALID_STORED_DOSSIER", message: "Data dossier tidak valid dan perlu diperiksa tim." },
+      {
+        error: "INVALID_STORED_DOSSIER",
+        message: "Data dossier tidak valid dan perlu diperiksa tim.",
+      },
       { status: 500 },
     );
   }
@@ -64,7 +73,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const timeRing = computeTimeRing({
     boardDurationDays: board?.durationDays ?? null,
     recordDurationDays: record?.masa_hari ?? null,
-    boardContractDate: board?.contractDate ?? null,
+    boardContractDate: board?.executionStartDate ?? board?.contractDate ?? null,
     recordContractDate: record?.tanggal_kontrak ?? null,
     today: jakartaToday(),
   });
@@ -157,37 +166,58 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
   // Jalur foto dibekukan (PRD v1.1, Lampiran B.3): pemilihan kandidat hanya
   // relevan untuk jalur foto; bila flag mati, kembalikan 404 NOT_FOUND.
   if (!photoFlowEnabled()) {
-    return NextResponse.json({ error: "NOT_FOUND", message: "Dossier tidak ditemukan." }, { status: 404 });
+    return NextResponse.json(
+      { error: "NOT_FOUND", message: "Dossier tidak ditemukan." },
+      { status: 404 },
+    );
   }
   const { slug } = await params;
   const body = await readJsonBody(request);
   if (!body.valid) {
-    return NextResponse.json({ error: "INVALID_JSON", message: "Isi permintaan tidak valid." }, { status: 400 });
+    return NextResponse.json(
+      { error: "INVALID_JSON", message: "Isi permintaan tidak valid." },
+      { status: 400 },
+    );
   }
-  const recordId = z.string().uuid().safeParse(
-    typeof body.value === "object" && body.value !== null && "recordId" in body.value
-      ? body.value.recordId
-      : undefined,
-  );
+  const recordId = z
+    .string()
+    .uuid()
+    .safeParse(
+      typeof body.value === "object" && body.value !== null && "recordId" in body.value
+        ? body.value.recordId
+        : undefined,
+    );
   if (!recordId.success) {
-    return NextResponse.json({ error: "INVALID_RECORD", message: "Pilih kandidat yang valid." }, { status: 400 });
+    return NextResponse.json(
+      { error: "INVALID_RECORD", message: "Pilih kandidat yang valid." },
+      { status: 400 },
+    );
   }
 
   if (!databaseConfigured()) {
     return NextResponse.json(
-      { error: "DATABASE_NOT_CONFIGURED", message: "Pencocokan belum tersedia karena basis data belum dikonfigurasi." },
+      {
+        error: "DATABASE_NOT_CONFIGURED",
+        message: "Pencocokan belum tersedia karena basis data belum dikonfigurasi.",
+      },
       { status: 503 },
     );
   }
 
   const dossier = await getDossier(slug);
   if (!dossier) {
-    return NextResponse.json({ error: "NOT_FOUND", message: "Dossier tidak ditemukan." }, { status: 404 });
+    return NextResponse.json(
+      { error: "NOT_FOUND", message: "Dossier tidak ditemukan." },
+      { status: 404 },
+    );
   }
   const boardResult = storedBoardSchema.safeParse(dossier.submission.papan);
   if (!boardResult.success || dossier.submission.jenis !== "foto") {
     return NextResponse.json(
-      { error: "CANDIDATE_SELECTION_UNAVAILABLE", message: "Dossier ini tidak memiliki kandidat papan untuk dipilih." },
+      {
+        error: "CANDIDATE_SELECTION_UNAVAILABLE",
+        message: "Dossier ini tidak memiliki kandidat papan untuk dipilih.",
+      },
       { status: 422 },
     );
   }

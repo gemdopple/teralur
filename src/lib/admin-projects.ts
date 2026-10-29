@@ -73,6 +73,10 @@ export function officialRecordFromRow(row: ProjectRecordRow): ApiBoard {
     contractNumber: typeof mentah.contractNumber === "string" ? mentah.contractNumber : null,
     contractDate: row.tanggal_kontrak,
     locationText: typeof mentah.locationText === "string" ? mentah.locationText : null,
+    executionStartDate: null,
+    executionEndDate: null,
+    locationLatitude: null,
+    locationLongitude: null,
   };
 }
 

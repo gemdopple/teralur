@@ -2,14 +2,22 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { FormProyek } from "@/components/teralur/admin/FormProyek";
-import { PengunggahResource, type ResourceAdmin } from "@/components/teralur/admin/PengunggahResource";
+import {
+  PengunggahResource,
+  type ResourceAdmin,
+} from "@/components/teralur/admin/PengunggahResource";
 import { PanelQR } from "@/components/teralur/admin/PanelQR";
 import { TabelLaporanWarga } from "@/components/teralur/admin/TabelLaporanWarga";
-import { officialRecordFromRow, parseStoredBoard, type ProjectRecordRow } from "@/lib/admin-projects";
+import {
+  officialRecordFromRow,
+  parseStoredBoard,
+  type ProjectRecordRow,
+} from "@/lib/admin-projects";
 import { jakartaToday } from "@/lib/dates";
 import { getSupabaseAdmin } from "@/lib/db";
 import { databaseConfigured } from "@/lib/server-api";
 import { identitasSaatIni } from "@/lib/identitas";
+import { daftarKontraktorAktif, daftarSatuanKerjaPemerintah } from "@/lib/opsi-form-proyek";
 
 // Detail proyek untuk admin — satu halaman, semua yang dimiliki admin.
 //
@@ -27,7 +35,10 @@ const ID_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 function Pesan({ judul, isi }: { judul: string; isi: string }) {
   return (
     <>
-      <KepalaDasbor judul="Kelola proyek" deskripsi="Ubah data proyek, resource, QR, dan laporan warga." />
+      <KepalaDasbor
+        judul="Kelola proyek"
+        deskripsi="Ubah data proyek, resource, QR, dan laporan warga."
+      />
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <h2 className="font-heading text-lg font-semibold tracking-tight">{judul}</h2>
@@ -58,17 +69,23 @@ export default async function KelolaProyekAdminPage({
   }
 
   if (!ID_UUID.test(kunci) || !databaseConfigured()) {
-    return <Pesan judul="Proyek tidak ditemukan" isi="Proyek sudah dihapus atau alamatnya salah." />;
+    return (
+      <Pesan judul="Proyek tidak ditemukan" isi="Proyek sudah dihapus atau alamatnya salah." />
+    );
   }
 
   const { data: submission } = await getSupabaseAdmin()
     .from("submissions")
-    .select("id, slug, jenis, papan, status, unggulan, dinonaktifkan, record_id, contractor_id, diperbarui")
+    .select(
+      "id, slug, jenis, papan, status, unggulan, dinonaktifkan, record_id, contractor_id, diperbarui",
+    )
     .eq("id", kunci)
     .maybeSingle();
 
   if (!submission || submission.jenis !== "admin" || submission.dinonaktifkan) {
-    return <Pesan judul="Proyek tidak ditemukan" isi="Proyek sudah dihapus atau alamatnya salah." />;
+    return (
+      <Pesan judul="Proyek tidak ditemukan" isi="Proyek sudah dihapus atau alamatnya salah." />
+    );
   }
 
   const board = parseStoredBoard(submission.papan);
@@ -80,7 +97,9 @@ export default async function KelolaProyekAdminPage({
   if (submission.record_id) {
     const { data: recordRow } = await getSupabaseAdmin()
       .from("records")
-      .select("id, nama_paket, penyedia, nilai_kontrak, tanggal_kontrak, masa_hari, tahun, satuan_kerja, wilayah, mentah")
+      .select(
+        "id, nama_paket, penyedia, nilai_kontrak, tanggal_kontrak, masa_hari, tahun, satuan_kerja, wilayah, mentah",
+      )
       .eq("id", submission.record_id)
       .maybeSingle();
     if (recordRow) {
@@ -89,12 +108,10 @@ export default async function KelolaProyekAdminPage({
   }
 
   // Daftar kontraktor: dipakai untuk penugasan satu kontraktor per proyek.
-  const { data: contractorRows } = await getSupabaseAdmin()
-    .from("contractors")
-    .select("id, nama")
-    .eq("nonaktif", false)
-    .order("nama", { ascending: true });
-  const kontraktor = (contractorRows ?? []) as { id: string; nama: string }[];
+  const [kontraktor, satuanKerja] = await Promise.all([
+    daftarKontraktorAktif(),
+    daftarSatuanKerjaPemerintah(),
+  ]);
 
   // Resource proyek (L.4) untuk PengunggahResource.
   const { data: resourceRows } = await getSupabaseAdmin()
@@ -124,6 +141,7 @@ export default async function KelolaProyekAdminPage({
           today={jakartaToday()}
           kembaliKe="/dashboard/proyek"
           kontraktor={kontraktor}
+          satuanKerja={satuanKerja}
           initial={{
             id: submission.id,
             slug: submission.slug,

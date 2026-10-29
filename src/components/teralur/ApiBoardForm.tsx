@@ -33,14 +33,16 @@ const EMPTY_BOARD: ApiBoard = {
   contractNumber: null,
   contractDate: null,
   locationText: null,
+  executionStartDate: null,
+  executionEndDate: null,
+  locationLatitude: null,
+  locationLongitude: null,
 };
 
 // Teks §8.4: gagal baca.
 const GAGAL_BACA = "Foto sulit dibaca. Isi manual saja, cukup 30 detik.";
 
-async function makeUploadImage(
-  file: File,
-): Promise<{ blob: Blob; width: number; height: number }> {
+async function makeUploadImage(file: File): Promise<{ blob: Blob; width: number; height: number }> {
   if (file.size > 20 * 1024 * 1024) {
     throw new Error("Foto asli terlalu besar. Pilih foto berukuran di bawah 20 MB.");
   }
@@ -73,7 +75,12 @@ export function ApiBoardForm() {
   const [unreadFields, setUnreadFields] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [working, setWorking] = useState(false);
-  const [preview, setPreview] = useState<{ url: string; width: number; height: number; sizeKB: number } | null>(null);
+  const [preview, setPreview] = useState<{
+    url: string;
+    width: number;
+    height: number;
+    sizeKB: number;
+  } | null>(null);
 
   const contractValue = parseNilaiUang(contractValueInput);
   const boardDenganNilai: ApiBoard = { ...board, contractValue };
@@ -116,7 +123,12 @@ export function ApiBoardForm() {
       // Pratinjau hasil pengecilan; object URL diganti (direvoke) setiap foto baru.
       setPreview((lama) => {
         if (lama) URL.revokeObjectURL(lama.url);
-        return { url: URL.createObjectURL(compressed), width, height, sizeKB: Math.round(compressed.size / 1024) };
+        return {
+          url: URL.createObjectURL(compressed),
+          width,
+          height,
+          sizeKB: Math.round(compressed.size / 1024),
+        };
       });
       const form = new FormData();
       form.append("photo", compressed, "project-sign.jpg");
@@ -124,11 +136,7 @@ export function ApiBoardForm() {
       const payload: unknown = await response.json();
       const parsed = z.object({ message: z.string().optional() }).safeParse(payload);
       if (!response.ok) {
-        setMessage(
-          parsed.success && parsed.data.message
-            ? parsed.data.message
-            : GAGAL_BACA,
-        );
+        setMessage(parsed.success && parsed.data.message ? parsed.data.message : GAGAL_BACA);
         return;
       }
       const hasil = EXTRACT_RESPONSE.safeParse(payload);
@@ -138,7 +146,9 @@ export function ApiBoardForm() {
       }
       // Prefill hasil ekstraksi; field yang tidak terbaca ditandai kuning (Alur A langkah 4).
       setBoard({ ...EMPTY_BOARD, ...hasil.data.board });
-      setContractValueInput(hasil.data.board.contractValue !== null ? String(hasil.data.board.contractValue) : "");
+      setContractValueInput(
+        hasil.data.board.contractValue !== null ? String(hasil.data.board.contractValue) : "",
+      );
       setUnreadFields(hasil.data.unreadFields);
       setMessage(
         hasil.data.unreadFields.length > 0
@@ -156,9 +166,7 @@ export function ApiBoardForm() {
   async function submitBoard(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!gateTerpenuhi) {
-      setMessage(
-        `Belum lengkap: ${fieldKurang.join(", ")}. Isi minimal 2 dari 3 field kunci.`,
-      );
+      setMessage(`Belum lengkap: ${fieldKurang.join(", ")}. Isi minimal 2 dari 3 field kunci.`);
       return;
     }
     if (
@@ -204,8 +212,8 @@ export function ApiBoardForm() {
       <section className="rounded-xl border-2 border-black bg-white p-5">
         <h2 className="font-heading text-xl font-bold">Foto papan (opsional)</h2>
         <p className="mt-2 text-sm text-neutral-700">
-          Foto diperkecil di perangkat dan tidak disimpan. Isian terbaca dipakai untuk
-          mengisi formulir dan selalu dapat Anda perbaiki.
+          Foto diperkecil di perangkat dan tidak disimpan. Isian terbaca dipakai untuk mengisi
+          formulir dan selalu dapat Anda perbaiki.
         </p>
         <label className="mt-5 block text-sm font-semibold" htmlFor="photo">
           Pilih foto
@@ -229,8 +237,8 @@ export function ApiBoardForm() {
               className="w-full rounded-md border border-neutral-300"
             />
             <figcaption className="mt-1 text-xs text-neutral-600">
-              Pratinjau hasil pengecilan: {preview.width}×{preview.height} px,{" "}
-              {preview.sizeKB} KB. Foto tidak disimpan.
+              Pratinjau hasil pengecilan: {preview.width}×{preview.height} px, {preview.sizeKB} KB.
+              Foto tidak disimpan.
             </figcaption>
           </figure>
         )}
@@ -239,8 +247,8 @@ export function ApiBoardForm() {
       <form onSubmit={submitBoard} className="rounded-xl border-2 border-black bg-white p-5">
         <h2 className="font-heading text-xl font-bold">Konfirmasi data papan</h2>
         <p className="mt-2 text-sm text-neutral-700">
-          Isi minimal dua dari tiga field kunci: nama paket, penyedia, dan nilai kontrak.
-          Field kuning belum terbaca atau belum terisi.
+          Isi minimal dua dari tiga field kunci: nama paket, penyedia, dan nilai kontrak. Field
+          kuning belum terbaca atau belum terisi.
         </p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="sm:col-span-2">
@@ -302,7 +310,9 @@ export function ApiBoardForm() {
               onChange={(event) =>
                 updateBoard({
                   durationDays:
-                    event.target.value === "" ? null : Number(event.target.value.replace(/[^\d]/g, "")) || null,
+                    event.target.value === ""
+                      ? null
+                      : Number(event.target.value.replace(/[^\d]/g, "")) || null,
                 })
               }
               className={kelasField("durationDays")}
@@ -316,7 +326,9 @@ export function ApiBoardForm() {
               onChange={(event) =>
                 updateBoard({
                   fiscalYear:
-                    event.target.value === "" ? null : Number(event.target.value.replace(/[^\d]/g, "")) || null,
+                    event.target.value === ""
+                      ? null
+                      : Number(event.target.value.replace(/[^\d]/g, "")) || null,
                 })
               }
               className={kelasField("fiscalYear")}

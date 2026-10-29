@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 // Pr bodies: respons 404 sungguhan untuk dossier/kartu bukti yang tidak ada,
 // berupa draf, atau ditarik (Lampiran H.1). Dengan cacheComponents, notFound()
@@ -12,7 +13,13 @@ import { NextResponse, type NextRequest } from "next/server";
 // sini agar gambar generik (H.4) tetap tersedia untuk slug yang tidak ada.
 
 export const config = {
-  matcher: ["/dossiers/:slug", "/evidence/:slug"],
+  matcher: [
+    "/dashboard/:path*",
+    "/api/admin/:path*",
+    "/api/contractor/:path*",
+    "/dossiers/:slug",
+    "/evidence/:slug",
+  ],
 };
 
 const POLA_SLUG = /^[A-Za-z0-9_-]{1,64}$/;
@@ -59,7 +66,17 @@ function halamanNetral404(): Response {
 }
 
 export async function proxy(request: NextRequest): Promise<Response> {
-  const slug = request.nextUrl.pathname.split("/")[2] ?? "";
+  const { pathname } = request.nextUrl;
+  const perluPerbaruiSesi =
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    pathname.startsWith("/api/admin/") ||
+    pathname.startsWith("/api/contractor/");
+  if (perluPerbaruiSesi) {
+    return perbaruiSesiSupabase(request);
+  }
+
+  const slug = pathname.split("/")[2] ?? "";
   if (!POLA_SLUG.test(slug)) return halamanNetral404();
 
   const url = process.env.SUPABASE_URL;
@@ -82,4 +99,34 @@ export async function proxy(request: NextRequest): Promise<Response> {
     return NextResponse.next();
   }
   return NextResponse.next();
+}
+
+async function perbaruiSesiSupabase(request: NextRequest): Promise<NextResponse> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const kunci = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !kunci) return NextResponse.next({ request });
+
+  let response = NextResponse.next({ request });
+  const supabase = createServerClient(url, kunci, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll: (cookiesToSet, headers) => {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        response = NextResponse.next({ request });
+        for (const { name, value, options } of cookiesToSet) {
+          response.cookies.set(name, value, options);
+        }
+        for (const [name, value] of Object.entries(headers)) {
+          response.headers.set(name, value);
+        }
+      },
+    },
+  });
+
+  // Refreshes expired access tokens and forwards the updated cookies to both
+  // the current request and the browser before page/API auth checks run.
+  await supabase.auth.getUser();
+  return response;
 }

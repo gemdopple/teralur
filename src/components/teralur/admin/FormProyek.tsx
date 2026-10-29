@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +38,11 @@ type FieldKey =
   | "agencyUnit"
   | "contractNumber"
   | "contractDate"
-  | "locationText";
+  | "locationText"
+  | "executionStartDate"
+  | "executionEndDate"
+  | "locationLatitude"
+  | "locationLongitude";
 
 type Blok = Record<FieldKey, string>;
 
@@ -84,13 +89,17 @@ const LABEL_FIELD: Record<FieldKey, string> = {
   packageName: "Nama paket",
   supplier: "Penyedia",
   contractValue: "Nilai kontrak (Rp)",
-  durationDays: "Masa pelaksanaan (hari kalender)",
+  durationDays: "Masa pelaksanaan",
   fiscalYear: "Tahun anggaran",
   fundingSource: "Sumber dana",
   agencyUnit: "Satuan kerja",
   contractNumber: "Nomor kontrak",
   contractDate: "Tanggal kontrak",
   locationText: "Lokasi",
+  executionStartDate: "Mulai pelaksanaan",
+  executionEndDate: "Selesai pelaksanaan",
+  locationLatitude: "Latitude",
+  locationLongitude: "Longitude",
 };
 
 // Urutan tampil di formulir, sesuai tabel L.3.
@@ -98,7 +107,8 @@ const URUTAN_FIELD: FieldKey[] = [
   "packageName",
   "supplier",
   "contractValue",
-  "durationDays",
+  "executionStartDate",
+  "executionEndDate",
   "fiscalYear",
   "fundingSource",
   "agencyUnit",
@@ -114,12 +124,16 @@ const BLOK_KOSONG: Blok = {
   supplier: "",
   contractValue: "",
   durationDays: "",
+  executionStartDate: "",
+  executionEndDate: "",
   fiscalYear: "",
   fundingSource: "",
   agencyUnit: "",
   contractNumber: "",
   contractDate: "",
   locationText: "",
+  locationLatitude: "",
+  locationLongitude: "",
 };
 
 const PESAN_SESI_HABIS = "Sesi berakhir. Masuk lagi.";
@@ -150,13 +164,20 @@ function blokDariApi(api: ApiBoard): Blok {
     supplier: api.supplier ?? "",
     contractValue:
       typeof api.contractValue === "number" ? formatAngkaInput(String(api.contractValue)) : "",
-    durationDays: api.durationDays === null || api.durationDays === undefined ? "" : String(api.durationDays),
-    fiscalYear: api.fiscalYear === null || api.fiscalYear === undefined ? "" : String(api.fiscalYear),
+    durationDays:
+      api.durationDays === null || api.durationDays === undefined ? "" : String(api.durationDays),
+    executionStartDate: api.executionStartDate ?? "",
+    executionEndDate: api.executionEndDate ?? "",
+    fiscalYear:
+      api.fiscalYear === null || api.fiscalYear === undefined ? "" : String(api.fiscalYear),
     fundingSource: api.fundingSource ?? "",
     agencyUnit: api.agencyUnit ?? "",
     contractNumber: api.contractNumber ?? "",
     contractDate: api.contractDate ?? "",
     locationText: api.locationText ?? "",
+    locationLatitude: typeof api.locationLatitude === "number" ? String(api.locationLatitude) : "",
+    locationLongitude:
+      typeof api.locationLongitude === "number" ? String(api.locationLongitude) : "",
   };
 }
 
@@ -171,6 +192,10 @@ type ApiBlok = {
   contractNumber: string | null;
   contractDate: string | null;
   locationText: string | null;
+  executionStartDate: string | null;
+  executionEndDate: string | null;
+  locationLatitude: number | null;
+  locationLongitude: number | null;
 };
 
 function rekamanDariApi(id: string, api: ApiBoard): RekamanRegistry {
@@ -202,22 +227,38 @@ function rekamanKePerbandingan(item: RekamanRegistry): {
 // nilai kontrak diparse dengan parser D.2, angka divalidasi rentang.
 function blokKeApi(blok: Blok): ApiBlok {
   const nilai = parseNilaiUang(blok.contractValue);
+  const mulai = blok.executionStartDate || null;
+  const selesai = blok.executionEndDate || null;
+  const masaHari =
+    mulai && selesai
+      ? Math.floor(
+          (Date.parse(`${selesai}T00:00:00Z`) - Date.parse(`${mulai}T00:00:00Z`)) / 86_400_000,
+        ) + 1
+      : angkaAtauKosong(blok.durationDays);
   return {
     packageName: blok.packageName.trim() || null,
     supplier: blok.supplier.trim() || null,
     contractValue: nilai,
-    durationDays: angkaAtauKosong(blok.durationDays),
+    durationDays: masaHari,
     fiscalYear: angkaAtauKosong(blok.fiscalYear),
     fundingSource: blok.fundingSource.trim() || null,
     agencyUnit: blok.agencyUnit.trim() || null,
     contractNumber: blok.contractNumber.trim() || null,
     contractDate: blok.contractDate.trim() || null,
     locationText: blok.locationText.trim() || null,
+    executionStartDate: mulai,
+    executionEndDate: selesai,
+    locationLatitude: blok.locationLatitude.trim() ? Number(blok.locationLatitude) : null,
+    locationLongitude: blok.locationLongitude.trim() ? Number(blok.locationLongitude) : null,
   };
 }
 
 // BoardLike untuk compare() (Lampiran F.3) dari isi blok.
-function blokKePerbandingan(blok: Blok): { packageName: string | null; supplier: string | null; contractValue: number | null } {
+function blokKePerbandingan(blok: Blok): {
+  packageName: string | null;
+  supplier: string | null;
+  contractValue: number | null;
+} {
   const api = blokKeApi(blok);
   return {
     packageName: api.packageName,
@@ -244,8 +285,7 @@ function validasiBlok(blok: Blok): Partial<Record<FieldKey, string>> {
     galat.packageName = "Nama paket maksimal 300 karakter.";
 
   const penyedia = blok.supplier.trim();
-  if (penyedia.length > BATAS_PANJANG.supplier!)
-    galat.supplier = "Penyedia maksimal 200 karakter.";
+  if (penyedia.length > BATAS_PANJANG.supplier!) galat.supplier = "Penyedia maksimal 200 karakter.";
 
   const nilaiTeks = blok.contractValue.trim();
   if (nilaiTeks !== "") {
@@ -254,10 +294,22 @@ function validasiBlok(blok: Blok): Partial<Record<FieldKey, string>> {
     else if (nilai > NILAI_MAKSIMAL) galat.contractValue = "Nilai kontrak melebihi batas maksimal.";
   }
 
-  const masa = angkaAtauKosong(blok.durationDays);
-  if (blok.durationDays.trim() !== "") {
-    if (masa === null || masa < 1 || masa > 3650)
-      galat.durationDays = "Masa pelaksanaan harus angka 1–3650.";
+  const mulai = blok.executionStartDate.trim();
+  const selesai = blok.executionEndDate.trim();
+  if ((mulai && !selesai) || (!mulai && selesai)) {
+    galat.executionStartDate = "Isi tanggal mulai dan selesai.";
+    galat.executionEndDate = "Isi tanggal mulai dan selesai.";
+  } else if (mulai && selesai) {
+    if (!tanggalValid(mulai)) galat.executionStartDate = "Tanggal mulai tidak valid.";
+    if (!tanggalValid(selesai)) galat.executionEndDate = "Tanggal selesai tidak valid.";
+    if (tanggalValid(mulai) && tanggalValid(selesai)) {
+      const hari =
+        Math.floor(
+          (Date.parse(`${selesai}T00:00:00Z`) - Date.parse(`${mulai}T00:00:00Z`)) / 86_400_000,
+        ) + 1;
+      if (hari < 1) galat.executionEndDate = "Tanggal selesai harus setelah tanggal mulai.";
+      else if (hari > 3650) galat.executionEndDate = "Masa pelaksanaan maksimal 3650 hari.";
+    }
   }
 
   const tahun = angkaAtauKosong(blok.fiscalYear);
@@ -278,6 +330,20 @@ function validasiBlok(blok: Blok): Partial<Record<FieldKey, string>> {
   const tanggal = blok.contractDate.trim();
   if (tanggal !== "" && !tanggalValid(tanggal))
     galat.contractDate = "Tanggal tidak valid (harus TTTT-BB-HH).";
+
+  const latitude = blok.locationLatitude.trim();
+  const longitude = blok.locationLongitude.trim();
+  if (Boolean(latitude) !== Boolean(longitude)) {
+    galat.locationLatitude = "Pilih titik lokasi pada peta.";
+    galat.locationLongitude = "Pilih titik lokasi pada peta.";
+  } else if (latitude && longitude) {
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90)
+      galat.locationLatitude = "Latitude harus antara -90 dan 90.";
+    if (!Number.isFinite(lng) || lng < -180 || lng > 180)
+      galat.locationLongitude = "Longitude harus antara -180 dan 180.";
+  }
 
   return galat;
 }
@@ -357,92 +423,137 @@ function PemilihRegistry({
 }) {
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2">
-        <CardTitle>Data resmi — dari registry</CardTitle>
-        {terpilih ? (
-          <Button type="button" variant="outline" size="sm" onClick={onLepas}>
-            Lepas tautan
-          </Button>
-        ) : null}
+      <CardHeader className="pb-3">
+        <CardTitle>Catatan pengadaan resmi</CardTitle>
+        <p className="text-sm leading-5 text-muted-foreground">
+          Opsional: tautkan data independen untuk membandingkannya dengan data papan.
+        </p>
       </CardHeader>
       <CardContent className="space-y-3">
         {terpilih ? (
-          <dl className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
-            <div className="font-semibold leading-snug">{terpilih.packageName}</div>
-            <div className="mt-1 text-muted-foreground">{terpilih.supplier ?? "Penyedia tidak tercatat"}</div>
-            <div className="mt-1 font-mono text-xs">
-              {terpilih.contractValue !== null
-                ? formatRupiah(terpilih.contractValue)
-                : "Nilai tidak tercatat"}
-              {terpilih.contractDate ? ` · ${terpilih.contractDate}` : ""}
-              {terpilih.durationDays ? ` · ${terpilih.durationDays} hari` : ""}
+          <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-muted/40 p-3 text-sm">
+            <div>
+              <p className="font-semibold leading-snug">{terpilih.packageName}</p>
+              <p className="mt-1 text-muted-foreground">
+                {terpilih.supplier ?? "Penyedia tidak tercatat"}
+                {terpilih.contractValue !== null
+                  ? ` · ${formatRupiah(terpilih.contractValue)}`
+                  : ""}
+              </p>
             </div>
-          </dl>
+            <Button type="button" variant="outline" size="sm" onClick={onLepas}>
+              Lepas tautan
+            </Button>
+          </div>
         ) : null}
-        <div className="space-y-1.5">
-          <Label htmlFor="cari-registry">
-            {terpilih ? "Cari catatan lain di registry" : "Cari catatan resmi (nama paket / penyedia)"}
-          </Label>
-          <Input
-            id="cari-registry"
-            value={kueri}
-            placeholder="Minimal 3 karakter, mis. nama paket…"
-            onChange={(e) => onKueri(e.target.value)}
-          />
-        </div>
-        {mencari ? <p className="text-xs text-muted-foreground">Mencari…</p> : null}
-        {!mencari && kueri.trim().length >= 3 && hasil.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            Tidak ada di registry. Proyek tetap bisa disimpan tanpa tautan — statusnya jujur:
-            &quot;Tidak ditemukan&quot; sampai data resminya diimpor.
+        <details className="rounded-lg border border-border px-3 py-2.5">
+          <summary className="cursor-pointer text-sm font-medium">
+            {terpilih ? "Ganti catatan pengadaan" : "Cari catatan pengadaan"}
+          </summary>
+          <div className="mt-3 space-y-3">
+            <p className="text-xs leading-5 text-muted-foreground">
+              &quot;Catatan resmi&quot; adalah data pengadaan independen dari OpenTender/ICW (format
+              OCDS), bukan data yang diketik di formulir ini. Pencarian tersedia setelah minimal 3
+              karakter.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="cari-registry">Nama paket atau penyedia</Label>
+              <Input
+                id="cari-registry"
+                value={kueri}
+                placeholder="Contoh: pembangunan jalan Sukamaju"
+                onChange={(e) => onKueri(e.target.value)}
+              />
+            </div>
+            {mencari ? <p className="text-xs text-muted-foreground">Mencari catatan…</p> : null}
+            {!mencari && kueri.trim().length >= 3 && hasil.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Catatan tidak ditemukan. Simpan proyek tanpa tautan; statusnya akan tetap
+                &quot;Tidak ditemukan&quot;. Untuk menambahkan data resmi, pengelola teknis menaruh
+                CSV di <code>data/raw/</code> lalu menjalankan <code>npm run import:records</code>.
+              </p>
+            ) : null}
+            {hasil.length > 0 ? (
+              <ul
+                className="max-h-48 space-y-1 overflow-y-auto"
+                aria-label="Hasil pencarian registry"
+              >
+                {hasil.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      onClick={() => onPilih(item)}
+                      className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left text-sm transition-colors hover:bg-accent/60"
+                    >
+                      <span className="line-clamp-1 font-medium">{item.packageName}</span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
+                        {item.supplier ?? "Penyedia tidak tercatat"}
+                        {item.contractValue !== null
+                          ? ` · ${formatRupiah(item.contractValue)}`
+                          : ""}
+                        {item.contractDate ? ` · ${item.contractDate}` : ""}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </details>
+        {!terpilih ? (
+          <p className="text-xs leading-5 text-muted-foreground">
+            Catatan resmi tidak wajib. Jika tidak ada hasil, lanjutkan simpan proyek dan minta
+            pengelola memperbarui data impor.
           </p>
         ) : null}
-        {hasil.length > 0 ? (
-          <ul className="max-h-56 space-y-1 overflow-y-auto" aria-label="Hasil pencarian registry">
-            {hasil.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => onPilih(item)}
-                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left text-sm transition-colors hover:bg-accent/60"
-                >
-                  <span className="line-clamp-1 font-medium">{item.packageName}</span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                    {item.supplier ?? "Penyedia tidak tercatat"}
-                    {item.contractValue !== null ? ` · ${formatRupiah(item.contractValue)}` : ""}
-                    {item.contractDate ? ` · ${item.contractDate}` : ""}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <p className="text-xs leading-5 text-muted-foreground">
-          Catatan resmi berasal dari database pengadaan yang diimpor terpisah — pembuat proyek
-          tidak bisa menulisnya sendiri, sehingga perbandingan papan-vs-resmi independen.
-        </p>
       </CardContent>
     </Card>
   );
 }
+
+const PetaLokasiProyek = dynamic(() => import("./PetaLokasiProyek"), {
+  ssr: false,
+  loading: () => (
+    <div className="grid h-64 place-items-center rounded-lg border border-border bg-muted text-sm text-muted-foreground">
+      Memuat peta…
+    </div>
+  ),
+});
 
 function BlokFormulir({
   blok,
   galat,
   tampilkanGalat,
   onChange,
+  kontraktor,
+  satuanKerja,
 }: {
   blok: Blok;
   galat: Partial<Record<FieldKey, string>>;
   tampilkanGalat: boolean;
   onChange: (key: FieldKey, value: string) => void;
+  kontraktor: OpsiKontraktor[];
+  satuanKerja: string[];
 }) {
   const nilaiTerbaca = parseNilaiUang(blok.contractValue);
+  const [supplierManual, setSupplierManual] = useState(
+    () => blok.supplier !== "" && !kontraktor.some((item) => item.nama === blok.supplier),
+  );
+  const [satuanManual, setSatuanManual] = useState(
+    () => blok.agencyUnit !== "" && !satuanKerja.includes(blok.agencyUnit),
+  );
+  const latitude = blok.locationLatitude ? Number(blok.locationLatitude) : null;
+  const longitude = blok.locationLongitude ? Number(blok.locationLongitude) : null;
 
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-2">
-        <CardTitle>{NAMA_SISI.board}</CardTitle>
+        <div>
+          <CardTitle>{NAMA_SISI.board}</CardTitle>
+          <p className="mt-1 text-sm leading-5 text-muted-foreground">
+            Isi berdasarkan papan proyek. Nama paket wajib; data lain dapat dilengkapi bertahap.
+          </p>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {URUTAN_FIELD.map((key) => {
@@ -450,24 +561,136 @@ function BlokFormulir({
           const err = tampilkanGalat ? galat[key] : undefined;
           const wajib = key === "packageName";
           const tipe =
-            key === "contractValue" ? "text" : key === "contractDate" ? "date" : "text";
-          const inputMode =
-            key === "contractValue" || key === "durationDays" || key === "fiscalYear"
-              ? "numeric"
-              : undefined;
+            key === "contractDate" || key === "executionStartDate" || key === "executionEndDate"
+              ? "date"
+              : key === "fiscalYear"
+                ? "number"
+                : "text";
+          const inputMode = key === "contractValue" ? "numeric" : undefined;
+          const placeholder: Partial<Record<FieldKey, string>> = {
+            packageName: "Contoh: Rehabilitasi Jalan Desa Sukamaju",
+            contractValue: "Contoh: 1.250.000.000",
+            fiscalYear: "Contoh: 2026",
+            fundingSource: "Contoh: APBD / DAK",
+            contractNumber: "Contoh: 620/125/SPK/2026",
+            locationText: "Contoh: Jl. Merdeka, Desa Sukamaju, Kab. Tangerang",
+          };
           const maks = BATAS_PANJANG[key];
           const hint =
             key === "contractValue" && nilaiTerbaca !== null
               ? formatRupiah(nilaiTerbaca)
-              : undefined;
+              : key === "fiscalYear"
+                ? "Masukkan tahun saja (2000–2100)."
+                : key === "executionStartDate"
+                  ? "Tanggal mulai kontrak."
+                  : key === "executionEndDate"
+                    ? "Tanggal selesai kontrak."
+                    : key === "contractDate"
+                      ? "Tanggal penandatanganan kontrak."
+                      : undefined;
+          if (key === "supplier") {
+            return (
+              <Kolom
+                key={key}
+                idFor={id}
+                label="Penyedia (perusahaan)"
+                galat={err}
+                hint="Pilih kontraktor terdaftar atau isi nama penyedia lain. Ini berbeda dari penugasan kontraktor di bawah."
+              >
+                <select
+                  id={id}
+                  value={supplierManual ? "__manual__" : blok.supplier}
+                  onChange={(e) => {
+                    const manual = e.target.value === "__manual__";
+                    setSupplierManual(manual);
+                    onChange(key, manual ? "" : e.target.value);
+                  }}
+                  className="h-9 w-full rounded-lg border border-border bg-card px-3 text-sm focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+                >
+                  <option value="">Pilih penyedia…</option>
+                  {kontraktor.map((item) => (
+                    <option key={item.id} value={item.nama}>
+                      {item.nama}
+                    </option>
+                  ))}
+                  <option value="__manual__">Nama lain…</option>
+                </select>
+                {supplierManual ? (
+                  <Input
+                    id={`${id}-manual`}
+                    value={blok.supplier}
+                    maxLength={BATAS_PANJANG.supplier}
+                    placeholder="Ketik nama perusahaan penyedia"
+                    onChange={(e) => onChange(key, e.target.value)}
+                    aria-label="Nama penyedia lain"
+                  />
+                ) : null}
+              </Kolom>
+            );
+          }
+          if (key === "agencyUnit") {
+            return (
+              <Kolom
+                key={key}
+                idFor={id}
+                label="Satuan kerja"
+                galat={err}
+                hint={
+                  satuanKerja.length > 0
+                    ? "Pilih dari akun Pemerintah yang terdaftar atau masukkan satuan kerja lain."
+                    : "Belum ada pilihan akun Pemerintah. Pilih “Satuan kerja lain…” untuk mengisi manual; jalankan migrasi 0006 agar nama akun tersedia."
+                }
+              >
+                <select
+                  id={id}
+                  value={satuanManual ? "__manual__" : blok.agencyUnit}
+                  onChange={(e) => {
+                    const manual = e.target.value === "__manual__";
+                    setSatuanManual(manual);
+                    onChange(key, manual ? "" : e.target.value);
+                  }}
+                  className="h-9 w-full rounded-lg border border-border bg-card px-3 text-sm focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+                >
+                  <option value="">Pilih satuan kerja…</option>
+                  {satuanKerja.map((nama) => (
+                    <option key={nama} value={nama}>
+                      {nama}
+                    </option>
+                  ))}
+                  <option value="__manual__">Satuan kerja lain…</option>
+                </select>
+                {satuanManual ? (
+                  <Input
+                    id={`${id}-manual`}
+                    value={blok.agencyUnit}
+                    maxLength={BATAS_PANJANG.agencyUnit}
+                    placeholder="Ketik nama satuan kerja"
+                    onChange={(e) => onChange(key, e.target.value)}
+                    aria-label="Nama satuan kerja lain"
+                  />
+                ) : null}
+              </Kolom>
+            );
+          }
           return (
-            <Kolom key={key} idFor={id} label={LABEL_FIELD[key]} required={wajib} galat={err} hint={hint}>
+            <Kolom
+              key={key}
+              idFor={id}
+              label={LABEL_FIELD[key]}
+              required={wajib}
+              galat={err}
+              hint={hint}
+            >
               <Input
                 id={id}
                 name={id}
                 type={tipe}
                 inputMode={inputMode}
+                min={key === "fiscalYear" ? 2000 : undefined}
+                max={key === "fiscalYear" ? 2100 : undefined}
+                step={key === "fiscalYear" ? 1 : undefined}
                 value={blok[key]}
+                placeholder={placeholder[key] ?? "Pilih tanggal…"}
                 maxLength={maks}
                 onChange={(e) => {
                   const raw = e.target.value;
@@ -479,6 +702,41 @@ function BlokFormulir({
             </Kolom>
           );
         })}
+        <div className="space-y-2">
+          <div>
+            <Label htmlFor="peta-lokasi-proyek">Titik lokasi proyek</Label>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Klik peta untuk menandai lokasi tepat. Pin dan koordinat disimpan bersama alamat.
+            </p>
+          </div>
+          <div id="peta-lokasi-proyek" className="overflow-hidden rounded-lg border border-border">
+            <PetaLokasiProyek
+              latitude={latitude}
+              longitude={longitude}
+              saatPilih={(lat, lng) => {
+                onChange("locationLatitude", String(Number(lat.toFixed(6))));
+                onChange("locationLongitude", String(Number(lng.toFixed(6))));
+              }}
+            />
+          </div>
+          {latitude !== null && longitude !== null ? (
+            <p className="text-xs text-muted-foreground">
+              Titik dipilih: {latitude.toFixed(6)}, {longitude.toFixed(6)}{" "}
+              <button
+                type="button"
+                className="underline underline-offset-2"
+                onClick={() => {
+                  onChange("locationLatitude", "");
+                  onChange("locationLongitude", "");
+                }}
+              >
+                Hapus titik
+              </button>
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">Belum ada pin lokasi.</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -490,6 +748,7 @@ export function FormProyek({
   today,
   kembaliKe,
   kontraktor,
+  satuanKerja,
 }: {
   mode: "create" | "edit";
   initial?: InitialData;
@@ -504,6 +763,8 @@ export function FormProyek({
    * ikut menetapkan pelaksana.
    */
   kontraktor?: OpsiKontraktor[];
+  /** Nama profil akun pemerintah yang menjadi pilihan satuan kerja. */
+  satuanKerja?: string[];
 }) {
   const router = useRouter();
   const [board, setBoard] = useState<Blok>(() =>
@@ -530,10 +791,7 @@ export function FormProyek({
   // Galat 422 dari server ditumpuk di bawah galat klien sampai isian berubah.
   const [galatServer, setGalatFieldServer] = useState<FieldErrors | null>(null);
 
-  const galatField: FieldErrors = useMemo(
-    () => ({ board: validasiBlok(board) }),
-    [board],
-  );
+  const galatField: FieldErrors = useMemo(() => ({ board: validasiBlok(board) }), [board]);
 
   // Peringatan sebelum meninggalkan halaman bila ada perubahan belum tersimpan.
   useEffect(() => {
@@ -706,7 +964,7 @@ export function FormProyek({
   const ring = computeTimeRing({
     boardDurationDays: angkaAtauKosong(board.durationDays),
     recordDurationDays: recordTerpilih?.durationDays ?? null,
-    boardContractDate: board.contractDate.trim() || null,
+    boardContractDate: board.executionStartDate.trim() || board.contractDate.trim() || null,
     recordContractDate: recordTerpilih?.contractDate ?? null,
     today,
   });
@@ -758,6 +1016,8 @@ export function FormProyek({
           galat={galatGabungan.board ?? {}}
           tampilkanGalat={tampilkanGalat}
           onChange={(key, value) => ubahBlok(key, value)}
+          kontraktor={kontraktor ?? []}
+          satuanKerja={satuanKerja ?? []}
         />
         <PemilihRegistry
           terpilih={recordTerpilih}
@@ -788,7 +1048,7 @@ export function FormProyek({
       <div className="space-y-3">
         {kontraktor ? (
           <div className="space-y-1.5">
-            <Label htmlFor="kontraktor-pelaksana">Kontraktor pelaksana</Label>
+            <Label htmlFor="kontraktor-pelaksana">Penugasan kontraktor</Label>
             <select
               id="kontraktor-pelaksana"
               value={contractorId}
@@ -807,7 +1067,9 @@ export function FormProyek({
               ))}
             </select>
             <p className="text-xs leading-5 text-muted-foreground">
-              Satu proyek ditugaskan ke satu kontraktor. Kontraktor hanya melihat proyek miliknya.
+              {kontraktor.length === 0
+                ? "Belum ada kontraktor aktif. Buat akun kontraktor terlebih dahulu agar dapat menugaskan proyek."
+                : "Pilih kontraktor yang akan melihat proyek ini di akunnya. Kolom Kontraktor pada daftar proyek menampilkan penugasan ini."}
             </p>
           </div>
         ) : null}
@@ -855,21 +1117,29 @@ export function FormProyek({
       </div>
 
       <Dialog isOpen={dialogNonaktif} onOpenChange={setDialogNonaktif} showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle>Nonaktifkan proyek?</DialogTitle>
-            <DialogDescription>
-              Proyek tidak akan tampil lagi di situs. QR yang sudah dicetak akan menampilkan
-              pesan &quot;sedang ditinjau&quot;. Lanjutkan?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogNonaktif(false)} isDisabled={sedangProses}>
-              Batal
-            </Button>
-            <Button variant="destructive" onClick={() => void nonaktifkan()} isDisabled={sedangProses}>
-              Nonaktifkan proyek
-            </Button>
-          </DialogFooter>
+        <DialogHeader>
+          <DialogTitle>Nonaktifkan proyek?</DialogTitle>
+          <DialogDescription>
+            Proyek tidak akan tampil lagi di situs. QR yang sudah dicetak akan menampilkan pesan
+            &quot;sedang ditinjau&quot;. Lanjutkan?
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setDialogNonaktif(false)}
+            isDisabled={sedangProses}
+          >
+            Batal
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => void nonaktifkan()}
+            isDisabled={sedangProses}
+          >
+            Nonaktifkan proyek
+          </Button>
+        </DialogFooter>
       </Dialog>
     </form>
   );

@@ -26,7 +26,11 @@ type Props = {
 
 function formatRupiah(value: number | null | undefined): string {
   if (value === null || value === undefined) return "Belum diketahui";
-  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -49,7 +53,13 @@ export function DossierView({
 }: Props) {
   // Presedensi fallback §6.5 dihitung oleh fungsi murni inputCincin (T-18).
   const { masaHari, tanggalMulai } = inputCincin(
-    board ? { durationDays: board.durationDays, contractDate: board.contractDate } : null,
+    board
+      ? {
+          durationDays: board.durationDays,
+          contractDate: board.contractDate,
+          executionStartDate: board.executionStartDate,
+        }
+      : null,
     record,
   );
   const ring = hitungCincin({ masaHari, tanggalMulai, hariIni: new Date() });
@@ -59,7 +69,9 @@ export function DossierView({
       : `Hari ke-${ring.berjalan} dihitung dari tanggal hari ini dikurangi tanggal mulai kontrak (${formatDate(tanggalMulai)}). Isian cincin = hari berjalan dibagi masa kontrak (${masaHari} hari), maksimum penuh.`;
   const rumusLangsung = "Nilai dibaca langsung dari sumbernya, bukan hasil hitungan.";
   const adaSelisihNilai =
-    board?.contractValue != null && record != null && board.contractValue !== Number(record.nilai_kontrak);
+    board?.contractValue != null &&
+    record != null &&
+    board.contractValue !== Number(record.nilai_kontrak);
   const rumusSelisihNilai = adaSelisihNilai
     ? "Selisih nilai = nilai di papan dikurangi nilai di catatan resmi. Perbedaan sering wajar karena addendum atau perubahan kontrak."
     : rumusLangsung;
@@ -81,7 +93,10 @@ export function DossierView({
     {
       key: "nilai_kontrak",
       label: "Nilai kontrak",
-      board: board?.contractValue === null || board?.contractValue === undefined ? null : formatRupiah(board.contractValue),
+      board:
+        board?.contractValue === null || board?.contractValue === undefined
+          ? null
+          : formatRupiah(board.contractValue),
       record: record ? formatRupiah(Number(record.nilai_kontrak)) : null,
       rumus: rumusSelisihNilai,
     },
@@ -102,7 +117,10 @@ export function DossierView({
     {
       key: "tahun",
       label: "Tahun anggaran",
-      board: board?.fiscalYear === null || board?.fiscalYear === undefined ? null : String(board.fiscalYear),
+      board:
+        board?.fiscalYear === null || board?.fiscalYear === undefined
+          ? null
+          : String(board.fiscalYear),
       record: record?.tahun === null || record?.tahun === undefined ? null : String(record.tahun),
       rumus: rumusLangsung,
     },
@@ -181,8 +199,8 @@ export function DossierView({
         statusSelisih={status === "selisih"}
         selisihCatatan={
           <p className="mt-3 rounded-lg border border-selisih/60 bg-selisih/10 p-3 text-sm">
-            Perbedaan sering wajar, misalnya karena addendum atau perubahan kontrak. Perlu klarifikasi.{" "}
-            <LabelTiga label="belum_diketahui" />
+            Perbedaan sering wajar, misalnya karena addendum atau perubahan kontrak. Perlu
+            klarifikasi. <LabelTiga label="belum_diketahui" />
           </p>
         }
       />
@@ -192,18 +210,30 @@ export function DossierView({
           <PanelJejak
             judul="Jejak sumber"
             baris={[
-              { label: "Sumber papan", nilai: board ? "Isian pengguna dari foto atau input manual; belum diverifikasi tim." : "Papan tidak tersedia untuk dibandingkan." },
+              {
+                label: "Sumber papan",
+                nilai: board
+                  ? "Isian pengguna dari foto atau input manual; belum diverifikasi tim."
+                  : "Papan tidak tersedia untuk dibandingkan.",
+              },
               { label: "ID catatan resmi", nilai: record?.id_sumber ?? "Belum diketahui" },
               { label: "Sumber data", nilai: record?.sumber ?? "Catatan resmi belum tersedia" },
-              { label: "Tanggal snapshot", nilai: record ? formatDate(record.snapshot_tanggal) : "Belum diketahui" },
-              { label: "Rumus cincin", nilai: "Hari berjalan dibagi masa pelaksanaan; bukan persen kemajuan fisik." },
+              {
+                label: "Tanggal snapshot",
+                nilai: record ? formatDate(record.snapshot_tanggal) : "Belum diketahui",
+              },
+              {
+                label: "Rumus cincin",
+                nilai: "Hari berjalan dibagi masa pelaksanaan; bukan persen kemajuan fisik.",
+              },
             ]}
           />
           {!evidenceOnly && (
             <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
               <h2 className="font-heading text-xl font-bold tracking-tight">Laporan warga</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Belum diverifikasi; jumlah saja, bukan ukuran kemajuan. <LabelTiga label="belum_diketahui" />
+                Belum diverifikasi; jumlah saja, bukan ukuran kemajuan.{" "}
+                <LabelTiga label="belum_diketahui" />
               </p>
               <ul className="mt-3 space-y-1 text-sm">
                 <li>Ada aktivitas pekerjaan: {visitCounts.active}</li>
@@ -228,11 +258,15 @@ export function DossierView({
           {/* "Dari mana data berasal" menggantikan "Batas informasi" (permintaan
               PM 2026-10-27); tombol kartu bukti tetap sebagai navigasi. */}
           <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
-            <h2 className="font-heading text-xl font-bold tracking-tight">Dari mana data berasal</h2>
+            <h2 className="font-heading text-xl font-bold tracking-tight">
+              Dari mana data berasal
+            </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               Catatan resmi berasal dari data publik{" "}
-              {record ? `per ${formatDate(record.snapshot_tanggal)}` : "dari snapshot yang tersedia"} —
-              sumber: OCDS (Opentender/ICW), lisensi ODbL. Dokumen sumber tersimpan pada arsip
+              {record
+                ? `per ${formatDate(record.snapshot_tanggal)}`
+                : "dari snapshot yang tersedia"}{" "}
+              — sumber: OCDS (Opentender/ICW), lisensi ODbL. Dokumen sumber tersimpan pada arsip
               pengelola.
             </p>
             <Link href={`/evidence/${slug}`} className={kelasTombol("default", "lg") + " mt-4"}>
@@ -243,8 +277,8 @@ export function DossierView({
       )}
       {evidenceOnly && (
         <p className="mt-6 border-t border-border pt-4 text-sm text-muted-foreground">
-          Informasi papan dikonfirmasi pengguna dan belum diverifikasi tim Teralur. Perbedaan tidak berarti kesalahan.
-          Sumber data publik: OCDS (Opentender/ICW), lisensi ODbL.
+          Informasi papan dikonfirmasi pengguna dan belum diverifikasi tim Teralur. Perbedaan tidak
+          berarti kesalahan. Sumber data publik: OCDS (Opentender/ICW), lisensi ODbL.
         </p>
       )}
     </main>
