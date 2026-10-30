@@ -6,7 +6,7 @@ import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { kelasTombol } from "@/lib/kelas-tombol";
 import { storedBoardSchema } from "@/lib/api-contract";
 import { getSupabaseAdmin } from "@/lib/db";
-import { qrSvg } from "@/lib/qr";
+import { dossierUrl, qrSvg } from "@/lib/qr";
 import { identitasSaatIni } from "@/lib/identitas";
 import { TombolCetak as CetakButton } from "@/components/teralur/TombolCetak";
 
@@ -57,13 +57,13 @@ export default async function LembarQrPage({ params }: { params: Promise<{ kunci
   const papan = storedBoardSchema.safeParse(row.papan);
   const records = Array.isArray(row.records) ? row.records[0] : row.records;
   const packageName = papan.success ? (papan.data.nama_paket ?? "") : (records?.nama_paket ?? "");
-  const dossierUrl = `${(process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "")}/dossiers/${row.slug}`;
-
+  let alamat: string | null = null;
   let svg: string | null = null;
   try {
+    alamat = await dossierUrl(row.slug);
     svg = await qrSvg(row.slug);
   } catch {
-    svg = null; // NEXT_PUBLIC_SITE_URL belum diatur -> tampilkan pemberitahuan.
+    svg = null; // Alamat situs tak tersedia -> tampilkan pemberitahuan.
   }
 
   return (
@@ -94,14 +94,14 @@ export default async function LembarQrPage({ params }: { params: Promise<{ kunci
           <div
             className="qr-wrap mx-auto my-6 aspect-square w-[70%] [&_svg]:h-full [&_svg]:w-full"
             dangerouslySetInnerHTML={{ __html: svg }}
-            aria-label={`Kode QR menuju ${dossierUrl}`}
+            aria-label={`Kode QR menuju ${alamat ?? ""}`}
           />
         ) : (
           <p className="my-6 text-center font-semibold text-red-700">Alamat situs belum diatur</p>
         )}
 
         <p className="text-center text-base font-semibold">Pindai untuk info lengkap proyek</p>
-        <p className="mt-2 break-all text-center font-mono text-[14pt]">{dossierUrl}</p>
+        <p className="mt-2 break-all text-center font-mono text-[14pt]">{alamat}</p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <CetakButton />

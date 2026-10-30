@@ -3,7 +3,6 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { FormProyek } from "@/components/teralur/admin/FormProyek";
-import { jakartaToday } from "@/lib/dates";
 import { databaseConfigured } from "@/lib/server-api";
 import { identitasSaatIni } from "@/lib/identitas";
 import { daftarKontraktorAktif, daftarSatuanKerjaPemerintah } from "@/lib/opsi-form-proyek";
@@ -36,12 +35,11 @@ export default async function AdminBuatProyekPage() {
     <>
       <KepalaDasbor
         judul="Buat proyek"
-        deskripsi="Masukkan data papan lapangan, pilih catatan resmi dari registry pengadaan, tetapkan kontraktor pelaksana, lalu simpan."
+        deskripsi="Masukkan data papan lapangan, tetapkan kontraktor pelaksana, lalu simpan."
       />
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <FormProyek
           mode="create"
-          today={jakartaToday()}
           kembaliKe="/dashboard/proyek"
           kontraktor={kontraktor}
           satuanKerja={satuanKerja}

@@ -41,7 +41,7 @@ export type BarisProyek = {
   status: string | null;
   unggulan: boolean;
   diperbarui: string;
-  /** Nilai kontrak; null untuk proyek yang belum punya catatan resmi. */
+  /** Nilai kontrak; null bila catatan resmi dan isian papan sama-sama kosong. */
   nilai: number | null;
   penyedia: string | null;
   /** Nama kontraktor pelaksana (disaring per peran). */

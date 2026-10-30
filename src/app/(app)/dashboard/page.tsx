@@ -5,7 +5,8 @@ import { Reveal } from "@/components/teralur/anim/Reveal";
 import { KartuProyekDasbor } from "@/components/teralur/KartuProyekDasbor";
 import { StaggerGroup, StaggerItem } from "@/components/teralur/anim/Stagger";
 import { jakartaToday } from "@/lib/dates";
-import { daftarProyekDemo, type ProyekDemo } from "@/data/proyek-demo";
+import { daftarProyekDemo, type ProyekPublik } from "@/data/proyek-demo";
+import { daftarProyekNyata } from "@/lib/proyek-nyata";
 import { formatRupiahRingkas } from "@/lib/format-rupiah";
 import { META_ROLE, type AppRole } from "@/lib/roles";
 import { identitasSaatIni } from "@/lib/identitas";
@@ -15,8 +16,9 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, Add01Icon, NoteIcon, WhiteboardIcon } from "@hugeicons/core-free-icons";
 
 // Ringkasan dasbor per peran (peran dari akun, server-side). Kontraktor hanya
-// melihat angka dari proyek yang ditugaskan kepadanya; pemerintah/admin memakai
-// dataset simulasi statis sehingga dasbor tetap hidup tanpa basis data.
+// melihat angka dari proyek yang ditugaskan kepadanya. Pemerintah/admin
+// memakai proyek nyata dari basis data bila ada; dataset simulasi statis
+// dipakai agar dasbor tetap hidup tanpa basis data.
 
 export const instant = false;
 
@@ -30,7 +32,7 @@ function KartuAngka({ label, nilai, keterangan }: { label: string; nilai: string
   );
 }
 
-function angkaUntukPeran(peran: AppRole, proyek: ProyekDemo[]) {
+function angkaUntukPeran(peran: AppRole, proyek: ProyekPublik[]) {
   const cocok = proyek.filter((p) => p.status === "cocok").length;
   const selisih = proyek.filter((p) => p.status === "selisih").length;
   const berjalan = proyek.filter((p) => p.status !== "selisih" && p.masaHari !== null).length;
@@ -79,7 +81,7 @@ const AKSI_PERAN: Partial<Record<AppRole, { href: string; label: string; gaya: "
   admin: { href: "/dashboard/proyek/buat", label: "Buat proyek", gaya: "outline", ikon: Add01Icon },
 };
 
-function BarisProyek({ proyek }: { proyek: ProyekDemo }) {
+function BarisProyek({ proyek }: { proyek: ProyekPublik }) {
   return (
     <tr className="border-b border-border transition-colors last:border-0 hover:bg-muted/50">
       <td className="max-w-72 truncate py-4 pr-4 font-medium" title={proyek.nama}>
@@ -90,7 +92,7 @@ function BarisProyek({ proyek }: { proyek: ProyekDemo }) {
         <ChipStatusRingkas status={proyek.status as DossierStatus} />
       </td>
       <td className="px-4 py-4 text-right font-mono text-sm whitespace-nowrap">
-        {formatRupiahRingkas(proyek.nilaiKontrak) ?? "—"}
+        {formatRupiahRingkas(proyek.nilaiKontrak ?? proyek.nilaiPapan) ?? "—"}
       </td>
       <td className="py-4 pl-4">
         <div className="flex items-center justify-end gap-1">
@@ -111,7 +113,11 @@ function BarisProyek({ proyek }: { proyek: ProyekDemo }) {
 export default async function HalamanRingkasanDasbor() {
   const identitas = await identitasSaatIni();
   const peran = identitas.role;
-  const proyek = daftarProyekDemo(jakartaToday());
+  const today = jakartaToday();
+  // Proyek nyata dari basis data bila tersedia; simulasi hanya cadangan agar
+  // dasbor tidak kosong tanpa basis data / sebelum proyek pertama dibuat.
+  const nyata = await daftarProyekNyata(today);
+  const proyek: ProyekPublik[] = nyata.length > 0 ? nyata : daftarProyekDemo(today);
   const terbaru = proyek.slice(0, 5);
   const meta = META_ROLE[peran];
   const aksi = AKSI_PERAN[peran];

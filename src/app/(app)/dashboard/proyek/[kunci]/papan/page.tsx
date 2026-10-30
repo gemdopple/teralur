@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { TombolCetak } from "@/components/teralur/TombolCetak";
 import { kelasTombol } from "@/lib/kelas-tombol";
-import { qrSvgDari } from "@/lib/qr";
+import { basisSitus, qrSvgDari } from "@/lib/qr";
 import { jakartaToday } from "@/lib/dates";
 import { daftarProyekDemo } from "@/data/proyek-demo";
 import { formatRupiahRingkas } from "@/lib/format-rupiah";
@@ -156,16 +155,7 @@ export default async function HalamanPapanProyek({
 
   // Basis URL: NEXT_PUBLIC_SITE_URL bila diatur; bila kosong, turunkan dari
   // host permintaan agar QR tetap terbentuk di pratinjau lokal.
-  const headerList = await headers();
-  const host = headerList.get("x-forwarded-host") ?? headerList.get("host");
-  const proto =
-    headerList.get("x-forwarded-proto") ??
-    (host && (host.startsWith("localhost") || host.startsWith("127.0.0.1") || host.startsWith("[::1]"))
-      ? "http"
-      : "https");
-  const basis =
-    (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "") ||
-    (host ? `${proto}://${host}` : "");
+  const basis = await basisSitus().catch(() => "");
   const tujuan = basis ? `${basis}${proyek.href}` : null;
 
   let svg: string | null = null;

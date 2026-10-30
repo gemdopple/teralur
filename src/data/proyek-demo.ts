@@ -35,6 +35,12 @@ export type ProyekDemo = {
   nomorKontrak: string;
 };
 
+/** Baris publik dengan koordinat opsional — proyek nyata belum tentu punya pin. */
+export type ProyekPublik = Omit<ProyekDemo, "lat" | "lng"> & {
+  lat: number | null;
+  lng: number | null;
+};
+
 /** Pusat kota rekaan Kota Tirtamulya (simulasi) untuk peta warga. */
 export const PUSAT_KOTA = { lat: -6.3265, lng: 106.4455, nama: "Kota Tirtamulya (simulasi)" };
 
@@ -57,7 +63,7 @@ function jitter(kunci: string, indeks: number): number {
   return (((hash + indeks * 137) % 17) - 8) * 0.0005;
 }
 
-function kategoriDariNama(nama: string): KategoriProyek {
+export function kategoriDariNama(nama: string): KategoriProyek {
   if (nama.startsWith("Pemeliharaan")) return "Pemeliharaan";
   if (nama.startsWith("Rehabilitasi")) return "Rehabilitasi";
   if (nama.startsWith("Peningkatan")) return "Peningkatan";

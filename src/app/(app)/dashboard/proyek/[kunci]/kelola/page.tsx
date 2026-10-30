@@ -13,9 +13,9 @@ import {
   parseStoredBoard,
   type ProjectRecordRow,
 } from "@/lib/admin-projects";
-import { jakartaToday } from "@/lib/dates";
 import { getSupabaseAdmin } from "@/lib/db";
 import { databaseConfigured } from "@/lib/server-api";
+import { basisSitus } from "@/lib/qr";
 import { identitasSaatIni } from "@/lib/identitas";
 import { daftarKontraktorAktif, daftarSatuanKerjaPemerintah } from "@/lib/opsi-form-proyek";
 
@@ -133,12 +133,11 @@ export default async function KelolaProyekAdminPage({
     <>
       <KepalaDasbor
         judul="Kelola proyek"
-        deskripsi="Ubah data papan dan catatan resmi, tetapkan kontraktor, unggah resource, siapkan QR, dan moderasi laporan warga."
+        deskripsi="Ubah data papan, tetapkan kontraktor, unggah resource, siapkan QR, dan moderasi laporan warga."
       />
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <FormProyek
           mode="edit"
-          today={jakartaToday()}
           kembaliKe="/dashboard/proyek"
           kontraktor={kontraktor}
           satuanKerja={satuanKerja}
@@ -149,6 +148,7 @@ export default async function KelolaProyekAdminPage({
             contractorId: submission.contractor_id,
             board,
             officialRecord,
+            recordId: submission.record_id ?? null,
           }}
         />
 
@@ -161,7 +161,7 @@ export default async function KelolaProyekAdminPage({
           <PanelQR
             projectId={submission.id}
             slug={submission.slug}
-            siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? ""}
+            siteUrl={await basisSitus().catch(() => "")}
           />
         </div>
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import { CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
 const PUSAT_INDONESIA: [number, number] = [-2.5, 118];
 

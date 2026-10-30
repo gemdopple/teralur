@@ -9,7 +9,6 @@ import {
   parseStoredBoard,
   type ProjectRecordRow,
 } from "@/lib/admin-projects";
-import { jakartaToday } from "@/lib/dates";
 import { getSupabaseAdmin } from "@/lib/db";
 import { databaseConfigured } from "@/lib/server-api";
 import { META_ROLE } from "@/lib/roles";
@@ -113,12 +112,11 @@ export default async function HalamanUbahProyek({
     <>
       <KepalaDasbor
         judul="Ubah proyek"
-        deskripsi="Perbarui data papan lapangan, ganti tautan catatan resmi dari registry, ubah kontraktor pelaksana, lalu simpan. Perubahan langsung memperbarui status pencocokan."
+        deskripsi="Perbarui data papan lapangan, ubah kontraktor pelaksana, lalu simpan. Perubahan langsung memperbarui status pencocokan."
       />
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <FormProyek
           mode="edit"
-          today={jakartaToday()}
           kembaliKe="/dashboard/proyek"
           kontraktor={kontraktor}
           satuanKerja={satuanKerja}

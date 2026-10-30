@@ -72,7 +72,10 @@ function judulDari(row: BarisDb): string {
 
 function dariBarisDb(row: BarisDb): BarisProyek {
   const record = satu(row.records);
-  const nilai = record?.nilai_kontrak ?? null;
+  const papan = parseStoredBoard(row.papan);
+  // Kolom Penyedia/Nilai: catatan resmi diutamakan bila tertaut; tanpa itu
+  // tampilkan isian papan (satu-satunya sumber untuk proyek tanpa registry).
+  const nilaiRecord = record?.nilai_kontrak ?? null;
   return {
     id: row.id,
     slug: row.slug,
@@ -80,8 +83,9 @@ function dariBarisDb(row: BarisDb): BarisProyek {
     status: row.status,
     unggulan: row.unggulan,
     diperbarui: row.diperbarui,
-    nilai: nilai === null ? null : Number(nilai),
-    penyedia: record?.penyedia ?? null,
+    nilai:
+      nilaiRecord !== null ? Number(nilaiRecord) : (papan?.contractValue ?? null),
+    penyedia: record?.penyedia ?? papan?.supplier ?? null,
     kontraktor: satu(row.contractors)?.nama ?? null,
     jumlahResource: row.resources?.reduce((total, item) => total + item.count, 0) ?? 0,
   };

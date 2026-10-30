@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChipStatusRingkas, type DossierStatus } from "@/components/teralur/ChipStatus";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, PrinterIcon } from "@hugeicons/core-free-icons";
-import type { ProyekDemo } from "@/data/proyek-demo";
+import type { ProyekPublik } from "@/data/proyek-demo";
 import { formatRupiahRingkas } from "@/lib/format-rupiah";
 
 // Kartu proyek dasbor untuk ponsel (permintaan PM: tabel dasbor harus tetap
@@ -13,7 +13,7 @@ export function KartuProyekDasbor({
   proyek,
   tautanPapan,
 }: {
-  proyek: ProyekDemo;
+  proyek: ProyekPublik;
   /** Bila diisi (peran kontraktor), tampilkan tautan ke lembar papan proyek. */
   tautanPapan?: string;
 }) {
@@ -47,7 +47,7 @@ export function KartuProyekDasbor({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="shrink-0 text-muted-foreground">Nilai resmi</dt>
           <dd className="text-right font-semibold">
-            {formatRupiahRingkas(proyek.nilaiKontrak) ?? "—"}
+            {formatRupiahRingkas(proyek.nilaiKontrak ?? proyek.nilaiPapan) ?? "—"}
           </dd>
         </div>
         {proyek.penyedia && (

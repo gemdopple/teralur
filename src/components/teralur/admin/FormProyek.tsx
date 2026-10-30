@@ -8,6 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  RentangTanggalPicker,
+  TanggalPicker,
+  type NilaiRentang,
+} from "@/components/ui/date-picker";
+import {
   Dialog,
   DialogDescription,
   DialogFooter,
@@ -15,16 +27,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PratinjauStatus } from "./PratinjauStatus";
-import { RING_NOTE, computeTimeRing } from "@/lib/cincin";
+import { toast } from "sonner";
 import { parseNilaiUang } from "@/lib/nilai-uang";
 import type { ApiBoard } from "@/lib/api-contract";
 
-// Formulir proyek admin (Lampiran L.3, T-42): blok Data papan diedit bebas,
-// sedangkan Data resmi DIPILIH dari registry pengadaan independen (tabel
-// records, diimpor via npm run import:records) — bukan diketik manual — agar
-// perbandingan papan-vs-resmi tidak bisa diisi sendiri oleh satu pihak
-// (anti-korupsi). Tanpa tautan, status jujur: Tidak ditemukan. Pratinjau
-// status memakai compare() yang sama dan pratinjau cincin computeTimeRing.
+// Formulir proyek (Lampiran L.3, T-42) — sengaja ringkas: satu kartu "Data
+// papan proyek" berisi semua isian dengan kontrol shadcn (Select untuk
+// dropdown, pemilih tanggal/kalender untuk tanggal, rentang untuk masa
+// pelaksanaan). Catatan resmi dari registry tidak lagi dipilih di sini —
+// tautan yang sudah ada dipertahankan apa adanya saat menyimpan. Lokasi
+// tersinkron dengan peta: mengetik memberi saran alamat (Nominatim), memilih
+// saran menggerakkan pin; klik peta mengisi alamat otomatis.
 // Dipakai di /dashboard/proyek/buat, /dashboard/proyek/[kunci]/kelola, dan
 // halaman alur pemerintah (/dashboard/proyek/baru, /[kunci]/ubah).
 
@@ -58,7 +71,7 @@ type InitialData = {
   contractorId?: string | null;
 };
 
-/** Baris registry catatan resmi (hasil pencarian / terpilih). */
+/** Baris registry catatan resmi (tertaut dari awal; tidak diubah formulir). */
 export type RekamanRegistry = {
   id: string;
   packageName: string;
@@ -84,40 +97,6 @@ const BATAS_PANJANG: Partial<Record<FieldKey, number>> = {
   contractNumber: 100,
   locationText: 300,
 };
-
-const LABEL_FIELD: Record<FieldKey, string> = {
-  packageName: "Nama paket",
-  supplier: "Penyedia",
-  contractValue: "Nilai kontrak (Rp)",
-  durationDays: "Masa pelaksanaan",
-  fiscalYear: "Tahun anggaran",
-  fundingSource: "Sumber dana",
-  agencyUnit: "Satuan kerja",
-  contractNumber: "Nomor kontrak",
-  contractDate: "Tanggal kontrak",
-  locationText: "Lokasi",
-  executionStartDate: "Mulai pelaksanaan",
-  executionEndDate: "Selesai pelaksanaan",
-  locationLatitude: "Latitude",
-  locationLongitude: "Longitude",
-};
-
-// Urutan tampil di formulir, sesuai tabel L.3.
-const URUTAN_FIELD: FieldKey[] = [
-  "packageName",
-  "supplier",
-  "contractValue",
-  "executionStartDate",
-  "executionEndDate",
-  "fiscalYear",
-  "fundingSource",
-  "agencyUnit",
-  "contractNumber",
-  "contractDate",
-  "locationText",
-];
-
-const NAMA_SISI = { board: "Data papan" };
 
 const BLOK_KOSONG: Blok = {
   packageName: "",
@@ -158,6 +137,24 @@ function angkaAtauKosong(raw: string): number | null {
   return Number.isSafeInteger(n) ? n : null;
 }
 
+// Templat nomor kontrak: 4 slot bebas, "/", 9 slot bebas, lalu "/," dan 2 slot
+// bebas — pemisah terisi otomatis di posisinya ("123456789012345" →
+// "1234/567890123/,45"). Karakter pengguna selain pemisah lolos apa adanya,
+// jadi nomor bertuliskan huruf (mis. SPK) tetap bisa diisi.
+const TEMPLAT_KONTRAK = "..../........./,..";
+
+function terapkanTemplatKontrak(raw: string): string {
+  const bebas = raw.replace(/[/,]/g, "");
+  let keluaran = "";
+  let i = 0;
+  for (const ch of TEMPLAT_KONTRAK) {
+    if (i >= bebas.length) break;
+    if (ch === ".") keluaran += bebas[i++];
+    else keluaran += ch;
+  }
+  return keluaran;
+}
+
 function blokDariApi(api: ApiBoard): Blok {
   return {
     packageName: api.packageName ?? "",
@@ -180,23 +177,6 @@ function blokDariApi(api: ApiBoard): Blok {
       typeof api.locationLongitude === "number" ? String(api.locationLongitude) : "",
   };
 }
-
-type ApiBlok = {
-  packageName: string | null;
-  supplier: string | null;
-  contractValue: number | null;
-  durationDays: number | null;
-  fiscalYear: number | null;
-  fundingSource: string | null;
-  agencyUnit: string | null;
-  contractNumber: string | null;
-  contractDate: string | null;
-  locationText: string | null;
-  executionStartDate: string | null;
-  executionEndDate: string | null;
-  locationLatitude: number | null;
-  locationLongitude: number | null;
-};
 
 function rekamanDariApi(id: string, api: ApiBoard): RekamanRegistry {
   return {
@@ -222,6 +202,23 @@ function rekamanKePerbandingan(item: RekamanRegistry): {
     contractValue: item.contractValue,
   };
 }
+
+type ApiBlok = {
+  packageName: string | null;
+  supplier: string | null;
+  contractValue: number | null;
+  durationDays: number | null;
+  fiscalYear: number | null;
+  fundingSource: string | null;
+  agencyUnit: string | null;
+  contractNumber: string | null;
+  contractDate: string | null;
+  locationText: string | null;
+  executionStartDate: string | null;
+  executionEndDate: string | null;
+  locationLatitude: number | null;
+  locationLongitude: number | null;
+};
 
 // Ubah isi blok menjadi payload API (Lampiran D.1): teks kosong → null,
 // nilai kontrak diparse dengan parser D.2, angka divalidasi rentang.
@@ -273,8 +270,7 @@ function tanggalValid(iso: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === iso;
 }
 
-// Validasi klien per field (L.3): wajib papan hanya nama paket; sisi resmi
-// tidak divalidasi lagi (isinya read-only dari registry). Rentang angka;
+// Validasi klien per field (L.3): wajib hanya nama paket. Rentang angka;
 // tanggal TTTT-BB-HH.
 function validasiBlok(blok: Blok): Partial<Record<FieldKey, string>> {
   const galat: Partial<Record<FieldKey, string>> = {};
@@ -368,6 +364,7 @@ function Kolom({
   required,
   galat,
   hint,
+  className,
   children,
 }: {
   idFor: string;
@@ -375,10 +372,11 @@ function Kolom({
   required?: boolean;
   galat?: string;
   hint?: string;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className={`space-y-1.5 ${className ?? ""}`}>
       <Label htmlFor={idFor}>
         {label}
         {required ? (
@@ -404,110 +402,128 @@ function Kolom({
   );
 }
 
-function PemilihRegistry({
-  terpilih,
-  kueri,
-  hasil,
-  mencari,
-  onKueri,
-  onPilih,
-  onLepas,
+// Saran alamat dari Nominatim (OpenStreetMap — sumber ubin peta yang sama).
+type HasilLokasi = { label: string; lat: number; lng: number };
+
+function KolomLokasi({
+  blok,
+  galat,
+  tampilkanGalat,
+  onChange,
 }: {
-  terpilih: RekamanRegistry | null;
-  kueri: string;
-  hasil: RekamanRegistry[];
-  mencari: boolean;
-  onKueri: (nilai: string) => void;
-  onPilih: (item: RekamanRegistry) => void;
-  onLepas: () => void;
+  blok: Blok;
+  galat: Partial<Record<FieldKey, string>>;
+  tampilkanGalat: boolean;
+  onChange: (key: FieldKey, value: string) => void;
 }) {
+  const id = "board-locationText";
+  const err = tampilkanGalat ? galat.locationText : undefined;
+  const [hasil, setHasil] = useState<HasilLokasi[]>([]);
+  const [mencari, setMencari] = useState(false);
+  const [fokus, setFokus] = useState(false);
+  // Label saran yang baru dipilih: mencegah efek pencarian mengisi ulang daftar
+  // untuk teks yang sama. Mencari lagi begitu teksnya diubah pengguna. Panel
+  // hanya tampil saat kolom difokuskan — teks dari peta tidak memunculkannya.
+  const [baruDipilih, setBaruDipilih] = useState<string | null>(null);
+  const layakCari =
+    fokus &&
+    blok.locationText.trim().length >= 3 &&
+    blok.locationText !== baruDipilih;
+
+  // Saran alamat dengan jeda ketik 400 ms (sopan terhadap Nominatim, maks 1
+  // permintaan/detik). Semua setState ada di callback asinkron, bukan badan efek.
+  useEffect(() => {
+    if (!layakCari) return;
+    const q = blok.locationText.trim();
+    const kendali = new AbortController();
+    const timer = setTimeout(() => {
+      setMencari(true);
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=id&q=${encodeURIComponent(q)}`,
+        { signal: kendali.signal },
+      )
+        .then(async (res) => (res.ok ? res.json() : []))
+        .then(
+          (
+            data: {
+              display_name: string;
+              lat: string;
+              lon: string;
+            }[],
+          ) => {
+            const daftar = Array.isArray(data)
+              ? data.map((d) => ({
+                  label: d.display_name,
+                  lat: Number(d.lat),
+                  lng: Number(d.lon),
+                }))
+              : [];
+            setHasil(daftar);
+          },
+        )
+        .catch(() => {})
+        .finally(() => setMencari(false));
+    }, 400);
+    return () => {
+      clearTimeout(timer);
+      kendali.abort();
+    };
+  }, [layakCari, blok.locationText]);
+
+  function pilih(item: HasilLokasi) {
+    const label = item.label.slice(0, BATAS_PANJANG.locationText!);
+    onChange("locationText", label);
+    onChange("locationLatitude", String(Number(item.lat.toFixed(6))));
+    onChange("locationLongitude", String(Number(item.lng.toFixed(6))));
+    setBaruDipilih(label);
+  }
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle>Catatan pengadaan resmi</CardTitle>
-        <p className="text-sm leading-5 text-muted-foreground">
-          Opsional: tautkan data independen untuk membandingkannya dengan data papan.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {terpilih ? (
-          <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-muted/40 p-3 text-sm">
-            <div>
-              <p className="font-semibold leading-snug">{terpilih.packageName}</p>
-              <p className="mt-1 text-muted-foreground">
-                {terpilih.supplier ?? "Penyedia tidak tercatat"}
-                {terpilih.contractValue !== null
-                  ? ` · ${formatRupiah(terpilih.contractValue)}`
-                  : ""}
-              </p>
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={onLepas}>
-              Lepas tautan
-            </Button>
-          </div>
-        ) : null}
-        <details className="rounded-lg border border-border px-3 py-2.5">
-          <summary className="cursor-pointer text-sm font-medium">
-            {terpilih ? "Ganti catatan pengadaan" : "Cari catatan pengadaan"}
-          </summary>
-          <div className="mt-3 space-y-3">
-            <p className="text-xs leading-5 text-muted-foreground">
-              &quot;Catatan resmi&quot; adalah data pengadaan independen dari OpenTender/ICW (format
-              OCDS), bukan data yang diketik di formulir ini. Pencarian tersedia setelah minimal 3
-              karakter.
-            </p>
-            <div className="space-y-1.5">
-              <Label htmlFor="cari-registry">Nama paket atau penyedia</Label>
-              <Input
-                id="cari-registry"
-                value={kueri}
-                placeholder="Contoh: pembangunan jalan Sukamaju"
-                onChange={(e) => onKueri(e.target.value)}
-              />
-            </div>
-            {mencari ? <p className="text-xs text-muted-foreground">Mencari catatan…</p> : null}
-            {!mencari && kueri.trim().length >= 3 && hasil.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                Catatan tidak ditemukan. Simpan proyek tanpa tautan; statusnya akan tetap
-                &quot;Tidak ditemukan&quot;. Untuk menambahkan data resmi, pengelola teknis menaruh
-                CSV di <code>data/raw/</code> lalu menjalankan <code>npm run import:records</code>.
-              </p>
-            ) : null}
-            {hasil.length > 0 ? (
-              <ul
-                className="max-h-48 space-y-1 overflow-y-auto"
-                aria-label="Hasil pencarian registry"
-              >
-                {hasil.map((item) => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() => onPilih(item)}
-                      className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left text-sm transition-colors hover:bg-accent/60"
-                    >
-                      <span className="line-clamp-1 font-medium">{item.packageName}</span>
-                      <span className="mt-0.5 block text-xs text-muted-foreground">
-                        {item.supplier ?? "Penyedia tidak tercatat"}
-                        {item.contractValue !== null
-                          ? ` · ${formatRupiah(item.contractValue)}`
-                          : ""}
-                        {item.contractDate ? ` · ${item.contractDate}` : ""}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        </details>
-        {!terpilih ? (
-          <p className="text-xs leading-5 text-muted-foreground">
-            Catatan resmi tidak wajib. Jika tidak ada hasil, lanjutkan simpan proyek dan minta
-            pengelola memperbarui data impor.
-          </p>
-        ) : null}
-      </CardContent>
-    </Card>
+    <Kolom
+      idFor={id}
+      label="Lokasi"
+      galat={err}
+      className="relative space-y-1.5"
+      hint="Ketik alamat lalu pilih sarannya untuk memindahkan pin peta."
+    >
+      <Input
+        id={id}
+        value={blok.locationText}
+        placeholder="Contoh: Jl. Merdeka, Desa Sukamaju, Kab. Tangerang"
+        maxLength={BATAS_PANJANG.locationText}
+        autoComplete="off"
+        onChange={(e) => onChange("locationText", e.target.value)}
+        onFocus={() => setFokus(true)}
+        onBlur={() => setFokus(false)}
+        aria-invalid={err ? true : undefined}
+      />
+      {layakCari && (hasil.length > 0 || mencari) ? (
+        <div
+          role="listbox"
+          aria-label="Saran alamat"
+          // Panel & butir memakai kelas yang sama dengan popover ui/select.
+          className="absolute inset-x-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-foreground/5"
+          // preventDefault: klik saran tidak melepas fokus input dulu.
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          {mencari && hasil.length === 0 ? (
+            <p className="px-3 py-2 text-sm text-muted-foreground">Mencari alamat…</p>
+          ) : null}
+          {hasil.map((item) => (
+            <button
+              key={`${item.lat},${item.lng}`}
+              type="button"
+              role="option"
+              aria-selected={blok.locationText === item.label}
+              className="relative flex w-full cursor-default items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium outline-none hover:bg-accent focus-visible:bg-accent"
+              onClick={() => pilih(item)}
+            >
+              <span className="line-clamp-2">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </Kolom>
   );
 }
 
@@ -527,6 +543,8 @@ function BlokFormulir({
   onChange,
   kontraktor,
   satuanKerja,
+  kontraktorId,
+  saatPilihKontraktor,
 }: {
   blok: Blok;
   galat: Partial<Record<FieldKey, string>>;
@@ -534,6 +552,8 @@ function BlokFormulir({
   onChange: (key: FieldKey, value: string) => void;
   kontraktor: OpsiKontraktor[];
   satuanKerja: string[];
+  kontraktorId: string;
+  saatPilihKontraktor: (id: string) => void;
 }) {
   const nilaiTerbaca = parseNilaiUang(blok.contractValue);
   const [supplierManual, setSupplierManual] = useState(
@@ -545,168 +565,251 @@ function BlokFormulir({
   const latitude = blok.locationLatitude ? Number(blok.locationLatitude) : null;
   const longitude = blok.locationLongitude ? Number(blok.locationLongitude) : null;
 
+  const rentang: NilaiRentang = {
+    mulai: blok.executionStartDate || null,
+    selesai: blok.executionEndDate || null,
+  };
+  const masaHari =
+    rentang.mulai && rentang.selesai && tanggalValid(rentang.mulai) && tanggalValid(rentang.selesai)
+      ? Math.floor(
+          (Date.parse(`${rentang.selesai}T00:00:00Z`) -
+            Date.parse(`${rentang.mulai}T00:00:00Z`)) /
+            86_400_000,
+        ) + 1
+      : null;
+  const galatRentang =
+    (tampilkanGalat ? galat.executionStartDate : undefined) ??
+    (tampilkanGalat ? galat.executionEndDate : undefined);
+
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2">
-        <div>
-          <CardTitle>{NAMA_SISI.board}</CardTitle>
-          <p className="mt-1 text-sm leading-5 text-muted-foreground">
-            Isi berdasarkan papan proyek. Nama paket wajib; data lain dapat dilengkapi bertahap.
-          </p>
-        </div>
+      <CardHeader>
+        <CardTitle>Data papan proyek</CardTitle>
+        <p className="mt-1 text-sm leading-5 text-muted-foreground">
+          Isi berdasarkan papan proyek. Nama paket wajib; data lain dapat dilengkapi bertahap.
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {URUTAN_FIELD.map((key) => {
-          const id = `board-${key}`;
-          const err = tampilkanGalat ? galat[key] : undefined;
-          const wajib = key === "packageName";
-          const tipe =
-            key === "contractDate" || key === "executionStartDate" || key === "executionEndDate"
-              ? "date"
-              : key === "fiscalYear"
-                ? "number"
-                : "text";
-          const inputMode = key === "contractValue" ? "numeric" : undefined;
-          const placeholder: Partial<Record<FieldKey, string>> = {
-            packageName: "Contoh: Rehabilitasi Jalan Desa Sukamaju",
-            contractValue: "Contoh: 1.250.000.000",
-            fiscalYear: "Contoh: 2026",
-            fundingSource: "Contoh: APBD / DAK",
-            contractNumber: "Contoh: 620/125/SPK/2026",
-            locationText: "Contoh: Jl. Merdeka, Desa Sukamaju, Kab. Tangerang",
-          };
-          const maks = BATAS_PANJANG[key];
-          const hint =
-            key === "contractValue" && nilaiTerbaca !== null
-              ? formatRupiah(nilaiTerbaca)
-              : key === "fiscalYear"
-                ? "Masukkan tahun saja (2000–2100)."
-                : key === "executionStartDate"
-                  ? "Tanggal mulai kontrak."
-                  : key === "executionEndDate"
-                    ? "Tanggal selesai kontrak."
-                    : key === "contractDate"
-                      ? "Tanggal penandatanganan kontrak."
-                      : undefined;
-          if (key === "supplier") {
-            return (
-              <Kolom
-                key={key}
-                idFor={id}
-                label="Penyedia (perusahaan)"
-                galat={err}
-                hint="Pilih kontraktor terdaftar atau isi nama penyedia lain. Ini berbeda dari penugasan kontraktor di bawah."
-              >
-                <select
-                  id={id}
-                  value={supplierManual ? "__manual__" : blok.supplier}
-                  onChange={(e) => {
-                    const manual = e.target.value === "__manual__";
-                    setSupplierManual(manual);
-                    onChange(key, manual ? "" : e.target.value);
-                  }}
-                  className="h-9 w-full rounded-lg border border-border bg-card px-3 text-sm focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                >
-                  <option value="">Pilih penyedia…</option>
-                  {kontraktor.map((item) => (
-                    <option key={item.id} value={item.nama}>
-                      {item.nama}
-                    </option>
-                  ))}
-                  <option value="__manual__">Nama lain…</option>
-                </select>
-                {supplierManual ? (
-                  <Input
-                    id={`${id}-manual`}
-                    value={blok.supplier}
-                    maxLength={BATAS_PANJANG.supplier}
-                    placeholder="Ketik nama perusahaan penyedia"
-                    onChange={(e) => onChange(key, e.target.value)}
-                    aria-label="Nama penyedia lain"
-                  />
-                ) : null}
-              </Kolom>
-            );
-          }
-          if (key === "agencyUnit") {
-            return (
-              <Kolom
-                key={key}
-                idFor={id}
-                label="Satuan kerja"
-                galat={err}
-                hint={
-                  satuanKerja.length > 0
-                    ? "Pilih dari akun Pemerintah yang terdaftar atau masukkan satuan kerja lain."
-                    : "Belum ada pilihan akun Pemerintah. Pilih “Satuan kerja lain…” untuk mengisi manual; jalankan migrasi 0006 agar nama akun tersedia."
-                }
-              >
-                <select
-                  id={id}
-                  value={satuanManual ? "__manual__" : blok.agencyUnit}
-                  onChange={(e) => {
-                    const manual = e.target.value === "__manual__";
-                    setSatuanManual(manual);
-                    onChange(key, manual ? "" : e.target.value);
-                  }}
-                  className="h-9 w-full rounded-lg border border-border bg-card px-3 text-sm focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                >
-                  <option value="">Pilih satuan kerja…</option>
-                  {satuanKerja.map((nama) => (
-                    <option key={nama} value={nama}>
-                      {nama}
-                    </option>
-                  ))}
-                  <option value="__manual__">Satuan kerja lain…</option>
-                </select>
-                {satuanManual ? (
-                  <Input
-                    id={`${id}-manual`}
-                    value={blok.agencyUnit}
-                    maxLength={BATAS_PANJANG.agencyUnit}
-                    placeholder="Ketik nama satuan kerja"
-                    onChange={(e) => onChange(key, e.target.value)}
-                    aria-label="Nama satuan kerja lain"
-                  />
-                ) : null}
-              </Kolom>
-            );
-          }
-          return (
-            <Kolom
-              key={key}
-              idFor={id}
-              label={LABEL_FIELD[key]}
-              required={wajib}
-              galat={err}
-              hint={hint}
+        <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
+          <Kolom
+            idFor="board-packageName"
+            label="Nama paket"
+            required
+            galat={tampilkanGalat ? galat.packageName : undefined}
+            className="sm:col-span-2"
+          >
+            <Input
+              id="board-packageName"
+              value={blok.packageName}
+              placeholder="Contoh: Rehabilitasi Jalan Desa Sukamaju"
+              maxLength={BATAS_PANJANG.packageName}
+              onChange={(e) => onChange("packageName", e.target.value)}
+              aria-invalid={tampilkanGalat && galat.packageName ? true : undefined}
+            />
+          </Kolom>
+
+          <Kolom
+            idFor="board-supplier"
+            label="Penyedia (perusahaan)"
+            galat={tampilkanGalat ? galat.supplier : undefined}
+            hint="Pilih kontraktor terdaftar atau isi nama penyedia lain."
+          >
+            <Select
+              id="board-supplier"
+              className="w-full"
+              selectedKey={supplierManual ? "__manual__" : blok.supplier || null}
+              onSelectionChange={(kunci) => {
+                const manual = kunci === "__manual__";
+                setSupplierManual(manual);
+                onChange("supplier", manual ? "" : String(kunci));
+              }}
             >
+              <SelectTrigger>
+                <SelectValue>
+                  {() =>
+                    supplierManual ? "Nama lain…" : blok.supplier || "Pilih penyedia…"
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {kontraktor.map((item) => (
+                  <SelectItem key={item.id} id={item.nama}>
+                    {item.nama}
+                  </SelectItem>
+                ))}
+                <SelectItem id="__manual__">Nama lain…</SelectItem>
+              </SelectContent>
+            </Select>
+            {supplierManual ? (
               <Input
-                id={id}
-                name={id}
-                type={tipe}
-                inputMode={inputMode}
-                min={key === "fiscalYear" ? 2000 : undefined}
-                max={key === "fiscalYear" ? 2100 : undefined}
-                step={key === "fiscalYear" ? 1 : undefined}
-                value={blok[key]}
-                placeholder={placeholder[key] ?? "Pilih tanggal…"}
-                maxLength={maks}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  onChange(key, key === "contractValue" ? formatAngkaInput(raw) : raw);
-                }}
-                aria-invalid={err ? true : undefined}
-                aria-describedby={err ? `${id}-galat` : hint ? `${id}-ket` : undefined}
+                id="board-supplier-manual"
+                className="mt-1.5"
+                value={blok.supplier}
+                maxLength={BATAS_PANJANG.supplier}
+                placeholder="Ketik nama perusahaan penyedia"
+                onChange={(e) => onChange("supplier", e.target.value)}
+                aria-label="Nama penyedia lain"
               />
-            </Kolom>
-          );
-        })}
+            ) : null}
+          </Kolom>
+
+          <Kolom
+            idFor="board-contractValue"
+            label="Nilai kontrak (Rp)"
+            galat={tampilkanGalat ? galat.contractValue : undefined}
+            hint={nilaiTerbaca !== null ? formatRupiah(nilaiTerbaca) : undefined}
+          >
+            <Input
+              id="board-contractValue"
+              inputMode="numeric"
+              value={blok.contractValue}
+              placeholder="Contoh: 1.250.000.000"
+              onChange={(e) => onChange("contractValue", formatAngkaInput(e.target.value))}
+              aria-invalid={tampilkanGalat && galat.contractValue ? true : undefined}
+            />
+          </Kolom>
+
+          <Kolom
+            idFor="board-fiscalYear"
+            label="Tahun anggaran"
+            galat={tampilkanGalat ? galat.fiscalYear : undefined}
+            hint="Masukkan tahun saja (2000–2100)."
+          >
+            <Input
+              id="board-fiscalYear"
+              inputMode="numeric"
+              value={blok.fiscalYear}
+              placeholder="Contoh: 2026"
+              onChange={(e) => onChange("fiscalYear", formatAngkaInput(e.target.value))}
+              aria-invalid={tampilkanGalat && galat.fiscalYear ? true : undefined}
+            />
+          </Kolom>
+
+          <Kolom
+            idFor="board-fundingSource"
+            label="Sumber dana"
+            galat={tampilkanGalat ? galat.fundingSource : undefined}
+          >
+            <Input
+              id="board-fundingSource"
+              value={blok.fundingSource}
+              placeholder="Contoh: APBD / DAK"
+              maxLength={BATAS_PANJANG.fundingSource}
+              onChange={(e) => onChange("fundingSource", e.target.value)}
+              aria-invalid={tampilkanGalat && galat.fundingSource ? true : undefined}
+            />
+          </Kolom>
+
+          <Kolom
+            idFor="board-agencyUnit"
+            label="Satuan kerja"
+            galat={tampilkanGalat ? galat.agencyUnit : undefined}
+            hint={
+              satuanKerja.length > 0
+                ? "Pilih dari akun Pemerintah yang terdaftar atau masukkan satuan kerja lain."
+                : "Belum ada pilihan akun Pemerintah. Pilih “Satuan kerja lain…” untuk mengisi manual."
+            }
+          >
+            <Select
+              id="board-agencyUnit"
+              className="w-full"
+              selectedKey={satuanManual ? "__manual__" : blok.agencyUnit || null}
+              onSelectionChange={(kunci) => {
+                const manual = kunci === "__manual__";
+                setSatuanManual(manual);
+                onChange("agencyUnit", manual ? "" : String(kunci));
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue>
+                  {() =>
+                    satuanManual
+                      ? "Satuan kerja lain…"
+                      : blok.agencyUnit || "Pilih satuan kerja…"
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {satuanKerja.map((nama) => (
+                  <SelectItem key={nama} id={nama}>
+                    {nama}
+                  </SelectItem>
+                ))}
+                <SelectItem id="__manual__">Satuan kerja lain…</SelectItem>
+              </SelectContent>
+            </Select>
+            {satuanManual ? (
+              <Input
+                id="board-agencyUnit-manual"
+                className="mt-1.5"
+                value={blok.agencyUnit}
+                maxLength={BATAS_PANJANG.agencyUnit}
+                placeholder="Ketik nama satuan kerja"
+                onChange={(e) => onChange("agencyUnit", e.target.value)}
+                aria-label="Nama satuan kerja lain"
+              />
+            ) : null}
+          </Kolom>
+
+          <Kolom
+            idFor="board-contractNumber"
+            label="Nomor kontrak"
+            galat={tampilkanGalat ? galat.contractNumber : undefined}
+            hint="Format: 0001/000000000/,00 — garis miring dan koma terisi otomatis."
+          >
+            <Input
+              id="board-contractNumber"
+              value={blok.contractNumber}
+              placeholder="0001/000000000/,00"
+              onChange={(e) => onChange("contractNumber", terapkanTemplatKontrak(e.target.value))}
+              aria-invalid={tampilkanGalat && galat.contractNumber ? true : undefined}
+            />
+          </Kolom>
+
+          <Kolom
+            idFor="board-contractDate"
+            label="Tanggal kontrak"
+            galat={tampilkanGalat ? galat.contractDate : undefined}
+            hint="Tanggal penandatanganan kontrak."
+          >
+            <TanggalPicker
+              ariaLabel="Tanggal kontrak"
+              value={blok.contractDate || null}
+              onChange={(iso) => onChange("contractDate", iso ?? "")}
+              isInvalid={Boolean(tampilkanGalat && galat.contractDate)}
+            />
+          </Kolom>
+
+          <Kolom
+            idFor="board-executionStartDate"
+            label="Masa pelaksanaan (mulai – selesai)"
+            galat={galatRentang}
+            hint={
+              masaHari !== null
+                ? `Masa pelaksanaan: ${masaHari} hari kalender.`
+                : "Pilih tanggal mulai dan selesai dalam satu kalender."
+            }
+            className="sm:col-span-2"
+          >
+            <RentangTanggalPicker
+              ariaLabel="Rentang masa pelaksanaan"
+              value={rentang}
+              onChange={(nilai) => {
+                onChange("executionStartDate", nilai.mulai ?? "");
+                onChange("executionEndDate", nilai.selesai ?? "");
+              }}
+              isInvalid={Boolean(galatRentang)}
+            />
+          </Kolom>
+
+          <KolomLokasi blok={blok} galat={galat} tampilkanGalat={tampilkanGalat} onChange={onChange} />
+        </div>
+
         <div className="space-y-2">
           <div>
             <Label htmlFor="peta-lokasi-proyek">Titik lokasi proyek</Label>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Klik peta untuk menandai lokasi tepat. Pin dan koordinat disimpan bersama alamat.
+              Klik peta untuk menandai lokasi — alamat terisi otomatis dari titik yang dipilih.
             </p>
           </div>
           <div id="peta-lokasi-proyek" className="overflow-hidden rounded-lg border border-border">
@@ -716,6 +819,18 @@ function BlokFormulir({
               saatPilih={(lat, lng) => {
                 onChange("locationLatitude", String(Number(lat.toFixed(6))));
                 onChange("locationLongitude", String(Number(lng.toFixed(6))));
+                // Sinkron dua arah: isi alamat dari koordinat yang diklik
+                // (Nominatim reverse). Diam saja bila layanan gagal.
+                fetch(
+                  `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=id`,
+                )
+                  .then(async (res) => (res.ok ? res.json() : null))
+                  .then((data: { display_name?: string } | null) => {
+                    if (data?.display_name) {
+                      onChange("locationText", data.display_name.slice(0, BATAS_PANJANG.locationText!));
+                    }
+                  })
+                  .catch(() => {});
               }}
             />
           </div>
@@ -737,6 +852,42 @@ function BlokFormulir({
             <p className="text-xs text-muted-foreground">Belum ada pin lokasi.</p>
           )}
         </div>
+
+        {kontraktor ? (
+          <Kolom
+            idFor="kontraktor-pelaksana"
+            label="Penugasan kontraktor"
+            hint={
+              kontraktor.length === 0
+                ? "Belum ada kontraktor aktif. Buat akun kontraktor terlebih dahulu agar dapat menugaskan proyek."
+                : "Kontraktor yang dipilih melihat proyek ini di akunnya dan memperbarui papan lapangan."
+            }
+          >
+            <Select
+              id="kontraktor-pelaksana"
+              className="w-full max-w-md"
+              selectedKey={kontraktorId || "__kosong__"}
+              onSelectionChange={(kunci) => saatPilihKontraktor(kunci === "__kosong__" ? "" : String(kunci))}
+            >
+              <SelectTrigger>
+                <SelectValue>
+                  {() =>
+                    kontraktor.find((item) => item.id === kontraktorId)?.nama ??
+                      "— Belum ditugaskan —"
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem id="__kosong__">— Belum ditugaskan —</SelectItem>
+                {kontraktor.map((item) => (
+                  <SelectItem key={item.id} id={item.id}>
+                    {item.nama}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Kolom>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -745,16 +896,12 @@ function BlokFormulir({
 export function FormProyek({
   mode,
   initial,
-  today,
   kembaliKe,
   kontraktor,
   satuanKerja,
 }: {
   mode: "create" | "edit";
   initial?: InitialData;
-  // Tanggal hari ini WIB (dari jakartaToday()) yang dihitung di server halaman
-  // — bukan saat render komponen, agar prerender tidak menyentuh Date.now().
-  today: string;
   /** Tujuan setelah proyek baru dibuat atau dihapus; bawaan: daftar proyek. */
   kembaliKe?: string;
   /**
@@ -770,23 +917,16 @@ export function FormProyek({
   const [board, setBoard] = useState<Blok>(() =>
     initial ? blokDariApi(initial.board) : { ...BLOK_KOSONG },
   );
-  // Catatan resmi: hasil pilihan registry (read-only), bukan isian bebas.
-  const [recordTerpilih, setRecordTerpilih] = useState<RekamanRegistry | null>(() =>
+  // Catatan resmi tertaut tidak punya pemilih lagi di formulir; tautan yang
+  // sudah ada (proyek lama) dipertahankan apa adanya saat menyimpan.
+  const recordTerkait =
     initial?.officialRecord && initial.recordId
       ? rekamanDariApi(initial.recordId, initial.officialRecord)
-      : null,
-  );
-  const [kueriCari, setKueriCari] = useState("");
-  const [hasilCari, setHasilCari] = useState<RekamanRegistry[]>([]);
-  const [mencariCari, setMencariCari] = useState(false);
-  const [featured, setFeatured] = useState(initial?.featured ?? false);
+      : null;
   const [contractorId, setContractorId] = useState(initial?.contractorId ?? "");
   const [kotor, setKotor] = useState(false);
   const [sedangProses, setSedangProses] = useState(false);
   const [tampilkanGalat, setTampilkanGalat] = useState(false);
-  const [pesanSukses, setPesanSukses] = useState<string | null>(null);
-  const [pesanAtas, setPesanAtas] = useState<string | null>(null);
-  const [galatFeatured, setGalatFeatured] = useState<string | null>(null);
   const [dialogNonaktif, setDialogNonaktif] = useState(false);
   // Galat 422 dari server ditumpuk di bawah galat klien sampai isian berubah.
   const [galatServer, setGalatFieldServer] = useState<FieldErrors | null>(null);
@@ -808,44 +948,6 @@ export function FormProyek({
   function ubahBlok(key: FieldKey, value: string) {
     setBoard((sebelumnya) => ({ ...sebelumnya, [key]: value }));
     setKotor(true);
-    setPesanSukses(null);
-    setGalatFieldServer(null);
-  }
-
-  // Pencarian registry dengan jeda ketik 300 ms (endpoint admin khusus).
-  useEffect(() => {
-    const q = kueriCari.trim();
-    const timer = setTimeout(() => {
-      if (q.length < 3) {
-        setHasilCari([]);
-        return;
-      }
-      setMencariCari(true);
-      fetch(`/api/admin/records/search?q=${encodeURIComponent(q)}`)
-        .then(async (res) => {
-          if (!res.ok) throw new Error(String(res.status));
-          const body = (await res.json()) as { results?: RekamanRegistry[] };
-          setHasilCari(Array.isArray(body.results) ? body.results : []);
-        })
-        .catch(() => setHasilCari([]))
-        .finally(() => setMencariCari(false));
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [kueriCari]);
-
-  function pilihRecord(item: RekamanRegistry) {
-    setRecordTerpilih(item);
-    setKueriCari("");
-    setHasilCari([]);
-    setKotor(true);
-    setPesanSukses(null);
-    setGalatFieldServer(null);
-  }
-
-  function lepasRecord() {
-    setRecordTerpilih(null);
-    setKotor(true);
-    setPesanSukses(null);
     setGalatFieldServer(null);
   }
 
@@ -854,10 +956,11 @@ export function FormProyek({
   async function simpanData(): Promise<{ id: string; slug: string } | null> {
     const payload = {
       board: blokKeApi(board),
-      // null = lepas tautan (status jujur: tidak ditemukan).
-      recordId: recordTerpilih?.id ?? null,
-      featured,
+      featured: initial?.featured ?? false,
       ...(kontraktor ? { contractorId: contractorId || null } : {}),
+      // Tautan registry hanya dikirim bila memang tertaut — tanpa pemilih di
+      // formulir, mengirim null berarti melepas tautan yang tak bisa dipulihkan.
+      ...(recordTerkait ? { recordId: recordTerkait.id } : {}),
     };
     const res =
       mode === "create"
@@ -879,11 +982,7 @@ export function FormProyek({
 
     const galat = await bacaGalat(res);
     if (res.status === 401) {
-      setPesanAtas(PESAN_SESI_HABIS);
-      return null;
-    }
-    if (galat.code === "FEATURED_LIMIT") {
-      setGalatFeatured(galat.message ?? "Sudah ada 3 proyek unggulan. Lepas salah satu dulu.");
+      toast.error(PESAN_SESI_HABIS);
       return null;
     }
     if (galat.details && galat.details.length > 0) {
@@ -897,13 +996,13 @@ export function FormProyek({
       }
       if (Object.keys(dariServer).length > 0) {
         setTampilkanGalat(true);
-        setPesanAtas("Periksa isian yang ditandai di bawah.");
         // Gabungkan galat server agar terlihat sampai isian berubah.
         setGalatFieldServer(dariServer);
+        toast.error("Periksa isian yang ditandai di bawah.");
         return null;
       }
     }
-    setPesanAtas(galat.message ?? "Terjadi kesalahan internal.");
+    toast.error(galat.message ?? "Terjadi kesalahan internal.");
     return null;
   }
 
@@ -919,9 +1018,6 @@ export function FormProyek({
   // proyek yang tersimpan langsung tampil publik.
   async function simpan() {
     setSedangProses(true);
-    setPesanAtas(null);
-    setPesanSukses(null);
-    setGalatFeatured(null);
     setTampilkanGalat(true);
     const hasil = await simpanData();
     if (!hasil) {
@@ -929,45 +1025,26 @@ export function FormProyek({
       return;
     }
     setKotor(false);
-    setPesanSukses(mode === "edit" ? "Perubahan tersimpan." : "Proyek tersimpan.");
-    if (mode === "create") {
-      // Proyek baru langsung ke halaman kelola admin (resource + QR), atau
-      // kembali ke daftar bila pemanggil memberi tujuan sendiri.
-      router.push(kembaliKe ?? `/dashboard/proyek/${hasil.id}/kelola`);
-    }
-    setSedangProses(false);
+    toast.success(mode === "edit" ? "Perubahan tersimpan." : "Proyek tersimpan.");
+    // Alihkan langsung setelah tersimpan; daftar menampilkan data terbaru.
+    router.push(kembaliKe ?? "/dashboard/proyek");
   }
 
   async function nonaktifkan() {
     setSedangProses(true);
-    setPesanAtas(null);
     const res = await fetch(`/api/admin/projects/${initial?.id}`, { method: "DELETE" });
     setDialogNonaktif(false);
     if (res.ok) {
       setKotor(false);
+      toast.success("Proyek dinonaktifkan.");
       router.push(kembaliKe ?? "/dashboard/proyek");
       return;
     }
     const galat = await bacaGalat(res);
-    if (res.status === 401) setPesanAtas(PESAN_SESI_HABIS);
-    else setPesanAtas(galat.message ?? "Terjadi kesalahan internal.");
+    if (res.status === 401) toast.error(PESAN_SESI_HABIS);
+    else toast.error(galat.message ?? "Terjadi kesalahan internal.");
     setSedangProses(false);
   }
-
-  // Ringkasan galat untuk role="alert" di atas form.
-  const ringkasanGalat: string[] = [];
-  for (const [kunci, pesan] of Object.entries(galatGabungan.board ?? {})) {
-    ringkasanGalat.push(`${NAMA_SISI.board} — ${LABEL_FIELD[kunci as FieldKey]}: ${pesan}`);
-  }
-
-  // Pratinjau cincin waktu (Lampiran G.1) dari nilai form saat ini.
-  const ring = computeTimeRing({
-    boardDurationDays: angkaAtauKosong(board.durationDays),
-    recordDurationDays: recordTerpilih?.durationDays ?? null,
-    boardContractDate: board.executionStartDate.trim() || board.contractDate.trim() || null,
-    recordContractDate: recordTerpilih?.contractDate ?? null,
-    today,
-  });
 
   return (
     <form
@@ -978,31 +1055,6 @@ export function FormProyek({
       }}
       noValidate
     >
-      {pesanAtas || (tampilkanGalat && ringkasanGalat.length > 0) ? (
-        <div
-          role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-        >
-          <p className="font-medium">{pesanAtas ?? "Periksa isian berikut:"}</p>
-          {ringkasanGalat.length > 0 ? (
-            <ul className="mt-1 list-disc space-y-0.5 pl-5">
-              {ringkasanGalat.map((baris) => (
-                <li key={baris}>{baris}</li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-      ) : null}
-
-      {pesanSukses ? (
-        <p
-          role="status"
-          className="rounded-md border border-cocok/40 bg-cocok/10 px-4 py-3 text-sm font-medium text-cocok-teks"
-        >
-          {pesanSukses}
-        </p>
-      ) : null}
-
       {mode === "edit" && initial ? (
         <p className="text-sm text-neutral-700">
           Slug dossier: <span className="font-mono font-semibold">{initial.slug}</span>{" "}
@@ -1010,110 +1062,43 @@ export function FormProyek({
         </p>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <BlokFormulir
-          blok={board}
-          galat={galatGabungan.board ?? {}}
-          tampilkanGalat={tampilkanGalat}
-          onChange={(key, value) => ubahBlok(key, value)}
-          kontraktor={kontraktor ?? []}
-          satuanKerja={satuanKerja ?? []}
-        />
-        <PemilihRegistry
-          terpilih={recordTerpilih}
-          kueri={kueriCari}
-          hasil={hasilCari}
-          mencari={mencariCari}
-          onKueri={setKueriCari}
-          onPilih={pilihRecord}
-          onLepas={lepasRecord}
-        />
-      </div>
+      <BlokFormulir
+        blok={board}
+        galat={galatGabungan.board ?? {}}
+        tampilkanGalat={tampilkanGalat}
+        onChange={ubahBlok}
+        kontraktor={kontraktor ?? []}
+        satuanKerja={satuanKerja ?? []}
+        kontraktorId={contractorId}
+        saatPilihKontraktor={(id) => {
+          setContractorId(id);
+          setKotor(true);
+        }}
+      />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Perbandingan dengan catatan resmi hanya bila proyek memang sudah
+          tertaut registry — formulir tidak lagi menyediakan pemilihnya. */}
+      {recordTerkait ? (
         <PratinjauStatus
           board={blokKePerbandingan(board)}
-          record={recordTerpilih ? rekamanKePerbandingan(recordTerpilih) : null}
+          record={rekamanKePerbandingan(recordTerkait)}
         />
-        <section
-          className="rounded-md border border-border bg-card p-4"
-          aria-label="Pratinjau cincin waktu"
-        >
-          <h2 className="font-heading text-lg font-bold">Pratinjau cincin waktu</h2>
-          <p className="mt-3 text-sm font-semibold">{ring.caption}</p>
-          <p className="mt-1 text-xs text-neutral-600">{RING_NOTE}</p>
-        </section>
-      </div>
+      ) : null}
 
-      <div className="space-y-3">
-        {kontraktor ? (
-          <div className="space-y-1.5">
-            <Label htmlFor="kontraktor-pelaksana">Penugasan kontraktor</Label>
-            <select
-              id="kontraktor-pelaksana"
-              value={contractorId}
-              onChange={(e) => {
-                setContractorId(e.target.value);
-                setKotor(true);
-                setPesanSukses(null);
-              }}
-              className="h-9 w-full max-w-md rounded-lg border border-border bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-            >
-              <option value="">— Belum ditugaskan —</option>
-              {kontraktor.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs leading-5 text-muted-foreground">
-              {kontraktor.length === 0
-                ? "Belum ada kontraktor aktif. Buat akun kontraktor terlebih dahulu agar dapat menugaskan proyek."
-                : "Pilih kontraktor yang akan melihat proyek ini di akunnya. Kolom Kontraktor pada daftar proyek menampilkan penugasan ini."}
-            </p>
-          </div>
-        ) : null}
-
-        <div className="flex items-start gap-2">
-          <input
-            id="featured"
-            name="featured"
-            type="checkbox"
-            checked={featured}
-            onChange={(e) => {
-              setFeatured(e.target.checked);
-              setKotor(true);
-              setGalatFeatured(null);
-            }}
-            className="mt-0.5 size-4 rounded border-neutral-400 accent-neutral-900"
-          />
-          <div>
-            <Label htmlFor="featured" className="font-normal">
-              Tampilkan di Contoh Kasus
-            </Label>
-            {galatFeatured ? (
-              <p className="mt-1 text-xs font-medium text-destructive" id="featured-galat">
-                {galatFeatured}
-              </p>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" isDisabled={sedangProses || adaGalatGabungan}>
-            Simpan
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" isDisabled={sedangProses || adaGalatGabungan}>
+          Simpan
+        </Button>
+        {mode === "edit" ? (
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => setDialogNonaktif(true)}
+            isDisabled={sedangProses}
+          >
+            Nonaktifkan proyek
           </Button>
-          {mode === "edit" ? (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => setDialogNonaktif(true)}
-              isDisabled={sedangProses}
-            >
-              Nonaktifkan proyek
-            </Button>
-          ) : null}
-        </div>
+        ) : null}
       </div>
 
       <Dialog isOpen={dialogNonaktif} onOpenChange={setDialogNonaktif} showCloseButton={false}>

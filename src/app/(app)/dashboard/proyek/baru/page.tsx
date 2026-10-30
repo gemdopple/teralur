@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { KepalaDasbor } from "@/components/teralur/KepalaDasbor";
 import { FormProyek } from "@/components/teralur/admin/FormProyek";
 import { kelasTombol } from "@/lib/kelas-tombol";
-import { jakartaToday } from "@/lib/dates";
 import { META_ROLE } from "@/lib/roles";
 import { identitasSaatIni } from "@/lib/identitas";
 import { databaseConfigured } from "@/lib/server-api";
@@ -56,12 +55,11 @@ export default async function HalamanTugaskanProyek() {
     <>
       <KepalaDasbor
         judul="Tugaskan proyek"
-        deskripsi="Masukkan data papan lapangan, pilih catatan resmi dari registry pengadaan, tetapkan kontraktor pelaksana, lalu simpan."
+        deskripsi="Masukkan data papan lapangan, tetapkan kontraktor pelaksana, lalu simpan."
       />
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <FormProyek
           mode="create"
-          today={jakartaToday()}
           kembaliKe="/dashboard/proyek"
           kontraktor={kontraktor}
           satuanKerja={satuanKerja}
