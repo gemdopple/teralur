@@ -44,6 +44,18 @@ export function PetaProyekPublik() {
     // status, dan `new Date()` tidak boleh dipanggil saat render/prerender.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(daftarProyekPublik(jakartaToday()));
+    // Proyek nyata diambil setelah shell statis tampil, lalu digabung mendahului
+    // dataset simulasi. Gagal jaringan/basis data diam: daftar simulasi di atas
+    // tetap jadi mode cadangan (T-28).
+    fetch("/api/proyek-publik")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: { proyek?: ProyekDemo[] } | null) => {
+        const nyata = Array.isArray(body?.proyek) ? body!.proyek : [];
+        if (nyata.length > 0) {
+          setItems([...nyata, ...daftarProyekPublik(jakartaToday())]);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   return <PetaProyek items={items} mode="depot" />;
