@@ -25,6 +25,11 @@ export const config = {
 const POLA_SLUG = /^[A-Za-z0-9_-]{1,64}$/;
 
 function halamanNetral404(): Response {
+  // Pola yang sama dengan ToastKembali (halaman 404 aplikasi): cukup pemberitahuan
+  // gaya toast lalu kembali ke halaman sebelumnya; pendaratan langsung (QR lama
+  // tanpa referrer) diarahkan ke beranda. Status tetap 404 sungguhan (H.1).
+  // Halaman ini di luar React — toast dibuat HTML murni, dengan jeda singkat
+  // agar pesan sempat terbaca sebelum navigasi.
   const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -33,30 +38,18 @@ function halamanNetral404(): Response {
 <meta name="robots" content="noindex, nofollow" />
 <title>Proyek tidak ditemukan | teralur</title>
 <style>
-  body { margin: 0; font-family: system-ui, "Segoe UI", Roboto, sans-serif; background: #F5F5F5; color: #14110F; }
-  header { border-bottom: 2px solid #14110F; background: #FFC400; }
-  header div { max-width: 60rem; margin: 0 auto; padding: 1rem; font-weight: 800; font-size: 1.5rem; }
-  main { max-width: 48rem; margin: 0 auto; padding: 4rem 1rem; }
-  .kartu { border: 2px solid #14110F; border-radius: 0.75rem; background: #fff; padding: 2.5rem; text-align: center; }
-  .kicker { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #6B6F76; margin: 0 0 0.5rem; }
-  h1 { font-size: 1.6rem; margin: 0; }
-  .aksi { margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
-  a { min-height: 44px; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 2px solid #14110F; border-radius: 0.375rem; font-weight: 600; color: #14110F; text-decoration: none; }
-  a.kuning { background: #FFC400; }
+  body { margin: 0; font-family: system-ui, "Segoe UI", Roboto, sans-serif; background: #FCFCFA; color: #14110F; }
+  #pemberitahuan { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; align-items: center; gap: 0.625rem; max-width: 92vw; padding: 0.75rem 1rem; border: 1px solid rgb(20 17 15 / 12%); border-radius: 0.5rem; background: #fff; color: #14110F; font-size: 0.875rem; font-weight: 500; line-height: 1.4; box-shadow: 0 8px 24px rgb(20 17 15 / 0.14); }
+  #pemberitahuan span { display: inline-flex; width: 1.25rem; height: 1.25rem; flex: none; align-items: center; justify-content: center; border-radius: 9999px; background: #D9480F; color: #fff; font-size: 0.75rem; font-weight: 700; }
 </style>
 </head>
 <body>
-<header><div>teralur</div></header>
-<main>
-  <div class="kartu">
-    <p class="kicker">Dossier proyek</p>
-    <h1>Proyek tidak ditemukan atau sedang ditinjau. Coba Cari Paket.</h1>
-    <div class="aksi">
-      <a class="kuning" href="/search">Cari Paket</a>
-      <a href="/methodology">Metodologi</a>
-    </div>
-  </div>
-</main>
+<div id="pemberitahuan" role="status"><span aria-hidden="true">!</span>Proyek tidak ditemukan atau sedang ditinjau.</div>
+<script>
+  setTimeout(function () {
+    if (document.referrer) { history.back(); } else { location.replace("/"); }
+  }, 1500);
+</script>
 </body>
 </html>`;
   return new Response(html, {

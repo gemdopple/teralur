@@ -34,15 +34,13 @@ const PRINT_CSS = `
   body { background: #ffffff !important; }
   .no-print { display: none !important; }
   .papan-halaman { max-width: none !important; padding: 0 !important; }
+  /* Kartu cetak menempel isi seperti pratinjau — tanpa peregangan tinggi
+     (min-height/flex) yang menyisakan ruang kosong besar di PDF. */
   .papan {
     box-shadow: none !important;
-    min-height: 185mm;
-    display: flex;
-    flex-direction: column;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  .papan-isi { flex: 1 1 auto; align-content: stretch; }
   .papan-qr-kotak { width: 38mm !important; height: 38mm !important; }
 }
 `;

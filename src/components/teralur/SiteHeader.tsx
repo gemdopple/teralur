@@ -41,7 +41,6 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div aria-hidden className="h-[3px] bg-kuning-papan" />
       {/* flex di bawah lg (nav di tengah sejati), grid simetris di lg ke atas */}
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 sm:px-6 lg:grid lg:grid-cols-[1fr_auto_1fr]">
         <Link

@@ -246,7 +246,7 @@ export function DossierView({
       </Reveal>
 
       {!evidenceOnly && (
-        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+        <div className={`mt-6 grid gap-5 ${candidates.length > 1 ? "lg:grid-cols-2" : ""}`}>
           {candidates.length > 1 && (
             <CandidateSelector
               slug={slug}
@@ -254,7 +254,6 @@ export function DossierView({
               requiresSelection={requiresSelection}
             />
           )}
-          <VisitReportForm dossierSlug={slug} />
           {/* "Dari mana data berasal" menggantikan "Batas informasi" (permintaan
               PM 2026-10-27); tombol kartu bukti tetap sebagai navigasi. */}
           <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
@@ -281,6 +280,9 @@ export function DossierView({
           berarti kesalahan. Sumber data publik: OCDS (Opentender/ICW), lisensi ODbL.
         </p>
       )}
+      {/* Laporan warga kini widget melayang (lihat VisitReportForm) — di luar
+          Reveal agar posisi fixed tidak melekat pada transform animasinya. */}
+      {!evidenceOnly && <VisitReportForm dossierSlug={slug} />}
     </main>
   );
 }

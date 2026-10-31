@@ -120,7 +120,7 @@ export default function PetaDalam({
       zoom={13}
       scrollWheelZoom={false}
       className="z-0 h-full w-full"
-      attributionControl
+      attributionControl={false}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

@@ -5,7 +5,6 @@ import { GrafikAspek, type BarisAspek } from "@/components/teralur/grafik-aspek"
 import { GrafikLaporan } from "@/components/teralur/grafik-laporan";
 import { GrafikNilai } from "@/components/teralur/grafik-nilai";
 import { LabelTiga } from "@/components/teralur/LabelTiga";
-import { PitaData } from "@/components/teralur/Pita";
 import { PanelJejak } from "@/components/teralur/PanelJejak";
 import { VisitReportForm } from "@/components/teralur/VisitReportForm";
 import { Reveal } from "@/components/teralur/anim/Reveal";
@@ -347,7 +346,6 @@ export function DossierProyek({
 
   return (
     <div className="flex-1">
-      {tanggalData ? <PitaData tanggal={tanggalData} /> : null}
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {/* Header */}
@@ -655,14 +653,9 @@ export function DossierProyek({
         {/* Laporan warga (anti-massa: PoW + honeypot, lihat VisitReportForm):
             warga tanpa akun melaporkan kondisi lapangan sebagai pemeriksa
             silang terhadap data papan dan catatan resmi. Tidak ada pada
-            salinan statis (T-28). */}
-        {!statis && (
-          <Reveal>
-            <div className="mx-auto mt-12 w-full max-w-2xl">
-              <VisitReportForm dossierSlug={slug} />
-            </div>
-          </Reveal>
-        )}
+            salinan statis (T-28). Sengaja di luar Reveal — transform animasi
+            pembungkus menjadikan posisi fixed melekat padanya. */}
+        {!statis && <VisitReportForm dossierSlug={slug} />}
       </main>
     </div>
   );

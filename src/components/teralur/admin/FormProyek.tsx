@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PratinjauStatus } from "./PratinjauStatus";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { parseNilaiUang } from "@/lib/nilai-uang";
 import type { ApiBoard } from "@/lib/api-contract";
 
