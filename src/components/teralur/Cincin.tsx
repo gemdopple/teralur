@@ -8,8 +8,9 @@ export type CincinProps = {
   className?: string;
 };
 
-// Cincin progres: lintasan #D9D9D9, isi kuning papan #FFC400 (var(--kuning-papan)),
-// oranye #D9480F (var(--selisih)) bila melewati. Ujung isi membulat.
+// Cincin progres: lintasan netral (dari token agar terbaca di kedua tema),
+// isi kuning papan (var(--kuning-papan)), oranye (var(--selisih)) bila
+// melewati. Ujung isi membulat.
 // Isi tumbuh (draw-in) lewat keyframes CSS murni di dalam komponen — tanpa
 // "use client" — dan berhenti total bila pengguna memilih gerak berkurang.
 const GAYA_CINCIN = `
@@ -42,8 +43,15 @@ export function Cincin({ data, className }: CincinProps) {
       <LabelTiga label={unknown ? "belum_diketahui" : "hitungan"} />
       <div className="relative mt-2 h-40 w-40">
         <svg viewBox="0 0 100 100" role="img" aria-label={description} className="h-full w-full -rotate-90">
-          {/* Lintasan #D9D9D9; isi kuning papan, oranye bila melewati. */}
-          <circle cx="50" cy="50" r={radius} fill="none" stroke="#D9D9D9" strokeWidth="9" />
+          {/* Lintasan netral dari token; isi kuning papan, oranye bila melewati. */}
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            stroke="color-mix(in oklab, var(--muted-foreground) 25%, transparent)"
+            strokeWidth="9"
+          />
           {!unknown && (
             <circle
               cx="50"
@@ -102,13 +110,13 @@ export function CincinWaktu({ ring, className }: { ring: TimeRing; className?: s
           aria-label={ring.caption}
           className="h-full w-full -rotate-90"
         >
-          {/* Lintasan #D9D9D9; isi kuning papan, var(--selisih) bila over. */}
+          {/* Lintasan netral dari token; isi kuning papan, var(--selisih) bila over. */}
           <circle
             cx="50"
             cy="50"
             r={radius}
             fill="none"
-            stroke="#D9D9D9"
+            stroke="color-mix(in oklab, var(--muted-foreground) 25%, transparent)"
             strokeWidth="9"
           />
           {!takTerhitung && (

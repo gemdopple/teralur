@@ -31,7 +31,7 @@ export function KartuProyekDasbor({
         <Link
           href={proyek.href}
           aria-label={`Buka laporan ${proyek.nama}`}
-          className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-hitam-aspal hover:text-kertas"
+          className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-hitam-aspal hover:text-kertas dark:hover:bg-accent dark:hover:text-foreground"
         >
           <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
         </Link>

@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { NavBawah } from "@/components/teralur/nav-bawah";
 import {
   DashboardSpeedIcon,
   FileValidationIcon,
@@ -14,10 +13,14 @@ import {
   Menu01Icon,
   Cancel01Icon,
   Logout03Icon,
+  ArrowLeft01Icon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { LogoTeralur } from "@/components/teralur/logo";
+import { TombolTema } from "@/components/teralur/tombol-tema";
+import { NavBawahDasbor } from "@/components/teralur/nav-bawah-dasbor";
 import { META_ROLE, navAktif, navUntukRole, type AppRole } from "@/lib/roles";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
@@ -29,22 +32,19 @@ const IKON_NAV: Record<string, typeof DashboardSpeedIcon> = {
   "/dashboard/akun": UserAccountIcon,
 };
 
-// Logo ubin kuning inline: kotak rounded dengan huruf "t" tebal + wordmark.
-function LogoTeralur() {
-  return (
-    <Link href="/" className="flex items-center gap-2.5" aria-label="Teralur, ke beranda">
-      <span
-        aria-hidden="true"
-        className="flex size-8 items-center justify-center rounded-lg bg-kuning-papan font-heading text-lg font-bold leading-none text-hitam-aspal"
-      >
-        t
-      </span>
-      <span className="font-heading text-lg font-bold tracking-tight">teralur</span>
-    </Link>
-  );
-}
-
-function DaftarNav({ peran, onNavigasi }: { peran: AppRole; onNavigasi?: () => void }) {
+function DaftarNav({
+  peran,
+  onNavigasi,
+  runtuh = false,
+  perluas,
+}: {
+  peran: AppRole;
+  onNavigasi?: () => void;
+  /** Mode runtuh: ikon saja dengan tooltip (hanya sidebar desktop). */
+  runtuh?: boolean;
+  /** Dipanggil bila item induk diklik saat sidebar runtuh → sidebar diperluas. */
+  perluas?: () => void;
+}) {
   const pathname = usePathname();
   // Induk beranak adalah pengalih dropdown, bukan tautan: klik membuka
   // sub-menu di tempat. Default mengikuti sektor aktif; klik pengguna
@@ -69,31 +69,57 @@ function DaftarNav({ peran, onNavigasi }: { peran: AppRole; onNavigasi?: () => v
         const terbukaSekarang =
           alihan && alihan.href === item.href ? alihan.terbuka : aktif;
         const kelasItem = cn(
-          "flex items-center gap-2.5 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+          "flex items-center gap-2.5 rounded-full py-2 text-sm font-medium transition-colors",
+          runtuh ? "justify-center px-0" : "px-3",
           aktif
-            ? "bg-accent text-accent-foreground"
+            ? "bg-kuning-papan/15 text-foreground"
             : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
         );
         return (
           <div key={item.href} className="grid gap-0.5">
             {adaAnak ? (
-              <button type="button" onClick={() => alihkan(item.href, !terbukaSekarang)} aria-expanded={terbukaSekarang} className={kelasItem}>
+              <button
+                type="button"
+                onClick={() => {
+                  // Sidebar runtuh tak punya ruang untuk sub-menu: klik ikon
+                  // memperluas sidebar lalu membuka sub-menunya.
+                  if (runtuh) {
+                    perluas?.();
+                    alihkan(item.href, true);
+                    return;
+                  }
+                  alihkan(item.href, !terbukaSekarang);
+                }}
+                aria-expanded={terbukaSekarang}
+                title={runtuh ? item.label : undefined}
+                aria-label={runtuh ? item.label : undefined}
+                className={kelasItem}
+              >
                 <HugeiconsIcon icon={Ikon} className="size-4" />
-                {item.label}
-                <HugeiconsIcon
-                  icon={ArrowRight01Icon}
-                  className={cn("ml-auto size-3.5 transition-transform", terbukaSekarang && "rotate-90")}
-                />
+                {!runtuh && item.label}
+                {!runtuh && (
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    className={cn("ml-auto size-3.5 transition-transform", terbukaSekarang && "rotate-90")}
+                  />
+                )}
               </button>
             ) : (
-              <Link href={item.href} onClick={onNavigasi} aria-current={pathname === item.href ? "page" : undefined} className={kelasItem}>
+              <Link
+                href={item.href}
+                onClick={onNavigasi}
+                aria-current={pathname === item.href ? "page" : undefined}
+                title={runtuh ? item.label : undefined}
+                aria-label={runtuh ? item.label : undefined}
+                className={kelasItem}
+              >
                 <HugeiconsIcon icon={Ikon} className="size-4" />
-                {item.label}
+                {!runtuh && item.label}
               </Link>
             )}
             {/* Sub-menu (dropdown satu tingkat): tampil saat induknya dibuka,
                 tanpa navigasi ke halaman ringkasan. */}
-            {adaAnak && terbukaSekarang && (
+            {adaAnak && terbukaSekarang && !runtuh && (
               <ul className="ml-[1.4rem] grid gap-0.5 border-l border-border pl-3">
                 {anak.map((anakItem) => {
                   const anakAktif =
@@ -142,7 +168,7 @@ function LabelPeran({ peran }: { peran: AppRole }) {
   );
 }
 
-function IsiAkun({ email }: { email: string }) {
+function IsiAkun({ email, runtuh = false }: { email: string; runtuh?: boolean }) {
   const router = useRouter();
   const [sedangKeluar, setSedangKeluar] = useState(false);
 
@@ -157,17 +183,41 @@ function IsiAkun({ email }: { email: string }) {
     }
   }
 
+  // Mode runtuh: satu tombol ikon menuju halaman akun — info, ganti kata
+  // sandi, dan keluar tersedia di sana.
+  if (runtuh) {
+    return (
+      <div className="flex justify-center">
+        <Link
+          href="/dashboard/akun"
+          title="Akun saya — info, kata sandi, dan keluar"
+          aria-label="Akun saya — info, kata sandi, dan keluar"
+          className="flex size-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <HugeiconsIcon icon={UserAccountIcon} className="size-5" />
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-border bg-muted/50 p-3">
       <p className="truncate text-sm font-medium" title={email}>
         {email}
       </p>
       <p className="mt-0.5 text-xs text-muted-foreground">Akun pengelola terverifikasi</p>
+      <Link
+        href="/dashboard/akun"
+        className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-muted"
+      >
+        <HugeiconsIcon icon={UserAccountIcon} className="size-3.5" />
+        Akun saya
+      </Link>
       <button
         type="button"
         onClick={keluar}
         disabled={sedangKeluar}
-        className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-muted disabled:opacity-50"
+        className="mt-1.5 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-muted disabled:opacity-50"
       >
         <HugeiconsIcon icon={Logout03Icon} className="size-3.5" />
         {sedangKeluar ? "Memproses…" : "Keluar"}
@@ -187,34 +237,84 @@ export function ShellDasbor({
 }) {
   const [menuTerbuka, setMenuTerbuka] = useState(false);
   const pathname = usePathname();
+  // Sidebar desktop bisa diruntuhkan (ikon saja). Pilihan disimpan di
+  // localStorage; SSR default terbuka lalu dipulihkan setelah hidrasi.
+  const [runtuh, setRuntuh] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- preferensi
+    // hanya tersedia di klien (localStorage); render pertama wajib cocok
+    // dengan server (terbuka), lalu dipulihkan setelah hidrasi — pola
+    // dua-lintasan yang sama dengan next-themes.
+    setRuntuh(window.localStorage.getItem("teralur-sidebar-runtuh") === "1");
+  }, []);
+
+  function ubahRuntuh(nilai: boolean) {
+    setRuntuh(nilai);
+    window.localStorage.setItem("teralur-sidebar-runtuh", nilai ? "1" : "0");
+  }
 
   return (
     <div className="flex min-h-dvh bg-background">
-      {/* Sidebar desktop */}
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-border bg-card p-4 print:hidden lg:flex">
-        <div className="px-1 pt-2">
-          <LogoTeralur />
+      {/* Sidebar desktop — lebar beranimasi saat diruntuhkan */}
+      <aside
+        className={cn(
+          "sticky top-0 hidden h-dvh shrink-0 flex-col gap-6 border-r border-border bg-card p-4 transition-[width] duration-300 ease-in-out print:hidden lg:flex",
+          runtuh ? "w-[4.75rem]" : "w-64",
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center px-1 pt-2",
+            runtuh ? "flex-col gap-1" : "justify-between",
+          )}
+        >
+          <LogoTeralur ukuran={34} denganTeks={!runtuh} />
+          <div className={cn("flex items-center gap-1", runtuh && "flex-col")}>
+            <TombolTema />
+            <button
+              type="button"
+              onClick={() => ubahRuntuh(!runtuh)}
+              aria-label={runtuh ? "Perluas sidebar" : "Ciutkan sidebar"}
+              aria-expanded={!runtuh}
+              title={runtuh ? "Perluas sidebar" : "Ciutkan sidebar"}
+              className="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <HugeiconsIcon
+                icon={runtuh ? ArrowRight01Icon : ArrowLeft01Icon}
+                className="size-4.5"
+              />
+            </button>
+          </div>
         </div>
-        <LabelPeran peran={peran} />
-        <DaftarNav key={pathname} peran={peran} />
+        {!runtuh && <LabelPeran peran={peran} />}
+        <DaftarNav
+          key={pathname}
+          peran={peran}
+          runtuh={runtuh}
+          perluas={() => ubahRuntuh(false)}
+        />
         <div className="mt-auto">
-          <IsiAkun email={email} />
+          <IsiAkun email={email} runtuh={runtuh} />
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Bilah atas mobile */}
         <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b border-border bg-card px-4 print:hidden lg:hidden">
-          <LogoTeralur />
-          <button
-            type="button"
-            aria-label={menuTerbuka ? "Tutup menu" : "Buka menu"}
-            aria-expanded={menuTerbuka}
-            onClick={() => setMenuTerbuka((nilai) => !nilai)}
-            className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-card transition-colors hover:bg-muted"
-          >
-            <HugeiconsIcon icon={menuTerbuka ? Cancel01Icon : Menu01Icon} className="size-4.5" />
-          </button>
+          <LogoTeralur ukuran={30} />
+          <div className="flex items-center gap-1">
+            <TombolTema />
+            <button
+              type="button"
+              aria-label={menuTerbuka ? "Tutup menu" : "Buka menu"}
+              aria-expanded={menuTerbuka}
+              onClick={() => setMenuTerbuka((nilai) => !nilai)}
+              className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-card transition-colors hover:bg-muted"
+            >
+              <HugeiconsIcon icon={menuTerbuka ? Cancel01Icon : Menu01Icon} className="size-4.5" />
+            </button>
+          </div>
         </header>
         {menuTerbuka && (
           <div className="sticky top-14 z-40 px-4 pb-4 lg:hidden">
@@ -229,12 +329,11 @@ export function ShellDasbor({
             </div>
           </div>
         )}
-
         <div className="flex-1">{children}</div>
-        {/* Nav bawah melayang (ponsel) — sama dengan situs publik, agar navigasi
-            tidak hilang setelah masuk dasbor. */}
+        {/* Nav bawah dasbor (ponsel) — menu per peran dengan sel Akun; berbeda
+            dari nav publik karena pengguna sudah masuk. */}
         <div aria-hidden className="h-20 print:hidden md:hidden" />
-        <NavBawah />
+        <NavBawahDasbor peran={peran} />
       </div>
     </div>
   );
@@ -249,7 +348,7 @@ export function TautanTombol({
 }: {
   href: string;
   children: React.ReactNode;
-  variant?: "default" | "outline";
+  variant?: "default" | "outline" | "brand";
   className?: string;
 }) {
   return (

@@ -171,7 +171,7 @@ export function DossierView({
 
         {simulasi ? (
           <>
-            <p className="mt-4 inline-flex rounded-full bg-hitam-aspal px-3.5 py-1.5 text-sm font-semibold text-kuning-papan">
+            <p className="mt-4 inline-flex rounded-full bg-hitam-aspal px-3.5 py-1.5 text-sm font-semibold text-kuning-papan dark:bg-brand dark:text-hitam-aspal">
               Kasus contoh untuk memperkenalkan alur Teralur.
             </p>
             {record && (

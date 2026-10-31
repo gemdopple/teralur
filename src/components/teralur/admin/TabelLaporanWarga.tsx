@@ -66,31 +66,31 @@ export function TabelLaporanWarga({ projectId }: { projectId: string }) {
   return (
     <section aria-label="Laporan warga">
       <h2 className="font-heading text-lg font-bold">Laporan warga</h2>
-      <p className="mt-1 text-sm text-neutral-700">
+      <p className="mt-1 text-sm text-muted-foreground">
         Hanya untuk tim; tidak tampil publik. Hanya baca.
       </p>
 
       {laporan === null && !gagal ? (
-        <p className="mt-3 text-sm text-neutral-700">Memuat laporan…</p>
+        <p className="mt-3 text-sm text-muted-foreground">Memuat laporan…</p>
       ) : null}
 
       {gagal ? (
-        <p className="mt-3 rounded-md border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-700">
+        <p className="mt-3 rounded-md border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
           Daftar laporan belum dapat dimuat. Coba muat ulang halaman.
         </p>
       ) : null}
 
       {laporan !== null && laporan.length === 0 ? (
-        <p className="mt-3 rounded-md border border-dashed border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-700">
+        <p className="mt-3 rounded-md border border-dashed border-border bg-card px-4 py-3 text-sm text-muted-foreground">
           Belum ada laporan warga untuk proyek ini.
         </p>
       ) : null}
 
       {laporan !== null && laporan.length > 0 ? (
-        <div className="mt-3 overflow-x-auto rounded-lg border border-neutral-300 bg-white">
+        <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-card">
           <table className="w-full min-w-[28rem] text-left text-sm">
             <thead>
-              <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-600">
+              <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <th scope="col" className="px-3 py-2 font-semibold">
                   Tanggal
                 </th>
@@ -109,7 +109,7 @@ export function TabelLaporanWarga({ projectId }: { projectId: string }) {
               {laporan.map((item) => (
                 <tr
                   key={item.id}
-                  className={`border-b border-neutral-100 last:border-b-0 ${item.tampil ? "" : "opacity-50"}`}
+                  className={`border-b border-border last:border-b-0 ${item.tampil ? "" : "opacity-50"}`}
                 >
                   <td className="px-3 py-2 align-top whitespace-nowrap">
                     {formatTanggal(item.date.slice(0, 10))}
@@ -121,7 +121,7 @@ export function TabelLaporanWarga({ projectId }: { projectId: string }) {
                       type="button"
                       disabled={sedangUbah === item.id}
                       onClick={() => void alihkanTampil(item.id, !item.tampil)}
-                      className="text-xs font-semibold text-neutral-600 underline underline-offset-4 hover:text-neutral-900 disabled:opacity-50"
+                      className="text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground disabled:opacity-50"
                     >
                       {sedangUbah === item.id
                         ? "Memproses…"

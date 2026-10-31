@@ -3,7 +3,7 @@
 // Helper ini meniru varian yang dipakai komponen server (default/outline,
 // ukuran default/lg) tanpa mengimpor berkas klien. Jaga tetap selaras.
 
-type Varian = "default" | "outline";
+type Varian = "default" | "outline" | "brand";
 type Ukuran = "default" | "lg";
 
 const DASAR =
@@ -12,6 +12,7 @@ const DASAR =
 const VARIAN: Record<Varian, string> = {
   default: "bg-primary text-primary-foreground hover:bg-primary/85",
   outline: "border border-border bg-card text-foreground hover:border-foreground/30",
+  brand: "bg-brand-gradient text-hitam-aspal hover:brightness-105",
 };
 
 const UKURAN: Record<Ukuran, string> = {

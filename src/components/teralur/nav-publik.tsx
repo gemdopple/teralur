@@ -17,8 +17,6 @@ const LABEL_PENDEK: Record<string, string> = {
   "/": "Beranda",
   "/jelajah": "Jelajah",
   "/check": "Periksa",
-  "/examples": "Contoh",
-  "/methodology": "Metodologi",
   "/about": "Tentang",
 };
 

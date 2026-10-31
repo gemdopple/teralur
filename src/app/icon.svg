@@ -1,8 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
-  <rect width="32" height="32" fill="#F0F0F0"/>
-  <rect x="1.5" y="1.5" width="29" height="29" fill="none" stroke="#282828" stroke-width="1"/>
-  <rect x="4.5" y="4.5" width="23" height="23" fill="none" stroke="#282828" stroke-width="1"/>
-  <path d="M10 10h12M16 10v11" stroke="#282828" stroke-width="2"/>
-  <path d="M10 22h16" stroke="#282828" stroke-width="1"/>
-  <path d="M25 20v4" stroke="#FA3600" stroke-width="1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 156 156">
+  <rect width="156" height="156" rx="40" fill="url(#lin)"/>
+  <rect width="156" height="156" rx="40" fill="url(#rad)" fill-opacity="0.2"/>
+  <path d="M56.904 124.832C54.472 124.832 52.488 123.979 50.952 122.272C49.416 120.565 48.8827 118.496 49.352 116.064L61.32 47.968H100.616L88.2 118.624C87.9013 120.288 87.0053 121.739 85.512 122.976C84.0187 124.213 82.3547 124.832 80.52 124.832H56.904ZM34.824 64.736C32.6907 64.736 30.984 63.9893 29.704 62.496C28.424 61.0027 27.976 59.2533 28.36 57.248L31.752 37.792C32.008 36.2987 32.776 35.0187 34.056 33.952C35.336 32.8853 36.7227 32.352 38.216 32.352H126.408C128.584 32.352 130.291 33.0987 131.528 34.592C132.808 36.0853 133.277 37.856 132.936 39.904L129.48 59.296C129.224 60.7893 128.456 62.0693 127.176 63.136C125.896 64.2027 124.509 64.736 123.016 64.736H34.824Z" fill="white" fill-opacity="0.95"/>
+  <defs>
+    <linearGradient id="lin" x1="78" y1="0" x2="78" y2="156" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD650"/>
+      <stop offset="1" stop-color="#F5BC00"/>
+    </linearGradient>
+    <radialGradient id="rad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(78 78) rotate(90) scale(78)">
+      <stop stop-color="#FFD650"/>
+      <stop offset="1" stop-color="#F5BC00"/>
+    </radialGradient>
+  </defs>
 </svg>

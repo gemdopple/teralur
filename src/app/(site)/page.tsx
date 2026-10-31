@@ -2,37 +2,52 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Skeleton } from "@/components/ui/skeleton";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Add01Icon,
+  ArrowRight01Icon,
+  ArrowUpRightIcon,
+  Location01Icon,
+} from "@hugeicons/core-free-icons";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { HeroBeranda } from "@/components/teralur/HeroBeranda";
 import { AngkaNaik } from "@/components/teralur/AngkaNaik";
+import { LabelTiga } from "@/components/teralur/LabelTiga";
 import { jakartaToday } from "@/lib/dates";
 import { daftarProyekPublik, dossierDemo } from "@/data/proyek-demo";
 import { formatRupiah, formatRupiahRingkas } from "@/lib/format-rupiah";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Location01Icon, ArrowRight01Icon, ArrowUpRightIcon } from "@hugeicons/core-free-icons";
+import { kelasTombol } from "@/lib/kelas-tombol";
 import { cn } from "@/lib/utils";
 
-// Beranda — bahasa dokumen kelembagaan: kertas datar, garis rambut, penomoran
-// seksi, angka dari data nyata. Tanpa pijar/grid titik/kartu mock. Data
-// unggulan memakai salinan statis hero (mode cadangan tanpa basis data);
-// status selalu dihitung compare() saat render.
+// Beranda — modern SaaS tanpa slop: tipografi dan data nyata sebagai bahan
+// utama, dekorasi seminimal mungkin. Tanpa testimoni palsu / harga fiktif —
+// konten hanya yang benar-benar ada di produk.
 
 const FITUR = [
   {
     judul: "Pindai, langsung terbaca",
     isi: "Warga memindai QR pada papan proyek dan membuka laporan lengkap tanpa perlu membuat akun.",
-  },
-  {
-    judul: "Dua sumber, satu halaman",
-    isi: "Data papan diletakkan berdampingan dengan catatan pengadaan resmi — setiap perbedaan terlihat jelas.",
+    lebar: false,
   },
   {
     judul: "Peta di sekitar Anda",
     isi: "Temukan proyek terdekat dari lokasi Anda, lengkap dengan status pencocokan dan masa pelaksanaan.",
+    lebar: false,
   },
   {
-    judul: "Sumber dan batas terbuka",
-    isi: "Setiap angka membawa jejak sumber, tanggal data, dan catatan batas — pembaca menilai sendiri.",
+    judul: "Laporan warga",
+    isi: "Keadaan lapangan dari mata warga: laporan singkat sebagai pemeriksaan kedua atas data resmi.",
+    lebar: false,
+  },
+  {
+    judul: "Kartu bukti",
+    isi: "Satu kartu ringkas siap dibagikan — pas dilampirkan ke laporan warga atau pesan grup.",
+    lebar: false,
+  },
+  {
+    judul: "Dua sumber, satu halaman",
+    isi: "Data papan diletakkan berdampingan dengan catatan pengadaan resmi — setiap perbedaan terlihat jelas, lengkap dengan jejak sumber dan tanggal datanya.",
+    lebar: true,
   },
 ] as const;
 
@@ -46,8 +61,12 @@ const LANGKAH = [
     isi: "Nama paket, penyedia, dan nilai kontrak diperiksa otomatis — kecocokan dan selisih diberi status yang mudah dibaca.",
   },
   {
-    judul: "Warga membaca hasilnya",
-    isi: "Laporan tampil dengan grafik dan bahasa sederhana, plus laporan warga sebagai pemeriksaan kedua dari lapangan.",
+    judul: "Dossier publik terbit",
+    isi: "Setiap proyek mendapat laporan dengan grafik, jejak sumber, dan tanggal data — terbuka tanpa akun.",
+  },
+  {
+    judul: "Warga memantau",
+    isi: "Dari peta atau QR papan, warga membaca hasilnya dan mengirim laporan lapangan sebagai pemeriksaan kedua.",
   },
 ] as const;
 
@@ -69,6 +88,29 @@ const PERAN = [
     isi: "Proyek Anda dalam satu pandangan: masa pelaksanaan, nilai kontrak, dan kelengkapan data.",
     tautan: { href: "/login", label: "Masuk dasbor kontraktor" },
     sorot: false,
+  },
+] as const;
+
+const FAQ = [
+  {
+    tanya: "Dari mana data Teralur berasal?",
+    jawab:
+      "Dua jalur terpisah: data papan yang dikelola tim Teralur (belum diverifikasi), dan catatan pengadaan resmi dari publikasi OCDS Opentender oleh ICW. Setiap halaman menyebut asal dan tanggal datanya.",
+  },
+  {
+    tanya: "Apakah saya perlu membuat akun?",
+    jawab:
+      "Tidak. Seluruh laporan publik — peta, dossier, dan kartu bukti — terbuka tanpa akun. Akun hanya diperlukan untuk pengelola: pemerintah, kontraktor, dan admin.",
+  },
+  {
+    tanya: "Apakah data ini real-time?",
+    jawab:
+      "Bukan. Setiap dossier menampilkan tanggal snapshot-nya; angka yang Anda lihat adalah keadaan pada tanggal tersebut, bukan keadaan hari ini.",
+  },
+  {
+    tanya: "Bagaimana jika saya menemukan kesalahan?",
+    jawab:
+      "Kirim koreksi lewat email yang tercantum di halaman Metodologi. Setiap laporan juga menyertakan batas datanya, agar pembaca dapat menilai sendiri apa yang sudah dan belum diketahui.",
   },
 ] as const;
 
@@ -116,7 +158,7 @@ async function BlokDinamis() {
               <div
                 key={label}
                 className={cn(
-                  "px-5 py-6 first:pl-0",
+                  "px-5 py-7 first:pl-0",
                   i > 0 && "lg:border-l lg:border-border",
                   i % 2 === 1 && "max-lg:border-l max-lg:border-border",
                   i > 1 && "max-lg:border-t max-lg:border-border",
@@ -150,7 +192,7 @@ async function BlokDinamis() {
             </Link>
           </div>
         </Reveal>
-        <div className="mt-10 grid gap-px border border-border bg-border md:grid-cols-3">
+        <div className="mt-10 grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3">
           {unggulan.map((dossier) => (
             <Link
               key={dossier.exampleId}
@@ -172,9 +214,9 @@ async function BlokDinamis() {
                   </span>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">{dossier.timeRing.caption}</p>
-                <div className="mt-2 h-1.5 bg-muted">
+                <div className="mt-2 h-1.5 rounded-full bg-muted">
                   <div
-                    className="h-full bg-hitam-aspal"
+                    className="h-full rounded-full bg-kuning-papan"
                     style={{ width: `${Math.round(dossier.timeRing.fillRatio * 100)}%` }}
                   />
                 </div>
@@ -215,7 +257,7 @@ export default function HalamanUtama() {
         <BlokDinamis />
       </Suspense>
 
-      {/* 01 — Fitur: baris bernomor dengan garis rambut, tanpa kartu ikon. */}
+      {/* 01 — Fitur: bento kartu; sel lebar menampung pil provenance nyata. */}
       <section aria-label="Fitur" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
         <Reveal>
           <Kicker n="01" label="Fitur" />
@@ -223,56 +265,65 @@ export default function HalamanUtama() {
             Dibuat agar selisih mudah dibaca, bukan disimpulkan sendiri.
           </h2>
         </Reveal>
-        <ul className="mt-10 border-t border-border">
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
           {FITUR.map((fitur, i) => (
-            <li
-              key={fitur.judul}
-              className="grid gap-2 border-b border-border py-6 sm:grid-cols-[4rem_16rem_1fr] sm:gap-6 sm:py-7"
-            >
-              <span aria-hidden className="font-mono text-sm text-muted-foreground">
-                0{i + 1}
-              </span>
-              <h3 className="font-heading text-base font-semibold tracking-tight">{fitur.judul}</h3>
-              <p className="max-w-xl text-sm leading-6 text-muted-foreground">{fitur.isi}</p>
-            </li>
+            <Reveal key={fitur.judul} delay={i * 0.05}>
+              <article
+                className={cn(
+                  "flex h-full flex-col rounded-xl border border-border bg-card p-6 shadow-sm transition-colors hover:bg-muted/40",
+                  fitur.lebar && "md:col-span-2",
+                )}
+              >
+                {fitur.lebar ? (
+                  <span className="flex flex-wrap items-center gap-2">
+                    <LabelTiga label="tercatat" />
+                    <LabelTiga label="hitungan" />
+                    <LabelTiga label="belum_diketahui" />
+                  </span>
+                ) : (
+                  <span aria-hidden className="font-mono text-xs font-medium text-muted-foreground">
+                    0{i + 1}
+                  </span>
+                )}
+                <h3 className="mt-3 font-heading text-base font-semibold tracking-tight">
+                  {fitur.judul}
+                </h3>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{fitur.isi}</p>
+              </article>
+            </Reveal>
           ))}
-        </ul>
+        </div>
       </section>
 
-      {/* 02 — Cara kerja: tiga kolom dipisah garis rambut. */}
-      <section aria-label="Cara kerja" className="border-y border-border bg-card">
+      {/* 02 — Cara kerja: empat langkah bernomor dalam kartu. */}
+      <section aria-label="Cara kerja" className="border-y border-border bg-card/50">
         <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
           <Reveal>
             <Kicker n="02" label="Cara kerja" />
             <h2 className="text-balance mt-3 max-w-2xl font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              Tiga langkah, dari papan ke laporan.
+              Empat langkah, dari papan ke laporan.
             </h2>
           </Reveal>
-          <ol className="mt-10 grid gap-8 md:grid-cols-3 md:gap-0">
+          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {LANGKAH.map((langkah, i) => (
-              <li
-                key={langkah.judul}
-                className={cn(
-                  "md:py-2",
-                  i > 0 && "md:border-l md:border-border md:pl-8",
-                  i < LANGKAH.length - 1 && "md:pr-8",
-                )}
-              >
-                <span aria-hidden className="font-mono text-sm text-muted-foreground">
-                  0{i + 1}
-                </span>
-                <h3 className="mt-2 font-heading text-lg font-semibold tracking-tight">
-                  {langkah.judul}
-                </h3>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">{langkah.isi}</p>
-              </li>
+              <Reveal key={langkah.judul} delay={i * 0.05}>
+                <li className="flex h-full flex-col rounded-xl border border-border bg-card p-5 shadow-sm">
+                  <span aria-hidden className="font-mono text-sm font-medium text-muted-foreground">
+                    0{i + 1}
+                  </span>
+                  <h3 className="mt-3 font-heading text-base font-semibold tracking-tight">
+                    {langkah.judul}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{langkah.isi}</p>
+                </li>
+              </Reveal>
             ))}
           </ol>
         </div>
       </section>
 
-      {/* 03 — Untuk siapa: tabel tiga kolom dengan pemisah 1px; kolom Warga
-          dibalik tinta. */}
+      {/* 03 — Untuk siapa: tiga kartu peran; kartu Warga dibalik (tinta di
+          terang, brand kuning di gelap). */}
       <section aria-label="Untuk siapa" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
         <Reveal>
           <Kicker n="03" label="Untuk siapa" />
@@ -280,56 +331,101 @@ export default function HalamanUtama() {
             Satu data, tiga sudut pandang.
           </h2>
         </Reveal>
-        <div className="mt-10 grid gap-px border border-border bg-border md:grid-cols-3">
-          {PERAN.map((peran) => (
-            <article
-              key={peran.judul}
-              className={cn("flex flex-col p-6", peran.sorot ? "bg-hitam-aspal text-kertas" : "bg-card")}
-            >
-              <h3 className="font-heading text-lg font-semibold tracking-tight">{peran.judul}</h3>
-              <p
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {PERAN.map((peran, i) => (
+            <Reveal key={peran.judul} delay={i * 0.05}>
+              <article
                 className={cn(
-                  "mt-2 text-sm leading-6",
-                  peran.sorot ? "text-kertas/75" : "text-muted-foreground",
+                  "flex h-full flex-col rounded-xl border border-transparent p-6 shadow-sm",
+                  peran.sorot
+                    ? "bg-hitam-aspal text-kertas dark:bg-brand dark:text-hitam-aspal"
+                    : "border-border bg-card",
                 )}
               >
-                {peran.isi}
-              </p>
-              <Link
-                href={peran.tautan.href}
-                className={cn(
-                  "mt-auto inline-flex items-center gap-1 pt-5 text-sm font-semibold underline-offset-4 hover:underline",
-                  peran.sorot && "text-kertas",
-                )}
-              >
-                {peran.tautan.label}
-                <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
-              </Link>
-            </article>
+                <h3 className="font-heading text-lg font-semibold tracking-tight">
+                  {peran.judul}
+                </h3>
+                <p
+                  className={cn(
+                    "mt-2 text-sm leading-6",
+                    peran.sorot
+                      ? "text-kertas/75 dark:text-hitam-aspal/75"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {peran.isi}
+                </p>
+                <Link
+                  href={peran.tautan.href}
+                  className="mt-auto inline-flex items-center gap-1 pt-5 text-sm font-semibold underline-offset-4 hover:underline"
+                >
+                  {peran.tautan.label}
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+                </Link>
+              </article>
+            </Reveal>
           ))}
         </div>
       </section>
 
-      {/* Ajakan: blok tinta datar, rata kiri, tombol kuning — tanpa dekorasi. */}
-      <section aria-label="Ajakan" className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6">
+      {/* 04 — FAQ: elemen details native (tanpa JS), isi dari metodologi. */}
+      <section aria-label="Pertanyaan umum" className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
         <Reveal>
-          <div className="flex flex-col gap-6 bg-hitam-aspal px-6 py-10 text-kertas sm:px-10 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-xl">
-              <h2 className="text-balance font-heading text-2xl font-bold tracking-tight sm:text-3xl">
-                Berada di dekat proyek? Mulai dari peta.
+          <div className="grid gap-8 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
+            <div>
+              <Kicker n="04" label="Pertanyaan umum" />
+              <h2 className="text-balance mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+                Yang paling sering ditanyakan.
               </h2>
-              <p className="mt-3 text-sm leading-6 text-kertas/70">
-                Cari proyek di sekitar lokasi Anda, baca laporannya, dan kirim laporan warga bila
-                Anda melihat kegiatannya secara langsung.
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                Penjelasan lengkap soal asal data, label provenance, dan batasnya ada di halaman{" "}
+                <Link href="/methodology" className="font-medium text-foreground underline decoration-kuning-papan decoration-2 underline-offset-4">
+                  Metodologi
+                </Link>
+                .
               </p>
             </div>
-            <Link
-              href="/jelajah"
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md bg-kuning-papan px-6 text-sm font-semibold text-hitam-aspal transition-colors hover:bg-kuning-papan/85 active:translate-y-px"
-            >
-              Buka peta proyek
-              <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
-            </Link>
+            <div className="space-y-3">
+              {FAQ.map((item) => (
+                <details key={item.tanya} className="group rounded-xl border border-border bg-card">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+                    {item.tanya}
+                    <HugeiconsIcon
+                      icon={Add01Icon}
+                      className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-45"
+                    />
+                  </summary>
+                  <p className="px-5 pb-5 text-sm leading-6 text-muted-foreground">{item.jawab}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* Ajakan: panel tinta dengan pola titik + pijar kuning; tombol gradasi. */}
+      <section aria-label="Ajakan" className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6">
+        <Reveal>
+          <div
+            className="relative overflow-hidden rounded-2xl bg-hitam-aspal px-6 py-12 text-kertas sm:px-10 dark:border dark:border-border dark:bg-card"
+            style={{ "--grid-garis": "rgb(246 242 232 / 9%)" } as React.CSSProperties}
+          >
+            <div aria-hidden className="absolute inset-0 bg-dots" />
+            <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-xl">
+                <h2 className="text-balance font-heading text-2xl font-bold tracking-tight sm:text-3xl">
+                  Berada di dekat proyek? Mulai dari peta.
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-kertas/70 dark:text-muted-foreground">
+                  Cari proyek di sekitar lokasi Anda, baca laporannya, dan kirim laporan warga bila
+                  Anda melihat kegiatannya secara langsung.
+                </p>
+              </div>
+              <Link href="/jelajah" className={cn(kelasTombol("brand", "lg"), "shrink-0")}>
+                Buka peta proyek
+                <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+              </Link>
+            </div>
           </div>
         </Reveal>
       </section>

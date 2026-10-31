@@ -139,7 +139,7 @@ function BarisDokumen({ label, url }: { label: string; url: string }) {
         aria-hidden="true"
         className="mt-0.5 inline-flex shrink-0 items-center rounded-md bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-widest text-muted-foreground"
       >
-        WEB
+        SITUS
       </span>
       <div className="min-w-0">
         <p className="text-sm font-medium">
@@ -497,7 +497,7 @@ export function DossierProyek({
                       <div
                         className={cn(
                           "h-full rounded-full",
-                          timeRing.state === "over" ? "bg-selisih" : "bg-hitam-aspal",
+                          timeRing.state === "over" ? "bg-selisih" : "bg-kuning-papan",
                         )}
                         style={{ width: `${ringPersen}%` }}
                       />

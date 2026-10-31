@@ -76,9 +76,9 @@ function angkaKontraktor(rows: ProyekKontraktor[]) {
 // Satu aksi utama per peran di kepala dasbor; kontraktor tidak punya aksi di
 // sini karena aksinya (cetak papan) tersedia per baris proyek. Admin membuat
 // proyek dari pintu yang sama dengan pemerintah (halaman buat admin).
-const AKSI_PERAN: Partial<Record<AppRole, { href: string; label: string; gaya: "default" | "outline"; ikon: typeof ArrowRight01Icon }>> = {
-  pemerintah: { href: "/dashboard/proyek/baru", label: "Tugaskan proyek", gaya: "default", ikon: Add01Icon },
-  admin: { href: "/dashboard/proyek/buat", label: "Buat proyek", gaya: "outline", ikon: Add01Icon },
+const AKSI_PERAN: Partial<Record<AppRole, { href: string; label: string; gaya: "default" | "outline" | "brand"; ikon: typeof ArrowRight01Icon }>> = {
+  pemerintah: { href: "/dashboard/proyek/baru", label: "Tugaskan proyek", gaya: "brand", ikon: Add01Icon },
+  admin: { href: "/dashboard/proyek/buat", label: "Buat proyek", gaya: "brand", ikon: Add01Icon },
 };
 
 function BarisProyek({ proyek }: { proyek: ProyekPublik }) {

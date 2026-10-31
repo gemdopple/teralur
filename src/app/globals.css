@@ -20,9 +20,12 @@
   --color-kuning-papan: var(--kuning-papan);
   --color-hitam-aspal: var(--hitam-aspal);
   --color-kertas: var(--kertas);
+  --color-brand: var(--brand);
+  --color-brand-terang: var(--brand-terang);
   --font-sans: var(--font-sans);
-  /* Seluruh teks mono memakai sans (keputusan PM 2026-10-26) — font mono
-     tidak lagi dimuat di layout. */
+  /* Seluruh teks mono memakai sans (keputusan PM, ditegaskan kembali
+     2026-10-31): font mono tidak dimuat; kelas font-mono tetap ada di markup
+     tapi merender Geist Sans. */
   --font-mono: var(--font-sans);
   --font-heading: var(--font-heading);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -61,18 +64,8 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --animate-marquee: marquee 42s linear infinite;
   --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-in: fade-in 0.9s ease-out both;
-}
-
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
 }
 
 @keyframes fade-up {
@@ -110,7 +103,7 @@
 }
 
 :root {
-  /* Fondasi bersih: kertas putih lembut, tinta pekat, aksen kuning papan */
+  /* Terang: kertas putih lembut, tinta pekat, aksen kuning papan */
   --background: #FCFCFA;
   --foreground: #1B1917;
   --card: #FFFFFF;
@@ -118,7 +111,7 @@
   --popover: #FFFFFF;
   --popover-foreground: #1B1917;
   --primary: #1B1917;
-  --primary-foreground: #FFFFFF;
+  --primary-foreground: #FCFCFA;
   --secondary: #F3F3F0;
   --secondary-foreground: #1B1917;
   --muted: #F3F3F0;
@@ -128,14 +121,14 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: rgb(27 25 23 / 12%);
   --input: rgb(27 25 23 / 12%);
-  --ring: #FFC400;
+  --ring: #F5BC00;
   /* Grafik: cocok, selisih, kuning, biru, netral */
   --chart-1: #1F8A5B;
   --chart-2: #D9480F;
   --chart-3: #FFC400;
   --chart-4: #2563EB;
   --chart-5: #6B6F76;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #1B1917;
   --sidebar-primary: #1B1917;
@@ -143,8 +136,8 @@
   --sidebar-accent: #F3F3F0;
   --sidebar-accent-foreground: #1B1917;
   --sidebar-border: rgb(27 25 23 / 12%);
-  --sidebar-ring: #FFC400;
-  /* Teralur brand tokens (light theme only — no dark mode by design) */
+  --sidebar-ring: #F5BC00;
+  /* Token brand Teralur */
   --cocok: #1F8A5B;
   --cocok-teks: #167049;
   --selisih: #D9480F;
@@ -153,6 +146,58 @@
   --kuning-papan: #FFC400;
   --hitam-aspal: #14110F;
   --kertas: #F6F2E8;
+  /* Gradasi brand logo: FFD650 → F5BC00. */
+  --brand: #F5BC00;
+  --brand-terang: #FFD650;
+  --grid-garis: rgb(27 25 23 / 6%);
+}
+
+.dark {
+  /* Gelap: aspal hangat, teks kertas, primer kuning brand */
+  --background: #14110F;
+  --foreground: #F6F2E8;
+  --card: #1C1916;
+  --card-foreground: #F6F2E8;
+  --popover: #221E18;
+  --popover-foreground: #F6F2E8;
+  --primary: #F5BC00;
+  --primary-foreground: #14110F;
+  --secondary: #262119;
+  --secondary-foreground: #F6F2E8;
+  --muted: #262119;
+  --muted-foreground: #A8A29E;
+  --accent: #2B251D;
+  --accent-foreground: #F6F2E8;
+  --destructive: #F87171;
+  --border: rgb(246 242 232 / 12%);
+  --input: rgb(246 242 232 / 16%);
+  --ring: #FFD650;
+  --chart-1: #34D399;
+  --chart-2: #FB923C;
+  --chart-3: #FFD650;
+  --chart-4: #60A5FA;
+  --chart-5: #8E8A84;
+  --sidebar: #191512;
+  --sidebar-foreground: #F6F2E8;
+  --sidebar-primary: #F5BC00;
+  --sidebar-primary-foreground: #14110F;
+  --sidebar-accent: #262119;
+  --sidebar-accent-foreground: #F6F2E8;
+  --sidebar-border: rgb(246 242 232 / 12%);
+  --sidebar-ring: #FFD650;
+  --cocok: #34D399;
+  --cocok-teks: #4ADE80;
+  --selisih: #FB923C;
+  --selisih-teks: #FDBA74;
+  --netral: #A8A29E;
+  /* --kuning-papan dan --hitam-aspal sengaja tetap: dipakai lembar cetak
+     papan/QR yang harus tercetak sama di kedua tema. */
+  --kuning-papan: #FFC400;
+  --hitam-aspal: #14110F;
+  --kertas: #F6F2E8;
+  --brand: #F5BC00;
+  --brand-terang: #FFD650;
+  --grid-garis: rgb(246 242 232 / 7%);
 }
 
 @layer base {
@@ -165,6 +210,9 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--kuning-papan) 35%, transparent);
   }
   /* Header lengket (h-16) menutupi target tautan jangkar — beri ruang. */
   [id] {
@@ -195,6 +243,24 @@
   .text-balance {
     text-wrap: balance;
   }
+  /* Gradasi brand logo untuk permukaan: tombol CTA, FAB, panel. */
+  .bg-brand-gradient {
+    background-image: linear-gradient(135deg, var(--brand-terang), var(--brand));
+  }
+  /* Pola latar halus untuk hero & CTA — CSS murni, tanpa gambar. */
+  .bg-grid {
+    background-image: linear-gradient(to right, var(--grid-garis) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-garis) 1px, transparent 1px);
+    background-size: 3rem 3rem;
+  }
+  .bg-dots {
+    background-image: radial-gradient(var(--grid-garis) 1px, transparent 1px);
+    background-size: 1.25rem 1.25rem;
+  }
+  /* Pudar ke bawah untuk pola latar agar teks di atasnya tetap bersih. */
+  .mask-pudar-bawah {
+    mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
+  }
 }
 
 /* Atribusi Leaflet: warna bawaan (#0078A8 di atas putih) hanya 3,6:1 —
@@ -208,13 +274,53 @@
   background: color-mix(in oklab, var(--card) 88%, transparent);
 }
 
-/* Pita marquee berhenti saat pengguna memilih animasi berkurang */
+/* Ubin peta di tema gelap: disaring jadi gelap lewat CSS saja, tanpa
+   mengubah wiring Leaflet (berlaku untuk semua peta, termasuk depot). */
+.dark .leaflet-tile {
+  filter: brightness(0.6) invert(1) contrast(2.6) hue-rotate(185deg) saturate(0.4);
+}
+.dark .leaflet-container {
+  background: var(--muted);
+}
+
+/* Transisi tema (TombolTema): cross-fade bawaan View Transitions dimatikan
+   agar animasi lingkaran dari titik klik yang terlihat. Peramban tanpa
+   dukungan tidak menerapkan aturan ini — tema tetap berganti instan. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Detail kecil: <details> (FAQ beranda) membuka/menutup dengan tinggi
+   beranimasi. Hanya aktif di peramban dengan interpolate-size; lainnya
+   tetap terbuka instan tanpa efek samping. */
+@supports (interpolate-size: allow-keywords) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+  details::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      block-size 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      content-visibility 0.3s allow-discrete;
+  }
+  details[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* Pita marquee sudah dihapus; aturan gerak-berkurang di bawah tetap
+   mencakup animasi yang tersisa. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee,
   .animate-fade-up,
   .animate-fade-in,
   .animate-reveal {
     animation: none;
+  }
+  details::details-content {
+    transition: none;
   }
   html {
     scroll-behavior: auto;

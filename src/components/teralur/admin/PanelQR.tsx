@@ -45,15 +45,15 @@ export function PanelQR({
           alt={`QR kode untuk dossier ${slug}`}
           width={192}
           height={192}
-          className="size-48 shrink-0 rounded-lg border-2 border-black bg-white p-2"
+          className="size-48 shrink-0 rounded-lg border-2 border-hitam-aspal bg-white p-2 dark:border-kuning-papan"
         />
         <div className="min-w-0 space-y-3">
           <div>
             <p className="text-sm font-semibold">URL dossier</p>
-            <p className="mt-1 break-all rounded border border-neutral-300 bg-white px-2 py-1 font-mono text-sm">
+            <p className="mt-1 break-all rounded border border-border bg-muted px-2 py-1 font-mono text-sm">
               {urlDossier}
             </p>
-            <p className="mt-1 text-xs text-neutral-600">
+            <p className="mt-1 text-xs text-muted-foreground">
               Alamat situs yang dipakai:{" "}
               <span className="font-mono">{siteUrl || "belum diatur (NEXT_PUBLIC_SITE_URL kosong)"}</span>
               {siteUrl ? "" : " — QR baru dapat dibuat setelah diatur."}
@@ -63,25 +63,25 @@ export function PanelQR({
             <button
               type="button"
               onClick={() => void salin()}
-              className="inline-flex min-h-11 items-center rounded-md border-2 border-black bg-white px-4 py-2 text-sm font-semibold"
+              className="inline-flex min-h-11 items-center rounded-md border border-border bg-card px-4 py-2 hover:bg-muted text-sm font-semibold"
             >
               {tersalin ? "Tersalin." : "Salin"}
             </button>
             <a
               href={`/api/admin/projects/${projectId}/qr?format=svg&download=1`}
-              className="inline-flex min-h-11 items-center rounded-md border-2 border-black bg-white px-4 py-2 text-sm font-semibold"
+              className="inline-flex min-h-11 items-center rounded-md border border-border bg-card px-4 py-2 hover:bg-muted text-sm font-semibold"
             >
               Unduh SVG
             </a>
             <a
               href={`/api/admin/projects/${projectId}/qr?format=png&download=1`}
-              className="inline-flex min-h-11 items-center rounded-md border-2 border-black bg-white px-4 py-2 text-sm font-semibold"
+              className="inline-flex min-h-11 items-center rounded-md border border-border bg-card px-4 py-2 hover:bg-muted text-sm font-semibold"
             >
               Unduh PNG
             </a>
             <Link
               href={`/dashboard/proyek/${projectId}/qr`}
-              className="inline-flex min-h-11 items-center rounded-md border-2 border-black bg-kuning-papan px-4 py-2 text-sm font-semibold"
+              className="inline-flex min-h-11 items-center rounded-md border-2 border-hitam-aspal bg-kuning-papan px-4 py-2 dark:border-transparent dark:bg-brand-gradient text-sm font-semibold"
             >
               Buka lembar cetak
             </Link>

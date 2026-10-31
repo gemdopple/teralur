@@ -196,7 +196,7 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
 
       {labelDipilih && (
         <div className="flex flex-col items-end gap-1">
-          <p className="ml-auto max-w-[90%] rounded-2xl rounded-br-sm bg-hitam-aspal px-3.5 py-2.5 text-sm leading-snug text-kuning-papan">
+          <p className="ml-auto max-w-[90%] rounded-2xl rounded-br-sm bg-hitam-aspal px-3.5 py-2.5 text-sm leading-snug text-kuning-papan dark:bg-brand dark:text-hitam-aspal">
             {labelDipilih}
           </p>
           {langkah === "catatan" && (
@@ -231,7 +231,7 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
                   className={cn(
                     "rounded-full px-3 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/30",
                     aktif
-                      ? "bg-hitam-aspal text-kuning-papan"
+                      ? "bg-hitam-aspal text-kuning-papan dark:bg-brand dark:text-hitam-aspal"
                       : "border border-input bg-background hover:border-foreground/30",
                   )}
                 >
@@ -348,7 +348,7 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
           <div className="flex items-center gap-2.5 border-b border-border px-4 py-3">
             <span
               aria-hidden
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-hitam-aspal text-kuning-papan"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-hitam-aspal text-kuning-papan dark:bg-brand dark:text-hitam-aspal"
             >
               <HugeiconsIcon icon={BubbleChatIcon} className="size-4" strokeWidth={1.8} />
             </span>
@@ -377,7 +377,7 @@ export function VisitReportForm({ dossierSlug }: { dossierSlug: string }) {
           onClick={() => setTerbuka(true)}
           aria-expanded={terbuka}
           aria-label="Saya sudah lihat — lapor kondisi proyek"
-          className="fixed bottom-28 right-3 z-50 flex size-14 items-center justify-center rounded-full bg-hitam-aspal text-kuning-papan shadow-xl shadow-hitam-aspal/30 outline-none transition-transform active:scale-95 focus-visible:ring-3 focus-visible:ring-ring/30 print:hidden md:bottom-6 md:right-6"
+          className="fixed bottom-28 right-3 z-50 flex size-14 items-center justify-center rounded-full bg-hitam-aspal text-kuning-papan shadow-xl dark:bg-brand dark:text-hitam-aspal shadow-hitam-aspal/30 outline-none transition-transform active:scale-95 focus-visible:ring-3 focus-visible:ring-ring/30 print:hidden md:bottom-6 md:right-6"
         >
           <HugeiconsIcon icon={BubbleChatIcon} className="size-6" strokeWidth={2} />
         </button>

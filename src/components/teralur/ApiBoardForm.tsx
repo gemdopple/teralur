@@ -99,7 +99,7 @@ export function ApiBoardForm() {
     const unread = unreadFields.includes(namaField);
     const kunciKosong = !gateTerpenuhi && fieldKurang.includes(namaField);
     if (unread || kunciKosong) {
-      return "mt-1 w-full rounded-md border-2 border-[#FFC400] bg-[#FFC400]/10 px-3 py-2";
+      return "mt-1 w-full rounded-md border-2 border-kuning-papan bg-kuning-papan/10 px-3 py-2";
     }
     return "mt-1 w-full rounded-md border border-neutral-400 px-3 py-2";
   }
@@ -209,7 +209,7 @@ export function ApiBoardForm() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-      <section className="rounded-xl border-2 border-black bg-white p-5">
+      <section className="rounded-xl border-2 border-hitam-aspal bg-card p-5">
         <h2 className="font-heading text-xl font-bold">Foto papan (opsional)</h2>
         <p className="mt-2 text-sm text-neutral-700">
           Foto diperkecil di perangkat dan tidak disimpan. Isian terbaca dipakai untuk mengisi
@@ -225,7 +225,7 @@ export function ApiBoardForm() {
           capture="environment"
           onChange={handlePhoto}
           disabled={working}
-          className="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#FFC400] file:px-4 file:py-2 file:font-semibold"
+          className="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-kuning-papan file:px-4 file:py-2 file:font-semibold"
         />
         <p className="mt-2 text-xs text-neutral-600">JPEG, PNG, atau WebP; hasil maksimal 4 MB.</p>
         {preview && (
@@ -244,7 +244,7 @@ export function ApiBoardForm() {
         )}
       </section>
 
-      <form onSubmit={submitBoard} className="rounded-xl border-2 border-black bg-white p-5">
+      <form onSubmit={submitBoard} className="rounded-xl border-2 border-hitam-aspal bg-card p-5">
         <h2 className="font-heading text-xl font-bold">Konfirmasi data papan</h2>
         <p className="mt-2 text-sm text-neutral-700">
           Isi minimal dua dari tiga field kunci: nama paket, penyedia, dan nilai kontrak. Field
@@ -292,7 +292,7 @@ export function ApiBoardForm() {
               placeholder="mis. Rp 1.234.567"
             />
             {contractValueInput.trim() !== "" && contractValue === null && (
-              <span className="mt-1 block text-xs text-[#D9480F]">
+              <span className="mt-1 block text-xs text-selisih-teks">
                 Nilai tidak dapat dibaca; tulis angka saja.
               </span>
             )}
@@ -377,14 +377,14 @@ export function ApiBoardForm() {
           </label>
         </div>
         {message && (
-          <p role="status" className="mt-4 rounded-md bg-[#F5F5F5] p-3 text-sm">
+          <p role="status" className="mt-4 rounded-md bg-muted p-3 text-sm">
             {message}
           </p>
         )}
         <button
           type="submit"
           disabled={working || !gateTerpenuhi}
-          className="mt-5 w-full rounded-md border-2 border-black bg-[#FFC400] px-5 py-3 font-bold disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="mt-5 w-full rounded-md border-2 border-hitam-aspal bg-kuning-papan px-5 py-3 font-bold disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {working ? "Memproses…" : "Konfirmasi dan cocokkan"}
         </button>

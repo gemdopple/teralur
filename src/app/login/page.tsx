@@ -11,6 +11,8 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/teralur/anim/Reveal";
 import { NavBawah } from "@/components/teralur/nav-bawah";
+import { LogoTeralur, UbinLogo } from "@/components/teralur/logo";
+import { TombolTema } from "@/components/teralur/tombol-tema";
 import { DAFTAR_ROLE, META_ROLE } from "@/lib/roles";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
@@ -18,26 +20,10 @@ import { getSupabaseBrowser } from "@/lib/supabase-browser";
 // peran ditentukan oleh akun (tabel `profiles`) di server, sehingga akun
 // kontraktor hanya bisa masuk sebagai kontraktor. Warga tidak perlu masuk —
 // laporan publik selalu terbuka.
-// Tata letak terbagi: panel merek tinta di kiri, formulir bersih di kanan.
+// Tata letak terbagi: panel gradasi brand di kiri (terang) / panel tinta
+// (gelap), formulir bersih di kanan.
 
 const PESAN_GALAT = "Email atau kata sandi salah.";
-
-// Logo inline: ubin kuning membulat dengan "t" tebal + wordmark teralur.
-function Logo({ diPanelTinta = false }: { diPanelTinta?: boolean }) {
-  return (
-    <Link href="/" className="relative flex items-center gap-2.5" aria-label="Teralur, ke beranda">
-      <span
-        aria-hidden
-        className="grid size-8 place-items-center rounded-lg bg-kuning-papan font-heading text-lg font-bold text-hitam-aspal"
-      >
-        t
-      </span>
-      <span className={cn("font-heading text-xl font-bold tracking-tight", diPanelTinta && "text-kertas")}>
-        teralur
-      </span>
-    </Link>
-  );
-}
 
 function bersihkanCookieSesi() {
   // Hapus cookie sesi Supabase yang tersisa di browser. Nama cookie default
@@ -124,33 +110,56 @@ export default function HalamanMasuk() {
 
   return (
     <main className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
-      {/* Panel merek — tinta pekat, teks kertas */}
-      <section className="relative hidden flex-col justify-between bg-hitam-aspal p-10 text-kertas lg:flex">
-        <Logo diPanelTinta />
+      {/* Panel merek — gradasi brand (terang) / tinta pekat (gelap).
+          Catatan: utilitas kustom .bg-brand-gradient berada di layer utilities
+          dan menang atas dark:bg-*, sehingga panel memakai bg-linear-to-br
+          bawaan Tailwind + dark:bg-none agar tema gelap benar-benar menimpa. */}
+      <section className="relative hidden flex-col justify-between bg-linear-to-br from-brand-terang to-brand p-10 text-hitam-aspal dark:bg-none dark:border-r dark:border-border dark:bg-hitam-aspal dark:text-kertas lg:flex">
+        {/* Tile kuning menyatu dengan panel gradasi — di panel ini cukup
+            wordmark; tile tampil penuh pada panel tinta gelap. */}
+        <Link
+          href="/"
+          aria-label="Teralur, ke beranda"
+          className="flex items-center gap-2.5 dark:text-kertas"
+        >
+          <span aria-hidden className="hidden dark:block">
+            <UbinLogo ukuran={34} />
+          </span>
+          <span className="font-heading text-xl font-bold tracking-tight">teralur</span>
+        </Link>
         <Reveal className="relative max-w-md">
           <h2 className="text-balance font-heading text-4xl font-bold tracking-tight">
             Satu akun, satu peran.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-kertas/70">
+          <p className="mt-4 text-sm leading-7 text-hitam-aspal/70 dark:text-kertas/70">
             Peran melekat pada akun Anda dan ditentukan pengelola — kontraktor hanya melihat proyek
             yang ditugaskan kepadanya. Data diambil langsung dari basis data pengelola.
           </p>
           <ul className="mt-8 space-y-3 text-sm">
             {DAFTAR_ROLE.map((nilai) => (
               <li key={nilai} className="flex items-start gap-3">
-                {/* Butir kuning kecil — satu-satunya kuning pada panel tinta */}
-                <span aria-hidden className="mt-1.5 size-1.5 shrink-0 rounded-full bg-kuning-papan" />
+                {/* Butir aksen kecil — tinta di panel terang, kuning di panel gelap */}
+                <span
+                  aria-hidden
+                  className="mt-1.5 size-1.5 shrink-0 rounded-full bg-hitam-aspal dark:bg-kuning-papan"
+                />
                 <span>
                   <strong className="font-semibold">{META_ROLE[nilai].label}</strong>
-                  <span className="text-kertas/70"> — {META_ROLE[nilai].ringkas}.</span>
+                  <span className="text-hitam-aspal/70 dark:text-kertas/70">
+                    {" "}
+                    — {META_ROLE[nilai].ringkas}.
+                  </span>
                 </span>
               </li>
             ))}
           </ul>
         </Reveal>
-        <p className="relative text-xs text-kertas/50">
+        <p className="relative text-xs text-hitam-aspal/60 dark:text-kertas/50">
           Warga tidak perlu masuk —{" "}
-          <Link href="/jelajah" className="underline underline-offset-4 hover:text-kertas">
+          <Link
+            href="/jelajah"
+            className="underline underline-offset-4 hover:text-hitam-aspal dark:hover:text-kertas"
+          >
             laporan publik selalu terbuka
           </Link>
           .
@@ -158,10 +167,13 @@ export default function HalamanMasuk() {
       </section>
 
       {/* Formulir */}
-      <section className="flex flex-col justify-center px-4 py-12 sm:px-10">
+      <section className="relative flex flex-col justify-center px-4 py-12 sm:px-10">
+        <div className="absolute right-4 top-4">
+          <TombolTema />
+        </div>
         <div className="mx-auto w-full max-w-md">
           <div className="mb-10 lg:hidden">
-            <Logo />
+            <LogoTeralur ukuran={34} />
           </div>
 
           <Reveal>

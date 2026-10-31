@@ -249,20 +249,14 @@ export function PetaProyek({
           </div>
 
           {/* Satu tombol Filter (permintaan PM) — primitif ui/select, sama
-              dengan bilah saring dasbor. Kuning saat saringan aktif agar
-              pengguna melihat daftar tersaring. */}
+              dengan bilah saring dasbor. Tetap netral apa pun pilihannya:
+              hanya penyaring, bukan indikator berwarna (permintaan PM
+              2026-10-31). */}
           <Select
             selectedKey={filter}
             onSelectionChange={(kunci) => setFilter(kunci as FilterStatus)}
           >
-            <SelectTrigger
-              aria-label="Saring status"
-              className={cn(
-                "w-36 px-3",
-                filter !== "semua" &&
-                  "border-transparent! bg-kuning-papan! text-hitam-aspal! hover:bg-kuning-papan/90! hover:text-hitam-aspal! aria-expanded:bg-kuning-papan! aria-expanded:text-hitam-aspal!",
-              )}
-            >
+            <SelectTrigger aria-label="Saring status" className="w-36 px-3">
               <HugeiconsIcon icon={FilterIcon} className="size-4" strokeWidth={2} />
               <SelectValue />
             </SelectTrigger>
@@ -308,7 +302,7 @@ export function PetaProyek({
                   </div>
                   <span
                     aria-hidden
-                    className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-hitam-aspal group-hover:text-kertas"
+                    className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-hitam-aspal group-hover:text-kertas dark:group-hover:bg-accent dark:group-hover:text-foreground"
                   >
                     <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
                   </span>

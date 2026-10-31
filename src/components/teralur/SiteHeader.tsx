@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { photoFlowEnabled } from "@/lib/flags";
 import { TautanNav, type ItemNavPublik } from "@/components/teralur/nav-publik";
+import { LogoTeralur } from "@/components/teralur/logo";
+import { TombolTema } from "@/components/teralur/tombol-tema";
 import { kelasTombol } from "@/lib/kelas-tombol";
 
 // T-38: jalur foto beku. Item "Periksa papan" hanya tampil bila
@@ -24,15 +26,15 @@ import { kelasTombol } from "@/lib/kelas-tombol";
 // tengah lewat `flex-1` + `justify-center`, aksi kanan. Mulai lg grid simetris
 // mengambil alih.
 //
-// Gaya: solid kertas + garis rambut bawah + pita kuning 3px di paling atas —
-// tanpa efek kaca/blur, mengikuti bahasa dokumen kelembagaan.
+// Gaya: kaca tipis (backdrop-blur di atas bg/80) + garis gradasi brand di
+// paling atas; logo memakai komponen LogoTeralur bersama.
 
 export function SiteHeader() {
+  // Nav sengaja pendek — hanya inti. Contoh kasus, Metodologi, dan Cari paket
+  // tetap terjangkau lewat footer (kolom Produk & Transparansi).
   const items: ItemNavPublik[] = [
     { href: "/", label: "Beranda" },
     { href: "/jelajah", label: "Jelajah peta" },
-    { href: "/examples", label: "Contoh kasus" },
-    { href: "/methodology", label: "Metodologi" },
     { href: "/about", label: "Tentang" },
   ];
   if (photoFlowEnabled()) {
@@ -40,30 +42,23 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
+      {/* Garis gradasi brand: pengganti pita kuning solid */}
+      <div aria-hidden className="h-0.5 bg-brand-gradient" />
       {/* flex di bawah lg (nav di tengah sejati), grid simetris di lg ke atas */}
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 sm:px-6 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-        <Link
-          href="/"
-          className="flex h-16 shrink-0 items-center gap-2.5 lg:justify-self-start"
-          aria-label="Teralur, ke beranda"
-        >
-          <span
-            aria-hidden
-            className="flex size-8 items-center justify-center rounded-lg bg-kuning-papan font-heading text-lg leading-none font-bold text-hitam-aspal"
-          >
-            t
-          </span>
-          <span className="font-heading text-lg font-bold tracking-tight">teralur</span>
-        </Link>
+        <div className="flex h-16 shrink-0 items-center lg:justify-self-start">
+          <LogoTeralur ukuran={34} />
+        </div>
         <div className="flex h-16 min-w-0 flex-1 items-center justify-center lg:flex-none">
           <TautanNav items={items} />
         </div>
         <div className="flex h-16 shrink-0 items-center gap-2 lg:justify-self-end">
+          <TombolTema />
           <Link href="/login" className={`${kelasTombol("outline")} max-lg:hidden`}>
             Masuk
           </Link>
-          <Link href="/jelajah" className={kelasTombol()}>
+          <Link href="/jelajah" className={kelasTombol("brand")}>
             Cari proyek
           </Link>
         </div>

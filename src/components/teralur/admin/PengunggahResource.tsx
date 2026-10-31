@@ -220,7 +220,7 @@ export function PengunggahResource({
     <section id="resource" aria-label="Resource proyek" className="scroll-mt-24">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-heading text-lg font-bold">Resource</h2>
-        <p className="text-sm text-neutral-700">{resources.length} dari 10 berkas</p>
+        <p className="text-sm text-muted-foreground">{resources.length} dari 10 berkas</p>
       </div>
 
       {/* Area unggah: klik atau seret (L.4). */}
@@ -232,7 +232,7 @@ export function PengunggahResource({
         onDragLeave={() => setSeret(false)}
         onDrop={onDrop}
         className={`mt-3 rounded-lg border-2 border-dashed p-4 text-center ${
-          seret ? "border-hitam-aspal bg-kuning-papan/40" : "border-neutral-400 bg-white"
+          seret ? "border-hitam-aspal bg-kuning-papan/40 dark:border-kuning-papan" : "border-border bg-card"
         }`}
       >
         <input
@@ -246,15 +246,15 @@ export function PengunggahResource({
         />
         <label
           htmlFor="resource-file"
-          className="inline-flex min-h-11 cursor-pointer items-center rounded-md border-2 border-black bg-white px-4 py-2 text-sm font-semibold"
+          className="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-border bg-card px-4 py-2 hover:bg-muted text-sm font-semibold"
         >
           Pilih berkas
         </label>
-        <p className="mt-2 text-xs text-neutral-600">
+        <p className="mt-2 text-xs text-muted-foreground">
           Foto (JPEG, PNG, WebP) atau PDF, maksimal 4 MB. Foto dikecilkan di
           peramban sebelum diunggah.{" "}
           {berkas ? (
-            <span className="font-semibold text-hitam-aspal">Dipilih: {berkas.name}</span>
+            <span className="font-semibold text-foreground">Dipilih: {berkas.name}</span>
           ) : null}
         </p>
 
@@ -272,7 +272,7 @@ export function PengunggahResource({
               setGalat(null);
               setPesanSukses(null);
             }}
-            className="w-full rounded-md border border-neutral-400 px-3 py-2"
+            className="w-full rounded-md border border-border bg-card px-3 py-2"
             placeholder="mis. Papan proyek tampak depan"
           />
           <button
@@ -303,7 +303,7 @@ export function PengunggahResource({
       ) : null}
 
       {resources.length > 0 ? (
-        <ul className="mt-4 divide-y divide-neutral-200 rounded-lg border border-neutral-300 bg-white">
+        <ul className="mt-4 divide-y divide-border rounded-lg border border-border bg-card">
           {resources.map((resource) => (
             <li key={resource.id} className="flex items-center gap-3 p-3">
               {resource.kind === "photo" ? (
@@ -313,19 +313,19 @@ export function PengunggahResource({
                   width={48}
                   height={48}
                   unoptimized
-                  className="size-12 shrink-0 rounded-md border border-neutral-200 object-cover"
+                  className="size-12 shrink-0 rounded-md border border-border object-cover"
                 />
               ) : (
                 <span
                   aria-hidden="true"
-                  className="flex size-12 shrink-0 items-center justify-center rounded-md border border-neutral-300 bg-neutral-100 text-lg"
+                  className="flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-lg"
                 >
                   📄
                 </span>
               )}
               <div className="min-w-0 flex-1">
                 <p className="break-words text-sm font-semibold">{resource.title}</p>
-                <p className="text-xs text-neutral-600">
+                <p className="text-xs text-muted-foreground">
                   {resource.kind === "photo" ? "Foto" : "PDF"} · {formatUkuran(resource.size)} ·{" "}
                   {formatTanggal(resource.createdAt.slice(0, 10))}
                 </p>
@@ -334,7 +334,7 @@ export function PengunggahResource({
                 href={resource.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-md border border-neutral-400 px-3 py-1.5 text-sm font-medium"
+                className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
               >
                 Lihat
               </a>
@@ -350,7 +350,7 @@ export function PengunggahResource({
           ))}
         </ul>
       ) : (
-        <p className="mt-4 rounded-lg border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-700">
+        <p className="mt-4 rounded-lg border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
           Belum ada berkas pada proyek ini.
         </p>
       )}

@@ -8,7 +8,8 @@ import { databaseConfigured } from "@/lib/server-api";
 // wordmark teralur di kanan bawah. Untuk slug yang tidak tersedia, kembalikan
 // gambar generik teralur (bukan galat). Bila font khusus gagal, jatuh ke font
 // sans bawaan (di sini langsung memakai sans bawaan).
-// Gaya bersih: kertas #FCFCFA, tinta #1B1917, aksen kuning #FFC400.
+// Gaya bersih: kertas #FCFCFA, tinta #1B1917, ubin logo gradasi brand
+// #FFD650 → #F5BC00 (mengikuti TeralurLogo.svg).
 
 export const alt = "Kartu bukti Teralur untuk proyek publik";
 export const size = { width: 1200, height: 630 };
@@ -96,7 +97,7 @@ export default async function OpenGraphImage({
             TERALUR · TRANSPARANSI PROYEK PUBLIK
           </div>
         ) : (
-          <div style={{ display: "flex", height: 10, background: "#FFC400" }} />
+          <div style={{ display: "flex", height: 10, background: "linear-gradient(90deg, #FFD650, #F5BC00)" }} />
         )}
         <div
           style={{
@@ -117,7 +118,7 @@ export default async function OpenGraphImage({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              {/* Ubin logo kuning dengan "t" tebal. */}
+              {/* Ubin logo gradasi brand dengan "t" tebal. */}
               <div
                 style={{
                   display: "flex",
@@ -125,11 +126,11 @@ export default async function OpenGraphImage({
                   height: 48,
                   alignItems: "center",
                   justifyContent: "center",
-                  background: "#FFC400",
-                  borderRadius: 14,
+                  background: "linear-gradient(180deg, #FFD650, #F5BC00)",
+                  borderRadius: 16,
                   fontSize: 28,
                   fontWeight: 800,
-                  color: "#14110F",
+                  color: "#FFFFFF",
                 }}
               >
                 t
@@ -193,11 +194,11 @@ export default async function OpenGraphImage({
                   height: 34,
                   alignItems: "center",
                   justifyContent: "center",
-                  background: "#FFC400",
-                  borderRadius: 10,
+                  background: "linear-gradient(180deg, #FFD650, #F5BC00)",
+                  borderRadius: 12,
                   fontSize: 20,
                   fontWeight: 800,
-                  color: "#14110F",
+                  color: "#FFFFFF",
                 }}
               >
                 t

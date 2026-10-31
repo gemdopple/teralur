@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoTeralur } from "@/components/teralur/logo";
 
 const KOLOM: Array<{ judul: string; tautan: Array<{ href: string; label: string }> }> = [
   {
@@ -24,15 +25,7 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border bg-card">
       <div className="mx-auto grid w-full max-w-6xl gap-x-10 gap-y-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <Link href="/" className="flex items-center gap-2.5" aria-label="Teralur, ke beranda">
-            <span
-              aria-hidden
-              className="flex size-8 items-center justify-center rounded-lg bg-kuning-papan font-heading text-lg leading-none font-bold text-hitam-aspal"
-            >
-              t
-            </span>
-            <span className="font-heading text-lg font-bold tracking-tight">teralur</span>
-          </Link>
+          <LogoTeralur ukuran={34} />
           <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
             Jejak proyek publik yang lebih mudah diperiksa warga: bandingkan data papan dengan
             catatan pengadaan resmi, lengkap dengan sumber dan batasnya.

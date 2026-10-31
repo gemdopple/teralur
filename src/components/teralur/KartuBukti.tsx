@@ -41,7 +41,7 @@ export function KartuBukti({
         <Reveal>
           <div className="overflow-hidden rounded-lg border border-border bg-card shadow-xl">
             {/* Pita kuning di tepi atas kartu (8.3). */}
-            <div aria-hidden className="h-1.5 bg-kuning-papan" />
+            <div aria-hidden className="h-1.5 bg-brand-gradient" />
             <div className="p-5 sm:p-8">
               <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                 Kartu bukti
