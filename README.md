@@ -1,9 +1,15 @@
+<div align="center">
+
+<img src="public/TeralurLogo.svg" alt="Teralur logo" width="96" />
+
 # Teralur
 
 Teralur helps people explore public infrastructure projects and compare
 information from project signboards with available procurement records. The
 interface is primarily in Bahasa Indonesia, and explains the sources and limits
 of the data it presents.
+
+</div>
 
 ## Features
 
@@ -17,6 +23,9 @@ of the data it presents.
 - Optionally extract signboard details from a photo using a compatible vision
   model. Photo processing is disabled by default and uploaded photos are
   processed in memory, not stored by the application.
+- Switch between light and dark themes through an explicit toggle. Light is the
+  default; the switch is animated with the View Transitions API where
+  supported and falls back to an instant change otherwise.
 
 ## Roles and project assignment
 
@@ -41,6 +50,7 @@ comparing signboard data against procurement records.
 
 - Next.js 16 App Router, React 19, and TypeScript
 - Tailwind CSS 4
+- next-themes for the light/dark theme toggle
 - Supabase Auth and Postgres
 - Vitest and ESLint
 
@@ -127,6 +137,8 @@ For command-line scripts that use `tsx --env-file=.env`, also create a private
 
 - `/login` — sign in
 - `/dashboard` — project dashboard, reports, map, and settings
+- `/dashboard/akun` — account page for the signed-in account: identity and
+  role, password change, and sign out
 - `/admin` — administrator project management
 - `/admin/login` — administrator sign in
 
