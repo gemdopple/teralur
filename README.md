@@ -1,187 +1,209 @@
 <div align="center">
 
-<img src="public/TeralurLogo.svg" alt="Teralur logo" width="96" />
+<img src="public/TeralurLogo.svg" alt="Logo Teralur" width="96" />
 
 # Teralur
 
-Teralur helps people explore public infrastructure projects and compare
-information from project signboards with available procurement records. The
-interface is primarily in Bahasa Indonesia, and explains the sources and limits
-of the data it presents.
+Teralur membantu masyarakat menjelajahi proyek infrastruktur publik dan
+membandingkan informasi dari papan proyek dengan catatan pengadaan yang
+tersedia. Antarmuka utamanya berbahasa Indonesia, dan menjelaskan sumber serta
+batasan data yang ditampilkan.
 
 </div>
 
-## Features
+## Progress saat ini
 
-- Browse projects, maps, search results, dossiers, and supporting evidence.
-- Compare manually entered signboard details against procurement records.
-- Provide an administrator area for managing projects, resources, QR codes, and
-  community visit reports.
-- Manage contractor accounts (created by an administrator) and assign each
-  project to a single contractor. A contractor sees only the projects assigned
-  to it.
-- Optionally extract signboard details from a photo using a compatible vision
-  model. Photo processing is disabled by default and uploaded photos are
-  processed in memory, not stored by the application.
-- Switch between light and dark themes through an explicit toggle. Light is the
-  default; the switch is animated with the View Transitions API where
-  supported and falls back to an instant change otherwise.
+- [x] Landing page (beranda) + halaman publik: jelajah proyek dengan peta & pin,
+      pencarian, dossier proyek, bukti pendukung, metodologi, dan tentang
+- [x] Cek papan proyek (`/check`): input manual + ekstraksi opsional dari foto,
+      lalu pencocokan dengan catatan pengadaan
+- [x] Pindai kode QR proyek (`/pindai`)
+- [x] Autentikasi Supabase dengan peran server-side (pemerintah, kontraktor,
+      admin)
+- [x] Dasbor: daftar proyek, papan proyek per proyek (kelola, QR, ubah),
+      laporan warga, peta, dan ringkasan
+- [x] Halaman akun saya: identitas + peran, ganti kata sandi, dan keluar
+- [x] Area admin: kelola proyek, resource, kode QR, laporan warga, dan akun
+      kontraktor
+- [x] Mode terang/gelap dengan transisi halus
+- [x] API untuk pencarian, pencocokan, dossier, laporan kunjungan, dan
+      administrasi
+- [ ] Impor data pengadaan nyata: skrip `import:records` siap, menunggu file
+      sumber resmi (belum disertakan di repositori)
 
-## Roles and project assignment
+## Fitur
 
-Each account has a role stored server-side in the `profiles` table, resolved on
-every request by `src/lib/identitas.ts`. The role is not taken from a cookie, so
-it cannot be changed from the browser.
+- Jelajahi proyek, peta, hasil pencarian, dossier, dan bukti pendukung.
+- Bandingkan detail papan yang diisi manual dengan catatan pengadaan.
+- Area administrator untuk mengelola proyek, resource, kode QR, dan laporan
+  kunjungan warga.
+- Kelola akun kontraktor (dibuat oleh administrator) dan tetapkan setiap
+  proyek ke satu kontraktor. Kontraktor hanya melihat proyek yang ditugaskan
+  kepadanya.
+- Ekstraksi detail papan dari foto secara opsional memakai model visi yang
+  kompatibel. Pemrosesan foto nonaktif secara bawaan dan foto yang diunggah
+  diproses di memori, tidak disimpan oleh aplikasi.
+- Ganti tema terang/gelap lewat tombol eksplisit. Terang adalah bawaan;
+  pergantiannya dianimasikan dengan View Transitions API bila didukung dan
+  langsung berganti bila tidak.
 
-- **Pemerintah (government)** assigns projects and picks a contractor. It sees
-  every project in its working area.
-- **Kontraktor (contractor)** accounts are created by an administrator in the
-  admin console (email and starting password). A contractor's dashboard and its
-  API are filtered by `submissions.contractor_id`, so it only ever sees the
-  projects assigned to it — including when opening a project board by URL.
-- **Admin** manages site content: projects, resources, QR codes, reports, and
-  contractor accounts.
+## Peran dan penugasan proyek
 
-One project is assigned to at most one contractor. The supplier name recorded on
-the official project data (`penyedia`) is separate and is still used when
-comparing signboard data against procurement records.
+Setiap akun memiliki peran yang tersimpan di sisi server pada tabel
+`profiles`, yang diselesaikan pada setiap permintaan oleh
+`src/lib/identitas.ts`. Peran tidak diambil dari cookie, sehingga tidak bisa
+diubah dari peramban.
 
-## Technology
+- **Pemerintah (government)** menetapkan proyek dan memilih kontraktor. Ia
+  melihat setiap proyek di area kerjanya.
+- **Kontraktor (contractor)** dibuat oleh administrator di konsol admin
+  (email dan kata sandi awal). Dasbor kontraktor dan API-nya difilter
+  berdasarkan `submissions.contractor_id`, sehingga hanya melihat proyek yang
+  ditugaskan kepadanya — termasuk saat membuka papan proyek lewat URL.
+- **Admin** mengelola konten situs: proyek, resource, kode QR, laporan, dan
+  akun kontraktor.
 
-- Next.js 16 App Router, React 19, and TypeScript
+Satu proyek ditugaskan ke paling banyak satu kontraktor. Nama penyedia yang
+tercatat pada data proyek resmi (`penyedia`) terpisah dan tetap dipakai saat
+membandingkan data papan dengan catatan pengadaan.
+
+## Teknologi
+
+- Next.js 16 App Router, React 19, dan TypeScript
 - Tailwind CSS 4
-- next-themes for the light/dark theme toggle
-- Supabase Auth and Postgres
-- Vitest and ESLint
+- next-themes untuk toggle tema terang/gelap
+- Supabase Auth dan Postgres
+- Vitest dan ESLint
 
-## Prerequisites
+## Prasyarat
 
-- Node.js compatible with the versions required by Next.js 16
+- Node.js yang kompatibel dengan versi yang dibutuhkan Next.js 16
 - npm
-- A Supabase project for database-backed features
+- Proyek Supabase untuk fitur berbasis basis data
 
-## Local development
+## Pengembangan lokal
 
-1. Install dependencies:
+1. Pasang dependensi:
 
    ```bash
    npm install
    ```
 
-2. Copy the environment template to a local environment file:
+2. Salin template lingkungan ke file lingkungan lokal:
 
    ```powershell
    Copy-Item .env.example .env.local
    ```
 
-   Fill in the values described below. Keep local environment files private;
-   they are not intended to be committed.
+   Isi nilai yang dijelaskan di bawah. Jaga file lingkungan lokal tetap
+   privat; file tersebut tidak dimaksudkan untuk di-commit.
 
-3. Apply the SQL migrations in `supabase/migrations/` to your Supabase project,
-   in filename order. Migration `0005_contractors.sql` is required for
-   contractor accounts: it adds the `contractors` and `profiles` tables (the
-   server-side source of each account's role) and `submissions.contractor_id`
-   (the single-contractor assignment).
+3. Terapkan migrasi SQL di `supabase/migrations/` ke proyek Supabase Anda,
+   sesuai urutan nama file. Migrasi `0005_contractors.sql` wajib untuk akun
+   kontraktor: migrasi tersebut menambah tabel `contractors` dan `profiles`
+   (sumber peran setiap akun di sisi server) serta
+   `submissions.contractor_id` (penugasan satu kontraktor).
 
-4. Start the development server:
+4. Jalankan server pengembangan:
 
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000).
+5. Buka [http://localhost:3000](http://localhost:3000).
 
-The public pages can start without a connected database, but search, matching,
-project administration, and reports need the relevant Supabase configuration
-and data. The application returns setup errors when required services are not
-configured.
+Halaman publik bisa berjalan tanpa basis data yang tersambung, tetapi
+pencarian, pencocokan, administrasi proyek, dan laporan memerlukan konfigurasi
+serta data Supabase yang relevan. Aplikasi mengembalikan galat penyiapan bila
+layanan yang dibutuhkan belum dikonfigurasi.
 
-### Environment variables
+### Variabel lingkungan
 
-| Variable | Purpose |
+| Variabel | Kegunaan |
 | --- | --- |
-| `SUPABASE_URL` | Server-side Supabase project URL. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-side service-role key for privileged database operations. Never expose this as a `NEXT_PUBLIC_*` variable. |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase URL used by the browser authentication client. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/publishable key used by the browser authentication client. |
-| `IP_HASH_SALT` | Secret salt for rate-limit identifiers; required for rate-limited endpoints when the database is configured. |
-| `MODEL_API_KEY` | Optional API key for automatic photo extraction. Without it, users can enter signboard details manually. |
-| `MODEL_BASE_URL` | Optional OpenAI-compatible API base URL. Defaults to `https://api.openai.com/v1`. |
-| `MODEL_NAME` | Model identifier for the configured vision provider. |
-| `NEXT_PUBLIC_SITE_URL` | Public site origin used to generate project and QR-code links. |
-| `NEXT_PUBLIC_CORRECTION_EMAIL` | Optional public email address for corrections. |
-| `ADMIN_EMAILS` | Comma-separated allowlist of administrator email addresses. Accounts listed here are treated as `admin` even without a `profiles` row. |
-| `PHOTO_FLOW_ENABLED` | Enabled by default; set to `false` to freeze the photo workflow (nav link, /check, match and extract endpoints all 404). |
+| `SUPABASE_URL` | URL proyek Supabase di sisi server. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Kunci service-role di sisi server untuk operasi basis data teristimewa. Jangan pernah terekspos sebagai variabel `NEXT_PUBLIC_*`. |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL Supabase yang dipakai klien autentikasi peramban. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Kunci anonim/publishable Supabase yang dipakai klien autentikasi peramban. |
+| `IP_HASH_SALT` | Salt rahasia untuk pengenal pembatasan laju; wajib untuk endpoint yang dibatasi lajunya bila basis data dikonfigurasi. |
+| `MODEL_API_KEY` | Opsional: kunci API untuk ekstraksi foto otomatis. Tanpa ini, pengguna dapat mengisi detail papan secara manual. |
+| `MODEL_BASE_URL` | Opsional: base URL API yang kompatibel OpenAI. Bawaan: `https://api.openai.com/v1`. |
+| `MODEL_NAME` | Pengenal model untuk penyedia visi yang dikonfigurasi. |
+| `NEXT_PUBLIC_SITE_URL` | Origin situs publik yang dipakai untuk membuat tautan proyek dan kode QR. |
+| `NEXT_PUBLIC_CORRECTION_EMAIL` | Opsional: alamat email publik untuk koreksi. |
+| `ADMIN_EMAILS` | Daftar alamat email administrator, dipisah koma. Akun yang tercantum di sini diperlakukan `admin` meski tanpa baris `profiles`. |
+| `PHOTO_FLOW_ENABLED` | Aktif secara bawaan; isi `false` untuk membekukan alur foto (tautan nav, /check, endpoint match dan extract sama-sama 404). |
 
-The variables included in `.env.example` are the main application settings.
-`MODEL_BASE_URL` and `MODEL_NAME` are optional provider-specific settings.
+Variabel dalam `.env.example` adalah pengaturan utama aplikasi.
+`MODEL_BASE_URL` dan `MODEL_NAME` adalah pengaturan khusus penyedia yang
+bersifat opsional.
 
-For command-line scripts that use `tsx --env-file=.env`, also create a private
-`.env` file from `.env.example` and fill in the server-side values they need.
+Untuk skrip baris perintah yang memakai `tsx --env-file=.env`, buat juga file
+`.env` privat dari `.env.example` dan isi nilai sisi server yang dibutuhkan.
 
-## Application routes
+## Rute aplikasi
 
-### Public pages
+### Halaman publik
 
-- `/` — home
-- `/jelajah` — browse projects
-- `/search` — search
-- `/dossiers/[slug]` and `/evidence/[slug]` — project dossiers and evidence
-- `/examples` and `/examples/[exampleId]` — examples
-- `/methodology` and `/about` — methodology and project information
-- `/check` — signboard checking; the photo workflow is enabled by default and
-  can be frozen with `PHOTO_FLOW_ENABLED=false`
-- `/pindai` — QR scanning
+- `/` — beranda
+- `/jelajah` — jelajahi proyek
+- `/search` — pencarian
+- `/dossiers/[slug]` dan `/evidence/[slug]` — dossier dan bukti proyek
+- `/examples` dan `/examples/[exampleId]` — contoh
+- `/methodology` dan `/about` — metodologi dan informasi proyek
+- `/check` — pemeriksaan papan; alur foto aktif secara bawaan dan bisa
+  dibekukan dengan `PHOTO_FLOW_ENABLED=false`
+- `/pindai` — pemindaian QR
 
-### Dashboard and administration
+### Dasbor dan administrasi
 
-- `/login` — sign in
-- `/dashboard` — project dashboard, reports, map, and settings
-- `/dashboard/akun` — account page for the signed-in account: identity and
-  role, password change, and sign out
-- `/admin` — administrator project management
-- `/admin/login` — administrator sign in
+- `/login` — masuk
+- `/dashboard` — dasbor proyek, laporan, peta, dan pengaturan
+- `/dashboard/akun` — halaman akun untuk akun yang sedang masuk: identitas dan
+  peran, ganti kata sandi, dan keluar
+- `/admin` — manajemen proyek oleh administrator
+- `/admin/login` — masuk administrator
 
 ### API
 
-Route handlers are under `src/app/api/`. They include endpoints for searching,
-matching, dossiers, photo extraction, visit reports, and administrator
-management of projects and resources.
+Route handler ada di `src/app/api/`. Termasuk endpoint untuk pencarian,
+pencocokan, dossier, ekstraksi foto, laporan kunjungan, serta manajemen proyek
+dan resource oleh administrator.
 
-## Database and sample data
+## Basis data dan data contoh
 
-Apply migrations in `supabase/migrations/` before using database-backed
-features. The demo seed script inserts fictional demonstration projects:
+Terapkan migrasi di `supabase/migrations/` sebelum memakai fitur berbasis basis
+data. Skrip seed demo menyisipkan proyek demonstrasi fiktif:
 
 ```bash
 npm run seed:demo
 ```
 
-It uses `.env` and requires `SUPABASE_URL` and
+Skrip ini memakai `.env` dan memerlukan `SUPABASE_URL` serta
 `SUPABASE_SERVICE_ROLE_KEY`.
 
-`npm run import:records` imports procurement records from
-`data/raw/main_tangerang.csv` and `data/raw/awards_tangerang.csv`. These source
-files are not included in the repository; obtain and review authorized source
-data before running the importer.
+`npm run import:records` mengimpor catatan pengadaan dari
+`data/raw/main_tangerang.csv` dan `data/raw/awards_tangerang.csv`. File sumber
+ini tidak disertakan dalam repositori; peroleh dan tinjau data sumber resmi
+sebelum menjalankan importir.
 
-## Useful commands
+## Perintah berguna
 
-| Command | Description |
+| Perintah | Deskripsi |
 | --- | --- |
-| `npm run dev` | Start the local development server. |
-| `npm run build` | Create a production build. |
-| `npm run start` | Serve a production build. |
-| `npm run lint` | Run ESLint. |
-| `npm test` | Run the Vitest suite. |
-| `npm run create:admin` | Create or configure an administrator using the local script. |
-| `npm run seed:demo` | Seed fictional demo projects into Supabase. |
-| `npm run import:records` | Import local procurement CSV files into Supabase. |
+| `npm run dev` | Jalankan server pengembangan lokal. |
+| `npm run build` | Buat build produksi. |
+| `npm run start` | Sajikan build produksi. |
+| `npm run lint` | Jalankan ESLint. |
+| `npm test` | Jalankan rangkaian Vitest. |
+| `npm run create:admin` | Buat atau konfigurasi administrator memakai skrip lokal. |
+| `npm run seed:demo` | Seed proyek demo fiktif ke Supabase. |
+| `npm run import:records` | Impor file CSV pengadaan lokal ke Supabase. |
 
-## Privacy and security notes
+## Catatan privasi dan keamanan
 
-- Never commit `.env`, `.env.local`, or real credentials.
-- Keep `SUPABASE_SERVICE_ROLE_KEY` server-side.
-- Photo extraction requires explicit model configuration; photos are not
-  persisted by the application.
-- Demo projects are fictional. Do not present them as real procurement records.
+- Jangan pernah commit `.env`, `.env.local`, atau kredensial nyata.
+- Simpan `SUPABASE_SERVICE_ROLE_KEY` di sisi server.
+- Ekstraksi foto memerlukan konfigurasi model yang eksplisit; foto tidak
+  disimpan oleh aplikasi.
+- Proyek demo bersifat fiktif. Jangan sajikan sebagai catatan pengadaan nyata.
